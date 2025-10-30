@@ -1,6 +1,5 @@
 package com.epam.rd.autocode.spring.project.dto;
 
-import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,22 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderDTO {
 
-    @NotBlank(message = "{NotBlank.Order.clientEmail}")
-    @Email(message = "{Email.Order.clientEmail}")
     private String clientEmail;
-
-    @NotBlank(message = "{NotBlank.Order.employeeEmail}")
-    @Email(message = "{Email.Order.employeeEmail}")
     private String employeeEmail;
-
-    @NotNull(message = "{NotNull.Order.orderDate}")
-    @PastOrPresent(message = "{PastOrPresent.Order.orderDate}")
     private LocalDateTime orderDate;
-
-    @NotNull(message = "{NotNull.Order.price}")
-    @DecimalMin(value = "0.01", message = "{DecimalMin.Order.price}")
     private BigDecimal price;
-
-    @NotEmpty(message = "{NotEmpty.Order.bookItems}")
     private List<BookItemDTO> bookItems;
 }
