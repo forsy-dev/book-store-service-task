@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -48,5 +49,22 @@ public class BookServiceImplTest {
 
         assertEquals(expectedBooks.size(), actualBookDto.size());
         assertSame(expectedDto, actualBookDto.get(0));
+    }
+
+    @Test
+    void testGetBookByName_ShouldReturnBook() {
+        String name = "name";
+        Book book = Book.builder().name(name).build();
+        BookDTO expectedDto = BookDTO.builder().name(name).build();
+
+        when(bookRepository.findByName(name)).thenReturn(Optional.of(book));
+        when(mapper.map(book, BookDTO.class)).thenReturn(expectedDto);
+
+        BookDTO actualBookDto = bookService.getBookByName(name);
+
+        verify(bookRepository, times(1)).findByName(name);
+        verify(mapper, times(1)).map(book, BookDTO.class);
+
+        assertSame(name, actualBookDto.getName());
     }
 }
