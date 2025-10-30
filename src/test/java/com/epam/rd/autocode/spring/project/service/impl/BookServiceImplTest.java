@@ -128,4 +128,21 @@ public class BookServiceImplTest {
             verify(mapper, never()).map(any(Book.class), any());
         }
     }
+
+    @Nested
+    class DeleteByName {
+
+        @Test
+        void testDeleteBookByName_ShouldReturnNothing() {
+            String name = "name";
+
+            when(bookRepository.existsByName(name)).thenReturn(true);
+            doNothing().when(bookRepository).deleteByName(name);
+
+            bookService.deleteBookByName(name);
+
+            verify(bookRepository, times(1)).existsByName(name);
+            verify(bookRepository, times(1)).deleteByName(name);
+        }
+    }
 }
