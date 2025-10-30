@@ -157,4 +157,45 @@ public class BookServiceImplTest {
             verify(bookRepository, never()).deleteByName(any(String.class));
         }
     }
+
+    @Nested
+    class AddBook {
+
+        @Test
+        void testAddBook_ShouldReturnBook() {
+            String name = "name";
+            BookDTO createDto = BookDTO.builder().name(name).build();
+            BookDTO expectedDto = BookDTO.builder().name(name).build();
+            Book mappedBook = Book.builder().name(name).build();
+
+            when(bookRepository.existsByName(name)).thenReturn(false);
+            when(mapper.map(createDto, Book.class)).thenReturn(mappedBook);
+            when(bookRepository.save(mappedBook)).thenReturn(mappedBook);
+            when(mapper.map(mappedBook, BookDTO.class)).thenReturn(expectedDto);
+
+            BookDTO actualBookDto = bookService.addBook(createDto);
+
+            verify(bookRepository, times(1)).findByName(name);
+            verify(mapper, times(1)).map(createDto, Book.class);
+            verify(bookRepository, times(1)).save(mappedBook);
+            verify(mapper, times(1)).map(mappedBook, BookDTO.class);
+
+            assertEquals(expectedDto, actualBookDto);
+        }
+
+        @Test
+        void testUpdateBookByName_ShouldThrowExceptionWhenBookNotFound() {
+            String oldName = "oldName";
+            BookDTO updateDto = BookDTO.builder().build();
+
+            when(bookRepository.findByName(oldName)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> bookService.updateBookByName(oldName, updateDto));
+
+            verify(bookRepository, times(1)).findByName(oldName);
+            verify(mapper, never()).map(any(BookDTO.class), any(Book.class));
+            verify(bookRepository, never()).save(any(Book.class));
+            verify(mapper, never()).map(any(Book.class), any());
+        }
+    }
 }
