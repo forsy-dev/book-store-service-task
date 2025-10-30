@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
 import com.epam.rd.autocode.spring.project.model.enums.Language;
@@ -66,5 +67,17 @@ public class BookServiceImplTest {
         verify(mapper, times(1)).map(book, BookDTO.class);
 
         assertEquals(name, actualBookDto.getName());
+    }
+
+    @Test
+    void testGetBookByName_ShouldThrowExceptionWhenBookNotFound() {
+        String name = "name";
+
+        when(bookRepository.findByName(name)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> bookService.getBookByName(name));
+
+        verify(bookRepository, times(1)).findByName(name);
+        verify(mapper, never()).map(any(Book.class), any());
     }
 }
