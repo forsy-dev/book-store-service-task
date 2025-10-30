@@ -86,5 +86,30 @@ public class BookServiceImplTest {
         }
     }
 
+    @Nested
+    class UpdateByName {
 
+        @Test
+        void testUpdateBookByName_ShouldReturnBook() {
+            Long id = 1L;
+            String oldName = "oldName";
+            String newName = "newName";
+            Book book = Book.builder().id(id).name(oldName).build();
+            BookDTO bookDto = BookDTO.builder().name(newName).build();
+            BookDTO expectedDto = BookDTO.builder().name(newName).build();
+            Book savedBook = Book.builder().id(id).name(newName).build();
+
+            when(bookRepository.findByName(oldName)).thenReturn(Optional.of(book));
+            when(bookRepository.save(book)).thenReturn(savedBook);
+            when(mapper.map(savedBook, BookDTO.class)).thenReturn(expectedDto);
+
+            BookDTO actualBookDto = bookService.updateBookByName(oldName, bookDto);
+
+            verify(bookRepository, times(1)).findByName(oldName);
+            verify(bookRepository, times(1)).save(book);
+            verify(mapper, times(1)).map(savedBook, BookDTO.class);
+
+            assertEquals(expectedDto, actualBookDto);
+        }
+    }
 }
