@@ -3,8 +3,8 @@ package com.epam.rd.autocode.spring.project.model;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
 import com.epam.rd.autocode.spring.project.model.enums.Language;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
@@ -14,6 +14,7 @@ import java.time.LocalDate;
 @Table(name = "BOOKS")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Book {
 
     @Id
@@ -40,7 +41,7 @@ public class Book {
     private String author;
 
     @Column(name = "NUMBER_OF_PAGES")
-    private Integer numberOfPages;
+    private Integer pages;
 
     @Column(name = "CHARACTERISTICS")
     private String characteristics;

@@ -21,4 +21,10 @@ public class Employee extends User {
 
     @Column(name = "BIRTH_DATE")
     private LocalDate birthDate;
+
+    public Employee(Long id, String name, String email, String password, String phone, LocalDate birthDate) {
+        super(id, name, email, password);
+        this.phone = phone;
+        this.birthDate = birthDate;
+    }
 }
