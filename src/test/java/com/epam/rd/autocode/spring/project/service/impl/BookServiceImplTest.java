@@ -144,5 +144,17 @@ public class BookServiceImplTest {
             verify(bookRepository, times(1)).existsByName(name);
             verify(bookRepository, times(1)).deleteByName(name);
         }
+
+        @Test
+        void testDeleteBookByName_ShouldThrowExceptionWhenBookNotFound() {
+            String name = "name";
+
+            when(bookRepository.existsByName(name)).thenReturn(false);
+
+            assertThrows(NotFoundException.class, () -> bookService.deleteBookByName(name));
+
+            verify(bookRepository, times(1)).existsByName(name);
+            verify(bookRepository, never()).deleteByName(any(String.class));
+        }
     }
 }

@@ -39,7 +39,11 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void deleteBookByName(String name) {
+        if (bookRepository.existsByName(name)) {
+            bookRepository.deleteByName(name);
+        } else {
 
+        }
     }
 
     @Override
