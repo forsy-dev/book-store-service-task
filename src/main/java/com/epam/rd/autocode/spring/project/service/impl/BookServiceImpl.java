@@ -42,7 +42,7 @@ public class BookServiceImpl implements BookService {
         if (bookRepository.existsByName(name)) {
             bookRepository.deleteByName(name);
         } else {
-
+            throw new NotFoundException(String.format("Book with name %s not found", name));
         }
     }
 
