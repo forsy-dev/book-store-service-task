@@ -56,4 +56,25 @@ public class OrderServiceImplTest {
         assertEquals(1, actualOrderDto.getContent().size());
         assertEquals(expectedDto, actualOrderDto.getContent().get(0));
     }
+
+    @Test
+    void testGetAllOrdersByEmployee_ShouldReturnPagedOrders() {
+        String employeeEmail = "test@test.com";
+        Order order = Order.builder().build();
+        OrderDTO expectedDto = new OrderDTO();
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
+
+        when(orderRepository.findAllByEmployeeEmail(employeeEmail, pageable)).thenReturn(orderPage);
+        when(mapper.map(order, OrderDTO.class)).thenReturn(expectedDto);
+
+        Page<OrderDTO> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable);
+
+        verify(orderRepository, times(1)).findAllByEmployeeEmail(employeeEmail, pageable);
+        verify(mapper, times(1)).map(order, OrderDTO.class);
+
+        assertEquals(1, actualOrderDto.getTotalElements());
+        assertEquals(1, actualOrderDto.getContent().size());
+        assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+    }
 }

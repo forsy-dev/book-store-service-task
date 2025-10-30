@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findAllByClientEmail(String clientEmail, Pageable pageable);
+    Page<Order> findAllByEmployeeEmail(String employeeEmail, Pageable pageable);
 }
