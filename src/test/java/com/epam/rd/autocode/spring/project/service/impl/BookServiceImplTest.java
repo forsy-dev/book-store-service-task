@@ -15,6 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,21 +42,23 @@ public class BookServiceImplTest {
     private ModelMapper mapper;
 
     @Test
-    void testGetAllBooks_ShouldReturnAllBooks() {
+    void testGetAllBooks_ShouldReturnPagedBooks() {
         Book book = Book.builder().build();
         BookDTO expectedDto = new BookDTO();
-        List<Book> expectedBooks = Arrays.asList(book);
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Book> bookPage = new PageImpl<>(Arrays.asList(book), pageable, 1);
 
-        when(bookRepository.findAll()).thenReturn(expectedBooks);
+        when(bookRepository.findAll(pageable)).thenReturn(bookPage);
         when(mapper.map(book, BookDTO.class)).thenReturn(expectedDto);
 
-        List<BookDTO> actualBookDto = bookService.getAllBooks();
+        Page<BookDTO> actualBookDto = bookService.getAllBooks(pageable);
 
-        verify(bookRepository, times(1)).findAll();
+        verify(bookRepository, times(1)).findAll(pageable);
         verify(mapper, times(1)).map(book, BookDTO.class);
 
-        assertEquals(expectedBooks.size(), actualBookDto.size());
-        assertSame(expectedDto, actualBookDto.get(0));
+        assertEquals(1, actualBookDto.getTotalElements());
+        assertEquals(1, actualBookDto.getContent().size());
+        assertEquals(expectedDto, actualBookDto.getContent().get(0));
     }
 
     @Nested

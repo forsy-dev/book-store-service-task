@@ -7,21 +7,25 @@ import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
     private final ModelMapper mapper;
 
     @Override
-    public List<BookDTO> getAllBooks() {
-        return bookRepository.findAll().stream().map(book -> mapper.map(book, BookDTO.class)).toList();
+    public Page<BookDTO> getAllBooks(Pageable pageable) {
+        return bookRepository.findAll(pageable).map(book -> mapper.map(book, BookDTO.class));
     }
 
     @Override
@@ -32,26 +36,34 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDTO updateBookByName(String name, BookDTO dto) {
+        log.info("Attempting to update book with name {}", name);
         Book book = bookRepository.findByName(name).orElseThrow(
                 () -> new NotFoundException(String.format("Book with name %s not found", name)));
         mapper.map(dto, book);
-        return mapper.map(bookRepository.save(book), BookDTO.class);
+        book = bookRepository.save(book);
+        log.info("Book with name {} updated successfully", name);
+        return mapper.map(book, BookDTO.class);
     }
 
     @Override
     public void deleteBookByName(String name) {
+        log.info("Attempting to delete book with name {}", name);
         if (bookRepository.existsByName(name)) {
             bookRepository.deleteByName(name);
+            log.info("Book with name {} deleted successfully", name);
         } else {
             throw new NotFoundException(String.format("Book with name %s not found", name));
         }
     }
 
     @Override
-    public BookDTO addBook(BookDTO book) {
-        if (bookRepository.existsByName(book.getName())) {
-            throw new AlreadyExistException(String.format("Book with name %s already exists", book.getName()));
+    public BookDTO addBook(BookDTO dto) {
+        log.info("Attempting to add book with name {}", dto.getName());
+        if (bookRepository.existsByName(dto.getName())) {
+            throw new AlreadyExistException(String.format("Book with name %s already exists", dto.getName()));
         }
-        return mapper.map(bookRepository.save(mapper.map(book, Book.class)), BookDTO.class);
+        Book book = bookRepository.save(mapper.map(dto, Book.class));
+        log.info("Book with name {} added successfully", book.getName());
+        return mapper.map(book, BookDTO.class);
     }
 }
