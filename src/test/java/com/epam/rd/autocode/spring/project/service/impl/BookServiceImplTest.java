@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
@@ -181,6 +182,21 @@ public class BookServiceImplTest {
             verify(mapper, times(1)).map(mappedBook, BookDTO.class);
 
             assertEquals(expectedDto, actualBookDto);
+        }
+
+        @Test
+        void testAddBook_ShouldThrowExceptionWhenBookAlreadyExists() {
+            String name = "name";
+            BookDTO createDto = BookDTO.builder().name(name).build();
+
+            when(bookRepository.existsByName(name)).thenReturn(true);
+
+            assertThrows(AlreadyExistException.class, () -> bookService.addBook(createDto));
+
+            verify(bookRepository, times(1)).existsByName(name);
+            verify(mapper, never()).map(any(BookDTO.class), any());
+            verify(bookRepository, never()).save(any(Book.class));
+            verify(mapper, never()).map(any(Book.class), any());
         }
     }
 }
