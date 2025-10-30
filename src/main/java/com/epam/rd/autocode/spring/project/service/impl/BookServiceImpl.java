@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
@@ -48,6 +49,9 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDTO addBook(BookDTO book) {
-        return null;
+        if (bookRepository.existsByName(book.getName())) {
+            throw new AlreadyExistException(String.format("Book with name %s already exists", book.getName()));
+        }
+        return mapper.map(bookRepository.save(mapper.map(book, Book.class)), BookDTO.class);
     }
 }
