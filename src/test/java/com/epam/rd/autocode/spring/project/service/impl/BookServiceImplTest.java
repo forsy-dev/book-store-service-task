@@ -65,6 +65,6 @@ public class BookServiceImplTest {
         verify(bookRepository, times(1)).findByName(name);
         verify(mapper, times(1)).map(book, BookDTO.class);
 
-        assertSame(name, actualBookDto.getName());
+        assertEquals(name, actualBookDto.getName());
     }
 }

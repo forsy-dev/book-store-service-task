@@ -23,7 +23,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDTO getBookByName(String name) {
-        return null;
+        return bookRepository.findByName(name).map(book -> mapper.map(book, BookDTO.class)).orElse(null);
     }
 
     @Override
