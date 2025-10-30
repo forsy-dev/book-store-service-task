@@ -24,7 +24,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<OrderDTO> getOrdersByEmployee(String employeeEmail, Pageable pageable) {
-        return null;
+        return orderRepository.findAllByEmployeeEmail(employeeEmail, pageable).map(order -> mapper.map(order, OrderDTO.class));
     }
 
     @Override
