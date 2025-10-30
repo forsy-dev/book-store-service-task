@@ -6,6 +6,7 @@ import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
 import com.epam.rd.autocode.spring.project.model.enums.Language;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,32 +53,38 @@ public class BookServiceImplTest {
         assertSame(expectedDto, actualBookDto.get(0));
     }
 
-    @Test
-    void testGetBookByName_ShouldReturnBook() {
-        String name = "name";
-        Book book = Book.builder().name(name).build();
-        BookDTO expectedDto = BookDTO.builder().name(name).build();
+    @Nested
+    class FindByName {
 
-        when(bookRepository.findByName(name)).thenReturn(Optional.of(book));
-        when(mapper.map(book, BookDTO.class)).thenReturn(expectedDto);
+        @Test
+        void testGetBookByName_ShouldReturnBook() {
+            String name = "name";
+            Book book = Book.builder().name(name).build();
+            BookDTO expectedDto = BookDTO.builder().name(name).build();
 
-        BookDTO actualBookDto = bookService.getBookByName(name);
+            when(bookRepository.findByName(name)).thenReturn(Optional.of(book));
+            when(mapper.map(book, BookDTO.class)).thenReturn(expectedDto);
 
-        verify(bookRepository, times(1)).findByName(name);
-        verify(mapper, times(1)).map(book, BookDTO.class);
+            BookDTO actualBookDto = bookService.getBookByName(name);
 
-        assertEquals(name, actualBookDto.getName());
+            verify(bookRepository, times(1)).findByName(name);
+            verify(mapper, times(1)).map(book, BookDTO.class);
+
+            assertEquals(name, actualBookDto.getName());
+        }
+
+        @Test
+        void testGetBookByName_ShouldThrowExceptionWhenBookNotFound() {
+            String name = "name";
+
+            when(bookRepository.findByName(name)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> bookService.getBookByName(name));
+
+            verify(bookRepository, times(1)).findByName(name);
+            verify(mapper, never()).map(any(Book.class), any());
+        }
     }
 
-    @Test
-    void testGetBookByName_ShouldThrowExceptionWhenBookNotFound() {
-        String name = "name";
 
-        when(bookRepository.findByName(name)).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> bookService.getBookByName(name));
-
-        verify(bookRepository, times(1)).findByName(name);
-        verify(mapper, never()).map(any(Book.class), any());
-    }
 }
