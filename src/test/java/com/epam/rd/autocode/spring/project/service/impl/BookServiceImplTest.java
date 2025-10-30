@@ -112,5 +112,20 @@ public class BookServiceImplTest {
 
             assertEquals(expectedDto, actualBookDto);
         }
+
+        @Test
+        void testUpdateBookByName_ShouldThrowExceptionWhenBookNotFound() {
+            String oldName = "oldName";
+            BookDTO updateDto = BookDTO.builder().build();
+
+            when(bookRepository.findByName(oldName)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> bookService.updateBookByName(oldName, updateDto));
+
+            verify(bookRepository, times(1)).findByName(oldName);
+            verify(mapper, never()).map(any(BookDTO.class), any(Book.class));
+            verify(bookRepository, never()).save(any(Book.class));
+            verify(mapper, never()).map(any(Book.class), any());
+        }
     }
 }
