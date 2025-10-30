@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.AllArgsConstructor;
@@ -43,5 +44,7 @@ public class Order {
     @DecimalMin(value = "0.01", message = "{DecimalMin.Order.price}")
     private BigDecimal price;
 
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @NotEmpty(message = "{NotEmpty.Order.bookItems}")
     private List<BookItem> bookItems;
 }

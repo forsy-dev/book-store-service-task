@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.service;
 
+import com.epam.rd.autocode.spring.project.dto.CreateOrderRequestDTO;
 import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 
 import java.util.*;
@@ -10,5 +11,5 @@ public interface OrderService {
 
     List<OrderDTO> getOrdersByEmployee(String employeeEmail);
 
-    OrderDTO addOrder(OrderDTO order);
+    OrderDTO addOrder(CreateOrderRequestDTO order);
 }
