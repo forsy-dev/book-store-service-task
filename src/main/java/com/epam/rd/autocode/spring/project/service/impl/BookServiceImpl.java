@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
+import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +30,11 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookDTO updateBookByName(String name, BookDTO book) {
-        return null;
+    public BookDTO updateBookByName(String name, BookDTO dto) {
+        Book book = bookRepository.findByName(name).orElseThrow(
+                () -> new NotFoundException(String.format("Book with name %s not found", name)));
+        mapper.map(dto, book);
+        return mapper.map(bookRepository.save(book), BookDTO.class);
     }
 
     @Override

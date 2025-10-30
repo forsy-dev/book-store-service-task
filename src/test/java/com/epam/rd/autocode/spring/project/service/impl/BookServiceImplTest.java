@@ -9,6 +9,7 @@ import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -91,23 +92,23 @@ public class BookServiceImplTest {
 
         @Test
         void testUpdateBookByName_ShouldReturnBook() {
-            Long id = 1L;
             String oldName = "oldName";
             String newName = "newName";
-            Book book = Book.builder().id(id).name(oldName).build();
-            BookDTO bookDto = BookDTO.builder().name(newName).build();
+            Book existingBook = Book.builder().id(1L).name(oldName).build();
+            BookDTO updateDto = BookDTO.builder().name(newName).build();
             BookDTO expectedDto = BookDTO.builder().name(newName).build();
-            Book savedBook = Book.builder().id(id).name(newName).build();
 
-            when(bookRepository.findByName(oldName)).thenReturn(Optional.of(book));
-            when(bookRepository.save(book)).thenReturn(savedBook);
-            when(mapper.map(savedBook, BookDTO.class)).thenReturn(expectedDto);
+            when(bookRepository.findByName(oldName)).thenReturn(Optional.of(existingBook));
+            doNothing().when(mapper).map(updateDto, existingBook);
+            when(bookRepository.save(existingBook)).thenReturn(existingBook);
+            when(mapper.map(existingBook, BookDTO.class)).thenReturn(expectedDto);
 
-            BookDTO actualBookDto = bookService.updateBookByName(oldName, bookDto);
+            BookDTO actualBookDto = bookService.updateBookByName(oldName, updateDto);
 
             verify(bookRepository, times(1)).findByName(oldName);
-            verify(bookRepository, times(1)).save(book);
-            verify(mapper, times(1)).map(savedBook, BookDTO.class);
+            verify(mapper, times(1)).map(updateDto, existingBook);
+            verify(bookRepository, times(1)).save(existingBook);
+            verify(mapper, times(1)).map(existingBook, BookDTO.class);
 
             assertEquals(expectedDto, actualBookDto);
         }
