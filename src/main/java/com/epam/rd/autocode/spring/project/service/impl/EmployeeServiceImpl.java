@@ -19,7 +19,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Page<EmployeeDisplayDTO> getAllEmployees(Pageable pageable) {
-        return null;
+        return employeeRepository.findAll(pageable).map(employee -> mapper.map(employee, EmployeeDisplayDTO.class));
     }
 
     @Override
