@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.math.BigDecimal;
 import java.rmi.AlreadyBoundException;
 import java.util.Arrays;
 import java.util.Optional;
@@ -285,6 +286,45 @@ public class ClientServiceImplTest {
 
             verify(clientRepository, times(1)).existsByEmail(email);
             verify(mapper, never()).map(any(ClientCreatDTO.class), any());
+            verify(clientRepository, never()).save(any(Client.class));
+            verify(mapper, never()).map(any(Client.class), any());
+        }
+    }
+
+    @Nested
+    class AddBalanceToClient {
+
+        @Test
+        void testAddBalanceToClient_ShouldReturnClient() {
+            String email = "test@test.com";
+            BigDecimal amount = BigDecimal.TEN;
+            AddBalanceDTO dto = AddBalanceDTO.builder().amount(amount).build();
+            Client client = Client.builder().email(email).balance(BigDecimal.ZERO).build();
+            ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).balance(amount).build();
+
+            when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
+            when(clientRepository.save(client)).thenReturn(client);
+            when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
+
+            ClientDisplayDTO actualClientDto = clientService.addBalanceToClient(email, dto);
+
+            verify(clientRepository, times(1)).findByEmail(email);
+            verify(clientRepository, times(1)).save(client);
+            verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
+
+            assertEquals(expectedDto, actualClientDto);
+        }
+
+        @Test
+        void testAddBalanceToClient_ShouldThrowExceptionWhenEmailNotFound() {
+            String email = "test@test.com";
+            AddBalanceDTO dto = AddBalanceDTO.builder().build();
+
+            when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> clientService.addBalanceToClient(email, dto));
+
+            verify(clientRepository, times(1)).findByEmail(email);
             verify(clientRepository, never()).save(any(Client.class));
             verify(mapper, never()).map(any(Client.class), any());
         }

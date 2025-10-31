@@ -3,6 +3,7 @@ package com.epam.rd.autocode.spring.project.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,8 @@ import java.math.BigDecimal;
 public class Client extends User {
 
     @Column(name = "BALANCE", nullable = false)
-    private BigDecimal balance;
+    @Builder.Default
+    private BigDecimal balance = BigDecimal.ZERO;
 
     public Client(Long id, String name, String email, String password, BigDecimal balance) {
         super(id, name, email, password);

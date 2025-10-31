@@ -1,17 +1,13 @@
 package com.epam.rd.autocode.spring.project.dto;
 
-import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
-import com.epam.rd.autocode.spring.project.model.enums.Language;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

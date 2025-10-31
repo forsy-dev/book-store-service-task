@@ -91,4 +91,15 @@ public class ClientServiceImpl implements ClientService {
         clientRepository.save(client);
         log.info("Password for client with email {} changed successfully", email);
     }
+
+    @Override
+    public ClientDisplayDTO addBalanceToClient(String email, AddBalanceDTO dto) {
+        log.info("Attempting to add balance {} to client with email {}", dto.getAmount(), email);
+        Client client = clientRepository.findByEmail(email).orElseThrow(
+                () -> new NotFoundException(String.format("Client with email %s not found", email)));
+        client.setBalance(client.getBalance().add(dto.getAmount()));
+        client = clientRepository.save(client);
+        log.info("Balance {} added to client with email {}", dto.getAmount(), email);
+        return mapper.map(client, ClientDisplayDTO.class);
+    }
 }
