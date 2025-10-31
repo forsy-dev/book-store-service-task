@@ -11,10 +11,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ClientDTO{
+public class ClientDisplayDTO {
 
     private String email;
-    private String password;
     private String name;
     private BigDecimal balance;
 }
