@@ -48,12 +48,13 @@ public class BookServiceImpl implements BookService {
     @Override
     public void deleteBookByName(String name) {
         log.info("Attempting to delete book with name {}", name);
-        if (bookRepository.existsByName(name)) {
-            bookRepository.deleteByName(name);
-            log.info("Book with name {} deleted successfully", name);
-        } else {
-            throw new NotFoundException(String.format("Book with name %s not found", name));
-        }
+        bookRepository.findByName(name).ifPresentOrElse(book -> {
+                    bookRepository.delete(book);
+                    log.info("Book with name {} deleted successfully", name);
+                },
+                () -> {
+                    throw new NotFoundException(String.format("Book with name %s not found", name));
+                });
     }
 
     @Override

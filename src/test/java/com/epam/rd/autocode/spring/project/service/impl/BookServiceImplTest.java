@@ -136,26 +136,27 @@ public class BookServiceImplTest {
         @Test
         void testDeleteBookByName_ShouldReturnNothing() {
             String name = "name";
+            Book book = Book.builder().name(name).build();
 
-            when(bookRepository.existsByName(name)).thenReturn(true);
-            doNothing().when(bookRepository).deleteByName(name);
+            when(bookRepository.findByName(name)).thenReturn(Optional.of(book));
+            doNothing().when(bookRepository).delete(book);
 
             bookService.deleteBookByName(name);
 
-            verify(bookRepository, times(1)).existsByName(name);
-            verify(bookRepository, times(1)).deleteByName(name);
+            verify(bookRepository, times(1)).findByName(name);
+            verify(bookRepository, times(1)).delete(book);
         }
 
         @Test
         void testDeleteBookByName_ShouldThrowExceptionWhenBookNotFound() {
             String name = "name";
 
-            when(bookRepository.existsByName(name)).thenReturn(false);
+            when(bookRepository.findByName(name)).thenReturn(Optional.empty());
 
             assertThrows(NotFoundException.class, () -> bookService.deleteBookByName(name));
 
-            verify(bookRepository, times(1)).existsByName(name);
-            verify(bookRepository, never()).deleteByName(any(String.class));
+            verify(bookRepository, times(1)).findByName(name);
+            verify(bookRepository, never()).delete(any(Book.class));
         }
     }
 
