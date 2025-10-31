@@ -2,9 +2,11 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDisplayDTO;
+import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +22,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -56,20 +59,38 @@ public class EmployeeServiceImplTest {
         assertEquals(expectedDto, actualEmployeeDto.getContent().get(0));
     }
 
-    @Test
-    void testGetAllEmployeeByEmail_ShouldReturnEmployee() {
-        String email = "test@test.com";
-        Employee employee = Employee.builder().email(email).build();
-        EmployeeDisplayDTO expectedDto = EmployeeDisplayDTO.builder().email(email).build();
+    @Nested
+    class FindByEmail {
 
-        when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
-        when(mapper.map(employee, EmployeeDisplayDTO.class)).thenReturn(expectedDto);
+        @Test
+        void testGetEmployeeByEmail_ShouldReturnEmployee() {
+            String email = "test@test.com";
+            Employee employee = Employee.builder().email(email).build();
+            EmployeeDisplayDTO expectedDto = EmployeeDisplayDTO.builder().email(email).build();
 
-        EmployeeDisplayDTO actualEmployeeDto = employeeService.getEmployeeByEmail(email);
+            when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
+            when(mapper.map(employee, EmployeeDisplayDTO.class)).thenReturn(expectedDto);
 
-        verify(employeeRepository, times(1)).findByEmail(email);
-        verify(mapper, times(1)).map(employee, EmployeeDisplayDTO.class);
+            EmployeeDisplayDTO actualEmployeeDto = employeeService.getEmployeeByEmail(email);
 
-        assertEquals(expectedDto, actualEmployeeDto);
+            verify(employeeRepository, times(1)).findByEmail(email);
+            verify(mapper, times(1)).map(employee, EmployeeDisplayDTO.class);
+
+            assertEquals(expectedDto, actualEmployeeDto);
+        }
+
+        @Test
+        void testGetEmployeeByEmail_ShouldThrowExceptionWhenEmployeeNotFound() {
+            String email = "test@test.com";
+
+            when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> employeeService.getEmployeeByEmail(email));
+
+            verify(employeeRepository, times(1)).findByEmail(email);
+            verify(mapper, never()).map(any(Employee.class), any());
+        }
     }
+
+
 }

@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDisplayDTO;
+import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +25,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public EmployeeDisplayDTO getEmployeeByEmail(String email) {
-        return null;
+        return employeeRepository.findByEmail(email).map(employee -> mapper.map(employee, EmployeeDisplayDTO.class))
+                .orElseThrow(() -> new NotFoundException(String.format("Employee with email %s not found", email)));
     }
 
     @Override
