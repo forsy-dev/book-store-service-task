@@ -75,6 +75,15 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public EmployeeDisplayDTO addEmployee(EmployeeDTO employee) {
-        return null;
+        log.info("Attempting to add employee with email {}", employee.getEmail());
+        if (employeeRepository.existsByEmail(employee.getEmail())) {
+            throw new AlreadyExistException(String.format("Employee with email %s already exists", employee.getEmail()));
+        }
+        validateAge(employee.getBirthDate());
+        Employee newEmployee = mapper.map(employee, Employee.class);
+        newEmployee.setPassword(passwordEncoder.encode(employee.getPassword()));
+        newEmployee = employeeRepository.save(newEmployee);
+        log.info("Employee with email {} added successfully", newEmployee.getEmail());
+        return mapper.map(newEmployee, EmployeeDisplayDTO.class);
     }
 }

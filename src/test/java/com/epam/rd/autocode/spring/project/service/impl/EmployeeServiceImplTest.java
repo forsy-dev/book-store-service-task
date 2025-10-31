@@ -214,34 +214,66 @@ public class EmployeeServiceImplTest {
         }
     }
 
-//    @Nested
-//    class AddEmployee {
-//
-//        @Test
-//        void testAddEmployee_ShouldReturnEmployee() {
-//            String email = "test@test.com";
-//            String oldName = "oldName";
-//            String newName = "newName";
-//            LocalDate birthDate = LocalDate.now().minusYears(18);
-//            Employee employee = Employee.builder().email(email).name(oldName).build();
-//            EmployeeDTO dto = EmployeeDTO.builder().email(email).name(newName).birthDate(birthDate).build();
-//            EmployeeDisplayDTO expectedDto = EmployeeDisplayDTO.builder().email(email).name(newName).birthDate(birthDate).build();
-//
-//            when(employeeRepository.existsByEmail(email)).thenReturn(false);
-//            doNothing().when(mapper).map(dto, employee);
-//            when(employeeRepository.save(employee)).thenReturn(employee);
-//            when(mapper.map(employee, EmployeeDisplayDTO.class)).thenReturn(expectedDto);
-//
-//            EmployeeDisplayDTO actualEmployeeDto = employeeService.updateEmployeeByEmail(email, dto);
-//
-//            verify(employeeRepository, times(1)).findByEmail(email);
-//            verify(mapper, times(1)).map(dto, employee);
-//            verify(employeeRepository, times(1)).save(employee);
-//            verify(mapper, times(1)).map(employee, EmployeeDisplayDTO.class);
-//
-//            assertEquals(expectedDto, actualEmployeeDto);
-//        }
-//
-//
-//    }
+    @Nested
+    class AddEmployee {
+
+        @Test
+        void testAddEmployee_ShouldReturnEmployee() {
+            String email = "test@test.com";
+            String password = "password";
+            LocalDate birthDate = LocalDate.now().minusYears(18);
+            Employee employee = Employee.builder().email(email).birthDate(birthDate).password(password).build();
+            EmployeeDTO dto = EmployeeDTO.builder().email(email).birthDate(birthDate).password(password).build();
+            EmployeeDisplayDTO expectedDto = EmployeeDisplayDTO.builder().email(email).birthDate(birthDate).build();
+
+            when(employeeRepository.existsByEmail(email)).thenReturn(false);
+            when(mapper.map(dto, Employee.class)).thenReturn(employee);
+            when(passwordEncoder.encode(password)).thenReturn(password);
+            when(employeeRepository.save(employee)).thenReturn(employee);
+            when(mapper.map(employee, EmployeeDisplayDTO.class)).thenReturn(expectedDto);
+
+            EmployeeDisplayDTO actualEmployeeDto = employeeService.addEmployee(dto);
+
+            verify(employeeRepository, times(1)).existsByEmail(email);
+            verify(mapper, times(1)).map(dto, Employee.class);
+            verify(passwordEncoder, times(1)).encode(password);
+            verify(employeeRepository, times(1)).save(employee);
+            verify(mapper, times(1)).map(employee, EmployeeDisplayDTO.class);
+
+            assertEquals(expectedDto, actualEmployeeDto);
+        }
+
+        @Test
+        void testAddEmployee_ShouldThrowExceptionWhenEmailAlreadyExist() {
+            String email = "test@test.com";
+            EmployeeDTO dto = EmployeeDTO.builder().email(email).build();;
+
+            when(employeeRepository.existsByEmail(email)).thenReturn(true);
+
+            assertThrows(AlreadyExistException.class, () -> employeeService.addEmployee(dto));
+
+            verify(employeeRepository, times(1)).existsByEmail(email);
+            verify(mapper, never()).map(any(EmployeeDTO.class), any());
+            verify(passwordEncoder, never()).encode(any(String.class));
+            verify(employeeRepository, never()).save(any(Employee.class));
+            verify(mapper, never()).map(any(Employee.class), any());
+        }
+
+        @Test
+        void testAddEmployee_ShouldThrowExceptionWhenBirtDateInvalid() {
+            String email = "test@test.com";
+            LocalDate birthDate = LocalDate.now().minusYears(17);
+            EmployeeDTO dto = EmployeeDTO.builder().email(email).birthDate(birthDate).build();
+
+            when(employeeRepository.existsByEmail(email)).thenReturn(false);
+
+            assertThrows(AgeRestrictionException.class, () -> employeeService.addEmployee(dto));
+
+            verify(employeeRepository, times(1)).existsByEmail(email);
+            verify(mapper, never()).map(any(EmployeeDTO.class), any());
+            verify(passwordEncoder, never()).encode(any(String.class));
+            verify(employeeRepository, never()).save(any(Employee.class));
+            verify(mapper, never()).map(any(Employee.class), any());
+        }
+    }
 }
