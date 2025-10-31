@@ -15,16 +15,16 @@ import java.util.List;
 @Builder
 public class CreateOrderRequestDTO {
 
-    @NotBlank(message = "{NotBlank.Order.clientEmail}")
-    @Email(message = "{Email.Order.clientEmail}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Email(message = "{Email.invalid}")
     private String clientEmail;
 
-    @NotBlank(message = "{NotBlank.Order.employeeEmail}")
-    @Email(message = "{Email.Order.employeeEmail}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Email(message = "{Email.invalid}")
     private String employeeEmail;
 
-    @NotNull(message = "{NotNull.Order.orderDate}")
-    @PastOrPresent(message = "{PastOrPresent.Order.orderDate}")
+    @NotNull(message = "{NotNull.invalid}")
+    @PastOrPresent(message = "{PastOrPresent.invalid}")
     private LocalDateTime orderDate;
 
     @NotEmpty(message = "{NotEmpty.Order.bookItems}")

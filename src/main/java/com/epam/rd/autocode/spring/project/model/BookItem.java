@@ -20,16 +20,16 @@ public class BookItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
-    @NotNull(message = "{NotNull.BookItem.order}")
+    @NotNull(message = "{NotNull.invalid}")
     private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", nullable = false)
-    @NotNull(message = "{NotNull.BookItem.book}")
+    @NotNull(message = "{NotNull.invalid}")
     private Book book;
 
     @Column(name = "QUANTITY", nullable = false)
-    @NotNull(message = "{NotNull.BookItem.quantity}")
-    @Min(value = 1, message = "{Min.BookItem.quantity}")
+    @NotNull(message = "{NotNull.invalid}")
+    @Min(value = 1, message = "{Min.invalid}")
     private Integer quantity;
 }

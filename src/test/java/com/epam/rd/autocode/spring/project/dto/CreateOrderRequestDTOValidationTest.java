@@ -48,7 +48,7 @@ public class CreateOrderRequestDTOValidationTest {
             CreateOrderRequestDTO createOrderRequestDTO = getValidDtoBuilder().clientEmail(null).build();
             Set<ConstraintViolation<CreateOrderRequestDTO>> violations = validator.validate(createOrderRequestDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotBlank.Order.clientEmail}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -56,7 +56,7 @@ public class CreateOrderRequestDTOValidationTest {
             CreateOrderRequestDTO createOrderRequestDTO = getValidDtoBuilder().clientEmail("aa").build();
             Set<ConstraintViolation<CreateOrderRequestDTO>> violations = validator.validate(createOrderRequestDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Email.Order.clientEmail}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Email.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -68,7 +68,7 @@ public class CreateOrderRequestDTOValidationTest {
             CreateOrderRequestDTO createOrderRequestDTO = getValidDtoBuilder().employeeEmail(null).build();
             Set<ConstraintViolation<CreateOrderRequestDTO>> violations = validator.validate(createOrderRequestDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotBlank.Order.employeeEmail}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -76,7 +76,7 @@ public class CreateOrderRequestDTOValidationTest {
             CreateOrderRequestDTO createOrderRequestDTO = getValidDtoBuilder().employeeEmail("aa").build();
             Set<ConstraintViolation<CreateOrderRequestDTO>> violations = validator.validate(createOrderRequestDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Email.Order.employeeEmail}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Email.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -88,7 +88,7 @@ public class CreateOrderRequestDTOValidationTest {
             CreateOrderRequestDTO createOrderRequestDTO = getValidDtoBuilder().orderDate(null).build();
             Set<ConstraintViolation<CreateOrderRequestDTO>> violations = validator.validate(createOrderRequestDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotNull.Order.orderDate}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotNull.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -96,7 +96,7 @@ public class CreateOrderRequestDTOValidationTest {
             CreateOrderRequestDTO createOrderRequestDTO = getValidDtoBuilder().orderDate(LocalDateTime.now().plusDays(1)).build();
             Set<ConstraintViolation<CreateOrderRequestDTO>> violations = validator.validate(createOrderRequestDTO);
             assertEquals(1, violations.size());
-            assertEquals("{PastOrPresent.Order.orderDate}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{PastOrPresent.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 

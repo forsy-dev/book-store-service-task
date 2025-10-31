@@ -25,52 +25,52 @@ public class Book {
     private Long id;
 
     @Column(name = "NAME", nullable = false, unique = true)
-    @NotBlank(message = "{NotBlank.Book.name}")
-    @Size(min = 3, max = 255, message = "{Size.Book.name}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Size(min = 3, max = 255, message = "{Size.invalid}")
     private String name;
 
     @Column(name = "GENRE", nullable = false)
-    @NotBlank(message = "{NotBlank.Book.genre}")
-    @Size(min = 3, max = 255, message = "{Size.Book.genre}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Size(min = 3, max = 255, message = "{Size.invalid}")
     private String genre;
 
     @Column(name = "AGE_GROUP", nullable = false)
     @Enumerated(EnumType.STRING)
-    @NotNull(message = "{NotNull.Book.ageGroup}")
+    @NotNull(message = "{NotNull.invalid}")
     private AgeGroup ageGroup;
 
     @Column(name = "PRICE", nullable = false, precision = 10, scale = 2)
-    @NotNull(message = "{NotNull.Book.price}")
-    @DecimalMin(value = "0.01", message = "{DecimalMin.Book.price}")
+    @NotNull(message = "{NotNull.invalid}")
+    @DecimalMin(value = "0.01", message = "{DecimalMin.invalid}")
     private BigDecimal price;
 
     @Column(name = "PUBLICATION_DATE", nullable = false)
-    @NotNull(message = "{NotNull.Book.publicationDate}")
-    @PastOrPresent(message = "{PastOrPresent.Book.publicationDate}")
+    @NotNull(message = "{NotNull.invalid}")
+    @PastOrPresent(message = "{PastOrPresent.invalid}")
     private LocalDate publicationDate;
 
     @Column(name = "AUTHOR", nullable = false)
-    @NotBlank(message = "{NotBlank.Book.author}")
-    @Size(min = 3, max = 255, message = "{Size.Book.author}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Size(min = 3, max = 255, message = "{Size.invalid}")
     private String author;
 
     @Column(name = "NUMBER_OF_PAGES", nullable = false)
-    @NotNull(message = "{NotNull.Book.pages}")
-    @Min(value = 1, message = "{Min.Book.pages}")
+    @NotNull(message = "{NotNull.invalid}")
+    @Min(value = 1, message = "{Min.invalid}")
     private Integer pages;
 
     @Column(name = "CHARACTERISTICS", nullable = false)
-    @NotBlank(message = "{NotBlank.Book.characteristics}")
-    @Size(min = 3, max = 255, message = "{Size.Book.characteristics}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Size(min = 3, max = 255, message = "{Size.invalid}")
     private String characteristics;
 
     @Column(name = "DESCRIPTION", nullable = false, columnDefinition = "TEXT")
-    @NotBlank(message = "{NotBlank.Book.description}")
-    @Size(min = 3, max = 2000, message = "{Size.Book.description}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Size(min = 3, max = 2000, message = "{Size.invalid}")
     private String description;
 
     @Column(name = "LANGUAGE", nullable = false)
     @Enumerated(EnumType.STRING)
-    @NotNull(message = "{NotNull.Book.language}")
+    @NotNull(message = "{NotNull.invalid}")
     private Language language;
 }

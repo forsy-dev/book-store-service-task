@@ -56,7 +56,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().name(" ".repeat(3)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotBlank.Book.name}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -64,7 +64,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().name("a".repeat(2)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Size.Book.name}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -72,7 +72,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().name("a".repeat(256)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Size.Book.name}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -84,7 +84,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().genre(" ".repeat(3)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotBlank.Book.genre}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -92,7 +92,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().genre("a".repeat(2)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Size.Book.genre}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -100,7 +100,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().genre("a".repeat(256)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Size.Book.genre}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -112,7 +112,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().ageGroup(null).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotNull.Book.ageGroup}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotNull.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -124,7 +124,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().price(null).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotNull.Book.price}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotNull.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -132,7 +132,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().price(BigDecimal.ZERO).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{DecimalMin.Book.price}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{DecimalMin.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -144,7 +144,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().publicationDate(null).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotNull.Book.publicationDate}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotNull.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -152,7 +152,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().publicationDate(LocalDate.now().plusDays(1)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{PastOrPresent.Book.publicationDate}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{PastOrPresent.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -164,7 +164,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().author(" ".repeat(3)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotBlank.Book.author}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -172,7 +172,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().author("a".repeat(2)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Size.Book.author}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -180,7 +180,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().author("a".repeat(256)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Size.Book.author}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -192,7 +192,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().pages(null).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotNull.Book.pages}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotNull.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -200,7 +200,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().pages(0).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Min.Book.pages}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Min.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -212,7 +212,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().characteristics(" ".repeat(3)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotBlank.Book.characteristics}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -220,7 +220,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().characteristics("a".repeat(2)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Size.Book.characteristics}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -228,7 +228,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().characteristics("a".repeat(256)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Size.Book.characteristics}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -240,7 +240,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().description(" ".repeat(3)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotBlank.Book.description}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -248,7 +248,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().description("a".repeat(2)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Size.Book.description}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test
@@ -256,7 +256,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().description("a".repeat(2001)).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{Size.Book.description}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 
@@ -268,7 +268,7 @@ public class BookDTOValidationTest {
             BookDTO bookDTO = getValidDtoBuilder().language(null).build();
             Set<ConstraintViolation<BookDTO>> violations = validator.validate(bookDTO);
             assertEquals(1, violations.size());
-            assertEquals("{NotNull.Book.language}", violations.iterator().next().getMessageTemplate());
+            assertEquals("{NotNull.invalid}", violations.iterator().next().getMessageTemplate());
         }
     }
 }

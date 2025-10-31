@@ -28,22 +28,22 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
-    @NotNull(message = "{NotNull.Order.client}")
+    @NotNull(message = "{NotNull.invalid}")
     private Client client;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
-    @NotNull(message = "{NotNull.Order.employee}")
+    @NotNull(message = "{NotNull.invalid}")
     private Employee employee;
 
     @Column(name = "ORDER_DATE", nullable = false)
-    @NotNull(message = "{NotNull.Order.orderDate}")
-    @PastOrPresent(message = "{PastOrPresent.Order.orderDate}")
+    @NotNull(message = "{NotNull.invalid}")
+    @PastOrPresent(message = "{PastOrPresent.invalid}")
     private LocalDateTime orderDate;
 
     @Column(name = "PRICE", nullable = false, precision = 10, scale = 2)
-    @NotNull(message = "{NotNull.Order.price}")
-    @DecimalMin(value = "0.01", message = "{DecimalMin.Order.price}")
+    @NotNull(message = "{NotNull.invalid}")
+    @DecimalMin(value = "0.01", message = "{DecimalMin.invalid}")
     private BigDecimal price;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

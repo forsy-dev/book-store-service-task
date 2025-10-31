@@ -19,42 +19,42 @@ import java.time.LocalDate;
 @Builder
 public class BookDTO{
 
-    @NotBlank(message = "{NotBlank.Book.name}")
-    @Size(min = 3, max = 255, message = "{Size.Book.name}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Size(min = 3, max = 255, message = "{Size.invalid}")
     private String name;
 
-    @NotBlank(message = "{NotBlank.Book.genre}")
-    @Size(min = 3, max = 255, message = "{Size.Book.genre}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Size(min = 3, max = 255, message = "{Size.invalid}")
     private String genre;
 
-    @NotNull(message = "{NotNull.Book.ageGroup}")
+    @NotNull(message = "{NotNull.invalid}")
     private AgeGroup ageGroup;
 
-    @NotNull(message = "{NotNull.Book.price}")
-    @DecimalMin(value = "0.01", message = "{DecimalMin.Book.price}")
+    @NotNull(message = "{NotNull.invalid}")
+    @DecimalMin(value = "0.01", message = "{DecimalMin.invalid}")
     private BigDecimal price;
 
-    @NotNull(message = "{NotNull.Book.publicationDate}")
-    @PastOrPresent(message = "{PastOrPresent.Book.publicationDate}")
+    @NotNull(message = "{NotNull.invalid}")
+    @PastOrPresent(message = "{PastOrPresent.invalid}")
     private LocalDate publicationDate;
 
-    @NotBlank(message = "{NotBlank.Book.author}")
-    @Size(min = 3, max = 255, message = "{Size.Book.author}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Size(min = 3, max = 255, message = "{Size.invalid}")
     private String author;
 
-    @NotNull(message = "{NotNull.Book.pages}")
-    @Min(value = 1, message = "{Min.Book.pages}")
+    @NotNull(message = "{NotNull.invalid}")
+    @Min(value = 1, message = "{Min.invalid}")
     private Integer pages;
 
-    @NotBlank(message = "{NotBlank.Book.characteristics}")
-    @Size(min = 3, max = 255, message = "{Size.Book.characteristics}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Size(min = 3, max = 255, message = "{Size.invalid}")
     private String characteristics;
 
-    @NotBlank(message = "{NotBlank.Book.description}")
-    @Size(min = 3, max = 2000, message = "{Size.Book.description}")
+    @NotBlank(message = "{NotBlank.invalid}")
+    @Size(min = 3, max = 2000, message = "{Size.invalid}")
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @NotNull(message = "{NotNull.Book.language}")
+    @NotNull(message = "{NotNull.invalid}")
     private Language language;
 }

@@ -5,6 +5,8 @@ import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.Order;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
+import com.epam.rd.autocode.spring.project.repo.ClientRepository;
+import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.repo.OrderRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +37,12 @@ public class OrderServiceImplTest {
 
     @Mock
     private ModelMapper mapper;
+
+    @Mock
+    private ClientRepository clientRepository;
+
+    @Mock
+    private EmployeeRepository employeeRepository;
 
     @Test
     void testGetAllOrdersByClient_ShouldReturnPagedOrders() {
