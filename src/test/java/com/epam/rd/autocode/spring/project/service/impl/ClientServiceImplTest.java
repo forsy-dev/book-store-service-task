@@ -1,9 +1,6 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
-import com.epam.rd.autocode.spring.project.dto.ChangePasswordDTO;
-import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
-import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
-import com.epam.rd.autocode.spring.project.dto.EmployeeDisplayDTO;
+import com.epam.rd.autocode.spring.project.dto.*;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
@@ -249,6 +246,47 @@ public class ClientServiceImplTest {
             verify(passwordEncoder, times(1)).matches(passwordDto, passwordClient);
             verify(passwordEncoder, never()).encode(any(String.class));
             verify(clientRepository, never()).save(any(Client.class));
+        }
+    }
+
+    @Nested
+    class AddClient {
+
+        @Test
+        void testAddClient_ShouldReturnClient() {
+            String email = "test@test.com";
+            ClientCreatDTO dto = ClientCreatDTO.builder().email(email).build();
+            Client client = Client.builder().email(email).build();
+            ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).build();
+
+            when(clientRepository.existsByEmail(email)).thenReturn(false);
+            when(mapper.map(dto, Client.class)).thenReturn(client);
+            when(clientRepository.save(client)).thenReturn(client);
+            when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
+
+            ClientDisplayDTO actualClientDto = clientService.addClient(dto);
+
+            verify(clientRepository, times(1)).existsByEmail(email);
+            verify(mapper, times(1)).map(dto, Client.class);
+            verify(clientRepository, times(1)).save(client);
+            verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
+
+            assertEquals(expectedDto, actualClientDto);
+        }
+
+        @Test
+        void testAddClient_ShouldThrowExceptionWhenEmailAlreadyExist() {
+            String email = "test@test.com";
+            ClientCreatDTO dto = ClientCreatDTO.builder().email(email).build();
+
+            when(clientRepository.existsByEmail(email)).thenReturn(true);
+
+            assertThrows(AlreadyExistException.class, () -> clientService.addClient(dto));
+
+            verify(clientRepository, times(1)).existsByEmail(email);
+            verify(mapper, never()).map(any(ClientCreatDTO.class), any());
+            verify(clientRepository, never()).save(any(Client.class));
+            verify(mapper, never()).map(any(Client.class), any());
         }
     }
 }

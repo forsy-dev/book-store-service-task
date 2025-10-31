@@ -1,9 +1,6 @@
 package com.epam.rd.autocode.spring.project.service;
 
-import com.epam.rd.autocode.spring.project.dto.ChangePasswordDTO;
-import com.epam.rd.autocode.spring.project.dto.ClientDTO;
-import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
-import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
+import com.epam.rd.autocode.spring.project.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,7 +16,7 @@ public interface ClientService {
 
     void deleteClientByEmail(String email);
 
-    ClientDisplayDTO addClient(ClientDTO client);
+    ClientDisplayDTO addClient(ClientCreatDTO client);
 
     void changePassword(String email, ChangePasswordDTO dto);
 }

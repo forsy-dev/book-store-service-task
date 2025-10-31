@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 @SuperBuilder
 public class Client extends User {
 
-    @Column(name = "BALANCE")
+    @Column(name = "BALANCE", nullable = false)
     private BigDecimal balance;
 
     public Client(Long id, String name, String email, String password, BigDecimal balance) {

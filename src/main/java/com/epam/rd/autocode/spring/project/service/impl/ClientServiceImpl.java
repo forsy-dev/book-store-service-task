@@ -1,9 +1,6 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
-import com.epam.rd.autocode.spring.project.dto.ChangePasswordDTO;
-import com.epam.rd.autocode.spring.project.dto.ClientDTO;
-import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
-import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
+import com.epam.rd.autocode.spring.project.dto.*;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
@@ -19,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -68,8 +66,17 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientDisplayDTO addClient(ClientDTO client) {
-        return null;
+    public ClientDisplayDTO addClient(ClientCreatDTO dto) {
+        log.info("Attempting to add client with email {}", dto.getEmail());
+        if (clientRepository.existsByEmail(dto.getEmail())) {
+            throw new AlreadyExistException(String.format("Client with email %s already exists", dto.getEmail()));
+        }
+        Client client = mapper.map(dto, Client.class);
+        client.setPassword(passwordEncoder.encode(dto.getPassword()));
+        client.setBalance(BigDecimal.ZERO);
+        client = clientRepository.save(client);
+        log.info("Client with email {} added successfully", client.getEmail());
+        return mapper.map(client, ClientDisplayDTO.class);
     }
 
     @Override
