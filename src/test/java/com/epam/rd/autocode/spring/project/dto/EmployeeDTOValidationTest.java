@@ -73,19 +73,10 @@ public class EmployeeDTOValidationTest {
 
         @Test
         void whenPasswordIsTooShort_thenValidationFails() {
-            EmployeeDTO employeeDTO = getValidDtoBuilder().password("Te$t123").build();
+            EmployeeDTO employeeDTO = getValidDtoBuilder().password("a").build();
             Set<ConstraintViolation<EmployeeDTO>> violations = validator.validate(employeeDTO);
-            long patternCount = violations.stream()
-                    .filter(v -> v.getMessageTemplate().equals("{Pattern.password}"))
-                    .count();
-
-            long sizeCount = violations.stream()
-                    .filter(v -> v.getMessageTemplate().equals("{Size.invalid}"))
-                    .count();
-
-            assertEquals(2, violations.size());
-            assertEquals(1, patternCount);
-            assertEquals(1, sizeCount);
+            assertEquals(1, violations.size());
+            assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
         }
 
         @Test

@@ -19,7 +19,7 @@ public class EmployeeDTO {
     private String email;
 
     @NotBlank(message = "{NotBlank.invalid}")
-    @Size(min = 8, max = 100, message = "{Size.invalid}")
+    @Size(max = 100, message = "{Size.invalid}")
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
             message = "{Pattern.password}")
     private String password;
