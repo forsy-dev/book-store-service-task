@@ -184,26 +184,28 @@ public class EmployeeServiceImplTest {
         @Test
         void testDeleteEmployeeByEmail_ShouldReturnNothing() {
             String email = "test@test.com";
+            Employee employee = Employee.builder().email(email).build();
 
-            when(employeeRepository.existsByEmail(email)).thenReturn(true);
-            doNothing().when(employeeRepository).deleteByEmail(email);
+            when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
+            doNothing().when(employeeRepository).delete(employee);
 
             employeeService.deleteEmployeeByEmail(email);
 
-            verify(employeeRepository, times(1)).existsByEmail(email);
-            verify(employeeRepository, times(1)).deleteByEmail(email);
+            verify(employeeRepository, times(1)).findByEmail(email);
+            verify(employeeRepository, times(1)).delete(employee);
         }
 
         @Test
-        void testDeleteEmployeeByEmail_ShouldThrowExceptionWhenEmployeeNotFound() {
+        void testDeleteEmployeeByEmail_ShouldReturnThrowExceptionWhenEmployeeNotFound() {
             String email = "test@test.com";
+            Employee employee = Employee.builder().email(email).build();
 
-            when(employeeRepository.existsByEmail(email)).thenReturn(false);
+            when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
 
             assertThrows(NotFoundException.class, () -> employeeService.deleteEmployeeByEmail(email));
 
-            verify(employeeRepository, times(1)).existsByEmail(email);
-            verify(employeeRepository, never()).deleteByEmail(any(String.class));
+            verify(employeeRepository, times(1)).findByEmail(email);
+            verify(employeeRepository, never()).delete(any(Employee.class));
         }
     }
 }

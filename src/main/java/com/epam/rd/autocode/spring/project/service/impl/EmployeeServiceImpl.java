@@ -61,12 +61,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public void deleteEmployeeByEmail(String email) {
         log.info("Attempting to delete employee with email {}", email);
-        if (employeeRepository.existsByEmail(email)) {
-            employeeRepository.deleteByEmail(email);
-            log.info("Employee with email {} deleted successfully", email);
-        } else {
+        employeeRepository.findByEmail(email).ifPresentOrElse(employee -> {
+                    employeeRepository.delete(employee);
+                    log.info("Employee with email {} deleted successfully", email);
+                },
+                () -> {
             throw new NotFoundException(String.format("Employee with email %s not found", email));
-        }
+        });
     }
 
     @Override
