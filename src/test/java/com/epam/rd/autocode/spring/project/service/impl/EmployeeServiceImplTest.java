@@ -294,7 +294,7 @@ public class EmployeeServiceImplTest {
             employeeService.changePassword(email, dto);
 
             verify(employeeRepository, times(1)).findByEmail(email);
-            verify(passwordEncoder, times(1)).matches(oldPassword, employee.getPassword());
+            verify(passwordEncoder, times(1)).matches(oldPassword, oldPassword);
             verify(passwordEncoder, times(1)).encode(newPassword);
             verify(employeeRepository, times(1)).save(employee);
         }

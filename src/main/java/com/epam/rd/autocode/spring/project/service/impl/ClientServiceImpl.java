@@ -1,11 +1,14 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
+import com.epam.rd.autocode.spring.project.dto.ChangePasswordDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
+import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
+import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +28,7 @@ public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
     private final ModelMapper mapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public Page<ClientDisplayDTO> getAllClients(Pageable pageable) {
@@ -65,5 +70,18 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientDisplayDTO addClient(ClientDTO client) {
         return null;
+    }
+
+    @Override
+    public void changePassword(String email, ChangePasswordDTO dto) {
+        log.info("Attempting to change password for client with email {}", email);
+        Client client = clientRepository.findByEmail(email).orElseThrow(
+                () -> new NotFoundException(String.format("Client with email %s not found", email)));
+        if (!passwordEncoder.matches(dto.getOldPassword(), client.getPassword())) {
+            throw new InvalidPasswordException("Old password is incorrect");
+        }
+        client.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        clientRepository.save(client);
+        log.info("Password for client with email {} changed successfully", email);
     }
 }

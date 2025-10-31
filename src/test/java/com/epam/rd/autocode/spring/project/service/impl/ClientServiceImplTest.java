@@ -1,9 +1,11 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
+import com.epam.rd.autocode.spring.project.dto.ChangePasswordDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDisplayDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
+import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.model.Employee;
@@ -188,6 +190,65 @@ public class ClientServiceImplTest {
 
             verify(clientRepository, times(1)).findByEmail(email);
             verify(clientRepository, never()).delete(any(Client.class));
+        }
+    }
+
+    @Nested
+    class ChangePassword {
+
+        @Test
+        void testChangePassword_ShouldReturn() {
+            String email = "test@test.com";
+            String oldPassword = "oldPassword";
+            String newPassword = "newPassword";
+            ChangePasswordDTO dto = ChangePasswordDTO.builder().oldPassword(oldPassword).newPassword(newPassword).build();
+            Client client = Client.builder().email(email).password(oldPassword).build();
+
+            when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
+            when(passwordEncoder.matches(oldPassword, client.getPassword())).thenReturn(true);
+            when(passwordEncoder.encode(newPassword)).thenReturn(newPassword);
+            when(clientRepository.save(client)).thenReturn(client);
+
+            clientService.changePassword(email, dto);
+
+            verify(clientRepository, times(1)).findByEmail(email);
+            verify(passwordEncoder, times(1)).matches(oldPassword, oldPassword);
+            verify(passwordEncoder, times(1)).encode(newPassword);
+            verify(clientRepository, times(1)).save(client);
+        }
+
+        @Test
+        void testChangePassword_ShouldThrowExceptionWhenEmailNotFound() {
+            String email = "test@test.com";
+            ChangePasswordDTO dto = ChangePasswordDTO.builder().build();
+
+            when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> clientService.changePassword(email, dto));
+
+            verify(clientRepository, times(1)).findByEmail(email);
+            verify(passwordEncoder, never()).matches(any(String.class), any(String.class));
+            verify(passwordEncoder, never()).encode(any(String.class));
+            verify(clientRepository, never()).save(any(Client.class));
+        }
+
+        @Test
+        void testChangePassword_ShouldThrowExceptionWhenOldPasswordInvalid() {
+            String email = "test@test.com";
+            String passwordDto = "oldPassword";
+            String passwordClient = "";
+            ChangePasswordDTO dto = ChangePasswordDTO.builder().oldPassword(passwordDto).build();
+            Client client = Client.builder().email(email).password(passwordClient).build();
+
+            when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
+            when(passwordEncoder.matches(passwordDto, client.getPassword())).thenReturn(false);
+
+            assertThrows(InvalidPasswordException.class, () -> clientService.changePassword(email, dto));
+
+            verify(clientRepository, times(1)).findByEmail(email);
+            verify(passwordEncoder, times(1)).matches(passwordDto, passwordClient);
+            verify(passwordEncoder, never()).encode(any(String.class));
+            verify(clientRepository, never()).save(any(Client.class));
         }
     }
 }
