@@ -2,10 +2,14 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
+import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
+import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
+import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
@@ -32,18 +37,33 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientDisplayDTO updateClientByEmail(String email, ClientDTO client) {
-        return null;
+    public ClientDisplayDTO updateClientByEmail(String email, ClientUpdateDTO dto) {
+        log.info("Attempting to update client with email {}", email);
+        Client client = clientRepository.findByEmail(email).orElseThrow(
+                () -> new NotFoundException(String.format("Client with email %s not found", email)));
+        if (!email.equals(dto.getEmail()) && clientRepository.existsByEmail(dto.getEmail())) {
+            throw new AlreadyExistException(String.format("Client with email %s already exists", dto.getEmail()));
+        }
+        mapper.map(dto, client);
+        client = clientRepository.save(client);
+        log.info("Client with email {} updated successfully", email);
+        return mapper.map(client, ClientDisplayDTO.class);
     }
 
     @Override
     public void deleteClientByEmail(String email) {
-
+        log.info("Attempting to delete client with email {}", email);
+        clientRepository.findByEmail(email).ifPresentOrElse(client -> {
+                    clientRepository.delete(client);
+                    log.info("Client with email {} deleted successfully", email);
+                },
+                () -> {
+                    throw new NotFoundException(String.format("Client with email %s not found", email));
+                });
     }
 
     @Override
     public ClientDisplayDTO addClient(ClientDTO client) {
         return null;
     }
-    //TODO Place your code here
 }
