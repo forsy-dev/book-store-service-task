@@ -3,6 +3,7 @@ package com.epam.rd.autocode.spring.project.service.impl;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDisplayDTO;
+import com.epam.rd.autocode.spring.project.dto.EmployeeUpdateDTO;
 import com.epam.rd.autocode.spring.project.exception.AgeRestrictionException;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -42,6 +44,9 @@ public class EmployeeServiceImplTest {
 
     @Mock
     private ModelMapper mapper;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @Test
     void testGetAllEmployees_ShouldReturnPagedEmployees() {
@@ -106,7 +111,7 @@ public class EmployeeServiceImplTest {
             String newName = "newName";
             LocalDate birthDate = LocalDate.now().minusYears(18);
             Employee employee = Employee.builder().email(email).name(oldName).build();
-            EmployeeDTO dto = EmployeeDTO.builder().email(email).name(newName).birthDate(birthDate).build();
+            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().email(email).name(newName).birthDate(birthDate).build();
             EmployeeDisplayDTO expectedDto = EmployeeDisplayDTO.builder().email(email).name(newName).birthDate(birthDate).build();
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
@@ -127,7 +132,7 @@ public class EmployeeServiceImplTest {
         @Test
         void testUpdateEmployeeByEmail_ShouldThrowExceptionWhenEmployeeNotFound() {
             String email = "test@test.com";
-            EmployeeDTO dto = EmployeeDTO.builder().build();
+            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().build();
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
 
@@ -144,7 +149,7 @@ public class EmployeeServiceImplTest {
             String oldEmail = "test@test.com";
             String newEmail = "test@test.org";
             Employee employee = Employee.builder().email(oldEmail).build();
-            EmployeeDTO dto = EmployeeDTO.builder().email(newEmail).build();
+            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().email(newEmail).build();
 
             when(employeeRepository.findByEmail(oldEmail)).thenReturn(Optional.of(employee));
             when(employeeRepository.existsByEmail(newEmail)).thenReturn(true);
@@ -165,7 +170,7 @@ public class EmployeeServiceImplTest {
             String newName = "newName";
             LocalDate birthDate = LocalDate.now().minusYears(17);
             Employee employee = Employee.builder().email(email).name(oldName).build();
-            EmployeeDTO dto = EmployeeDTO.builder().email(email).name(newName).birthDate(birthDate).build();
+            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().email(email).name(newName).birthDate(birthDate).build();
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
 
@@ -208,4 +213,35 @@ public class EmployeeServiceImplTest {
             verify(employeeRepository, never()).delete(any(Employee.class));
         }
     }
+
+//    @Nested
+//    class AddEmployee {
+//
+//        @Test
+//        void testAddEmployee_ShouldReturnEmployee() {
+//            String email = "test@test.com";
+//            String oldName = "oldName";
+//            String newName = "newName";
+//            LocalDate birthDate = LocalDate.now().minusYears(18);
+//            Employee employee = Employee.builder().email(email).name(oldName).build();
+//            EmployeeDTO dto = EmployeeDTO.builder().email(email).name(newName).birthDate(birthDate).build();
+//            EmployeeDisplayDTO expectedDto = EmployeeDisplayDTO.builder().email(email).name(newName).birthDate(birthDate).build();
+//
+//            when(employeeRepository.existsByEmail(email)).thenReturn(false);
+//            doNothing().when(mapper).map(dto, employee);
+//            when(employeeRepository.save(employee)).thenReturn(employee);
+//            when(mapper.map(employee, EmployeeDisplayDTO.class)).thenReturn(expectedDto);
+//
+//            EmployeeDisplayDTO actualEmployeeDto = employeeService.updateEmployeeByEmail(email, dto);
+//
+//            verify(employeeRepository, times(1)).findByEmail(email);
+//            verify(mapper, times(1)).map(dto, employee);
+//            verify(employeeRepository, times(1)).save(employee);
+//            verify(mapper, times(1)).map(employee, EmployeeDisplayDTO.class);
+//
+//            assertEquals(expectedDto, actualEmployeeDto);
+//        }
+//
+//
+//    }
 }
