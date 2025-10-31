@@ -177,4 +177,33 @@ public class EmployeeServiceImplTest {
             verify(mapper, never()).map(any(Employee.class), any());
         }
     }
+
+    @Nested
+    class DeleteByEmail {
+
+        @Test
+        void testDeleteEmployeeByEmail_ShouldReturnNothing() {
+            String email = "test@test.com";
+
+            when(employeeRepository.existsByEmail(email)).thenReturn(true);
+            doNothing().when(employeeRepository).deleteByEmail(email);
+
+            employeeService.deleteEmployeeByEmail(email);
+
+            verify(employeeRepository, times(1)).existsByEmail(email);
+            verify(employeeRepository, times(1)).deleteByEmail(email);
+        }
+
+        @Test
+        void testDeleteEmployeeByEmail_ShouldThrowExceptionWhenEmployeeNotFound() {
+            String email = "test@test.com";
+
+            when(employeeRepository.existsByEmail(email)).thenReturn(false);
+
+            assertThrows(NotFoundException.class, () -> employeeService.deleteEmployeeByEmail(email));
+
+            verify(employeeRepository, times(1)).existsByEmail(email);
+            verify(employeeRepository, never()).deleteByEmail(any(String.class));
+        }
+    }
 }
