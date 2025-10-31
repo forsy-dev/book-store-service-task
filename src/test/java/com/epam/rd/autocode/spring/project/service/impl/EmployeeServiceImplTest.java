@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -53,5 +54,22 @@ public class EmployeeServiceImplTest {
         assertEquals(1, actualEmployeeDto.getTotalElements());
         assertEquals(1, actualEmployeeDto.getContent().size());
         assertEquals(expectedDto, actualEmployeeDto.getContent().get(0));
+    }
+
+    @Test
+    void testGetAllEmployeeByEmail_ShouldReturnEmployee() {
+        String email = "test@test.com";
+        Employee employee = Employee.builder().email(email).build();
+        EmployeeDisplayDTO expectedDto = EmployeeDisplayDTO.builder().email(email).build();
+
+        when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
+        when(mapper.map(employee, EmployeeDisplayDTO.class)).thenReturn(expectedDto);
+
+        EmployeeDisplayDTO actualEmployeeDto = employeeService.getEmployeeByEmail(email);
+
+        verify(employeeRepository, times(1)).findByEmail(email);
+        verify(mapper, times(1)).map(employee, EmployeeDisplayDTO.class);
+
+        assertEquals(expectedDto, actualEmployeeDto);
     }
 }
