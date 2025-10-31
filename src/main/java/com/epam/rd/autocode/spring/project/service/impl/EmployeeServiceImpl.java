@@ -1,9 +1,11 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
+import com.epam.rd.autocode.spring.project.dto.ChangePasswordDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeUpdateDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
+import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.exception.AgeRestrictionException;
 import com.epam.rd.autocode.spring.project.model.Employee;
@@ -85,5 +87,18 @@ public class EmployeeServiceImpl implements EmployeeService {
         newEmployee = employeeRepository.save(newEmployee);
         log.info("Employee with email {} added successfully", newEmployee.getEmail());
         return mapper.map(newEmployee, EmployeeDisplayDTO.class);
+    }
+
+    @Override
+    public void changePassword(String email, ChangePasswordDTO dto) {
+        log.info("Attempting to change password for employee with email {}", email);
+        Employee employee = employeeRepository.findByEmail(email).orElseThrow(
+                () -> new NotFoundException(String.format("Employee with email %s not found", email)));
+        if (!passwordEncoder.matches(dto.getOldPassword(), employee.getPassword())) {
+            throw new InvalidPasswordException("Old password is incorrect");
+        }
+        employee.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        employeeRepository.save(employee);
+        log.info("Password for employee with email {} changed successfully", email);
     }
 }

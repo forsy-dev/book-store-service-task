@@ -1,11 +1,9 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
-import com.epam.rd.autocode.spring.project.dto.BookDTO;
-import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
-import com.epam.rd.autocode.spring.project.dto.EmployeeDisplayDTO;
-import com.epam.rd.autocode.spring.project.dto.EmployeeUpdateDTO;
+import com.epam.rd.autocode.spring.project.dto.*;
 import com.epam.rd.autocode.spring.project.exception.AgeRestrictionException;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
+import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.Employee;
@@ -274,6 +272,65 @@ public class EmployeeServiceImplTest {
             verify(passwordEncoder, never()).encode(any(String.class));
             verify(employeeRepository, never()).save(any(Employee.class));
             verify(mapper, never()).map(any(Employee.class), any());
+        }
+    }
+
+    @Nested
+    class ChangePassword {
+
+        @Test
+        void testChangePassword_ShouldReturn() {
+            String email = "test@test.com";
+            String oldPassword = "oldPassword";
+            String newPassword = "newPassword";
+            ChangePasswordDTO dto = ChangePasswordDTO.builder().oldPassword(oldPassword).newPassword(newPassword).build();
+            Employee employee = Employee.builder().email(email).password(oldPassword).build();
+
+            when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
+            when(passwordEncoder.matches(oldPassword, employee.getPassword())).thenReturn(true);
+            when(passwordEncoder.encode(newPassword)).thenReturn(newPassword);
+            when(employeeRepository.save(employee)).thenReturn(employee);
+
+            employeeService.changePassword(email, dto);
+
+            verify(employeeRepository, times(1)).findByEmail(email);
+            verify(passwordEncoder, times(1)).matches(oldPassword, employee.getPassword());
+            verify(passwordEncoder, times(1)).encode(newPassword);
+            verify(employeeRepository, times(1)).save(employee);
+        }
+
+        @Test
+        void testChangePassword_ShouldThrowExceptionWhenEmailNotFound() {
+            String email = "test@test.com";
+            ChangePasswordDTO dto = ChangePasswordDTO.builder().build();
+
+            when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> employeeService.changePassword(email, dto));
+
+            verify(employeeRepository, times(1)).findByEmail(email);
+            verify(passwordEncoder, never()).matches(any(String.class), any(String.class));
+            verify(passwordEncoder, never()).encode(any(String.class));
+            verify(employeeRepository, never()).save(any(Employee.class));
+        }
+
+        @Test
+        void testChangePassword_ShouldThrowExceptionWhenOldPasswordInvalid() {
+            String email = "test@test.com";
+            String employeePassword = "a";
+            String dtoPassword = "b";
+            ChangePasswordDTO dto = ChangePasswordDTO.builder().oldPassword(dtoPassword).build();
+            Employee employee = Employee.builder().email(email).password(employeePassword).build();
+
+            when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
+            when(passwordEncoder.matches(dtoPassword, employee.getPassword())).thenReturn(false);
+
+            assertThrows(InvalidPasswordException.class, () -> employeeService.changePassword(email, dto));
+
+            verify(employeeRepository, times(1)).findByEmail(email);
+            verify(passwordEncoder, times(1)).matches(dtoPassword, employee.getPassword());
+            verify(passwordEncoder, never()).encode(any(String.class));
+            verify(employeeRepository, never()).save(any(Employee.class));
         }
     }
 }

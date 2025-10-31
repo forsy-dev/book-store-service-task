@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.service;
 
+import com.epam.rd.autocode.spring.project.dto.ChangePasswordDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeUpdateDTO;
@@ -19,4 +20,6 @@ public interface EmployeeService {
     void deleteEmployeeByEmail(String email);
 
     EmployeeDisplayDTO addEmployee(EmployeeDTO employee);
+
+    void changePassword(String email, ChangePasswordDTO dto);
 }
