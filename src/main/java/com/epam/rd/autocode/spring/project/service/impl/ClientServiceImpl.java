@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
+import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,8 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientDisplayDTO getClientByEmail(String email) {
-        return null;
+        return clientRepository.findByEmail(email).map(client -> mapper.map(client, ClientDisplayDTO.class))
+                .orElseThrow(() -> new NotFoundException(String.format("Client with email %s not found", email)));
     }
 
     @Override

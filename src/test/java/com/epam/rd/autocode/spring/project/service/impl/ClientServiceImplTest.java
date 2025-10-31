@@ -2,9 +2,11 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDisplayDTO;
+import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,8 +20,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -59,20 +63,38 @@ public class ClientServiceImplTest {
         assertEquals(expectedDto, actualClientDto.getContent().get(0));
     }
 
-    @Test
-    void testGetClientByEmail_ShouldReturnClient() {
-        String email = "email";
-        Client client = Client.builder().email(email).build();
-        ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).build();
+    @Nested
+    class FindByEmail {
 
-        when(clientRepository.findByEmail(email)).thenReturn(client);
-        when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
+        @Test
+        void testGetClientByEmail_ShouldReturnClient() {
+            String email = "email";
+            Client client = Client.builder().email(email).build();
+            ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).build();
 
-        ClientDisplayDTO clientDisplayDTO = clientService.getClientByEmail(email);
+            when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
+            when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
 
-        verify(clientRepository, times(1)).findByEmail(email);
-        verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
+            ClientDisplayDTO clientDisplayDTO = clientService.getClientByEmail(email);
 
-        assertEquals(expectedDto, clientDisplayDTO);
+            verify(clientRepository, times(1)).findByEmail(email);
+            verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
+
+            assertEquals(expectedDto, clientDisplayDTO);
+        }
+
+        @Test
+        void testGetClientByEmail_ShouldThrowExceptionWhenClientNotFound() {
+            String email = "email";
+
+            when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> clientService.getClientByEmail(email));
+
+            verify(clientRepository, times(1)).findByEmail(email);
+            verify(mapper, never()).map(any(Client.class), any());
+        }
     }
+
+
 }
