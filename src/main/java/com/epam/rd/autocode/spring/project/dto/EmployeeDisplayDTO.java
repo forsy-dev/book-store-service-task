@@ -11,10 +11,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EmployeeDTO{
+public class EmployeeDisplayDTO {
 
     private String email;
-    private String password;
     private String name;
     private LocalDate birthDate;
     private String phone;
