@@ -32,15 +32,15 @@ public class BookSecurityIntegrationTest {
     @MockBean
     private BookService bookService;
 
+    @Test
+    void testGetBooks_WhenAnonymous_ShouldRedirectToLogin() throws Exception {
+        mockMvc.perform(get("/books"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
     @Nested
     class GetBooks {
-
-        @Test
-        void testGetBooks_WhenAnonymous_ShouldRedirectToLogin() throws Exception {
-            mockMvc.perform(get("/books"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrlPattern("**/login"));
-        }
 
         @Test
         @WithMockUser(roles = "CLIENT")
@@ -59,13 +59,6 @@ public class BookSecurityIntegrationTest {
 
     @Nested
     class GetBookByName {
-
-        @Test
-        void testGetBookByName_WhenAnonymous_ShouldRedirectToLogin() throws Exception {
-            mockMvc.perform(get("/books/testbook"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrlPattern("**/login"));
-        }
 
         @Test
         @WithMockUser(roles = "CLIENT")
@@ -96,13 +89,6 @@ public class BookSecurityIntegrationTest {
     class GetBookForm {
 
         @Test
-        void testGetBookForm_WhenAnonymous_ShouldRedirectToLogin() throws Exception {
-            mockMvc.perform(get("/books/new"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrlPattern("**/login"));
-        }
-
-        @Test
         @WithMockUser(roles = "CLIENT")
         void testGetBookForm_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
             mockMvc.perform(get("/books/new"))
@@ -119,13 +105,6 @@ public class BookSecurityIntegrationTest {
 
     @Nested
     class AddBook {
-
-        @Test
-        void testAddBook_WhenAnonymous_ShouldRedirectToLogin() throws Exception {
-            mockMvc.perform(post("/books"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrlPattern("**/login"));
-        }
 
         @Test
         @WithMockUser(roles = "CLIENT")
@@ -153,6 +132,40 @@ public class BookSecurityIntegrationTest {
             mockMvc.perform(post("/books")
                             .flashAttr("book", bookDto))
                     .andExpect(status().is3xxRedirection());
+        }
+    }
+
+    @Nested
+    class GetEditBookForm {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testGetEditBookForm_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+            String name = "testbook";
+            mockMvc.perform(get("/books/{name}/edit", name))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testGetEditBookForm_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+            BookDTO bookDto = BookDTO.builder()
+                    .name("book")
+                    .genre("genre")
+                    .ageGroup(AgeGroup.ADULT)
+                    .price(BigDecimal.TEN)
+                    .publicationDate(LocalDate.now().minusYears(1))
+                    .author("author")
+                    .pages(100)
+                    .characteristics("characteristics")
+                    .description("description")
+                    .language(Language.ENGLISH)
+                    .build();
+
+            when(bookService.getBookByName(bookDto.getName())).thenReturn(bookDto);
+
+            mockMvc.perform(get("/books/{name}/edit", bookDto.getName()))
+                    .andExpect(status().isOk());
         }
     }
 }

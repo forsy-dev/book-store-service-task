@@ -164,5 +164,40 @@ public class BookControllerTest {
                     .andExpect(view().name("book-form"));
         }
     }
+
+    @Nested
+    class GetEditBookForm {
+
+        BookDTO bookDto;
+
+        @BeforeEach
+        void setUp() {
+            bookDto = BookDTO.builder()
+                    .name("book")
+                    .genre("genre")
+                    .ageGroup(AgeGroup.ADULT)
+                    .price(BigDecimal.TEN)
+                    .publicationDate(LocalDate.now().minusYears(1))
+                    .author("author")
+                    .pages(100)
+                    .characteristics("characteristics")
+                    .description("description")
+                    .language(Language.ENGLISH)
+                    .build();
+        }
+
+        @Test
+        void testGetEditBookForm_ShouldReturnToForm_WhenSuccess() throws Exception {
+
+            when(bookService.getBookByName("book")).thenReturn(bookDto);
+
+            mockMvc.perform(get("/books/{name}/edit", "book")
+                            .with(user("testuser").roles("EMPLOYEE")))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("book-form"))
+                    .andExpect(model().attribute("book", bookDto))
+                    .andExpect(model().attribute("isEdit", true));
+        }
+    }
 }
 

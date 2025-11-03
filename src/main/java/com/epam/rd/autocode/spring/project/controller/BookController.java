@@ -61,7 +61,14 @@ public class BookController {
         }
     }
 
-    // TODO: Implement POST /books (Save new book - Employee)
+    @GetMapping("/{name}/edit")
+    public String getEditBookForm(Model model, @PathVariable(name="name") String name) {
+        BookDTO book = bookService.getBookByName(name);
+        model.addAttribute("book", book);
+        model.addAttribute("isEdit", true);
+        return "book-form";
+    }
+
     // TODO: Implement GET /books/{name}/edit (Show 'edit book' form - Employee)
     // TODO: Implement POST /books/{name}/update (Update book - Employee)
     // TODO: Implement POST /books/{name}/delete (Delete book - Employee)
