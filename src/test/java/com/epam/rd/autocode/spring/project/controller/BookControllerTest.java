@@ -18,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.rmi.AlreadyBoundException;
 import java.time.LocalDate;
 import java.util.Collections;
 
@@ -52,7 +51,7 @@ public class BookControllerTest {
                             .param("sort", "name")
                             .with(user("testuser").roles("CLIENT")))
                     .andExpect(status().isOk())
-                    .andExpect(view().name("books-list"))
+                    .andExpect(view().name("books"))
                     .andExpect(model().attributeExists("bookPage"))
                     .andExpect(model().attribute("bookPage", bookPage));
         }

@@ -4,7 +4,6 @@ import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +25,7 @@ public class BookController {
     public String getAllBooks(Model model, @PageableDefault(size = 10, sort = "name") Pageable pageable) {
         Page<BookDTO> bookPage = bookService.getAllBooks(pageable);
         model.addAttribute("bookPage", bookPage);
-        return "books-list";
+        return "books";
     }
 
     @GetMapping("/{name}")
