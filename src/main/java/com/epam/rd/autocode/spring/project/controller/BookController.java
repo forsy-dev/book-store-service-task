@@ -9,6 +9,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -23,6 +24,13 @@ public class BookController {
         Page<BookDTO> bookPage = bookService.getAllBooks(pageable);
         model.addAttribute("bookPage", bookPage);
         return "books-list";
+    }
+
+    @GetMapping("/{name}")
+    public String getBookByName(Model model, @PathVariable(name="name") String name) {
+        BookDTO book = bookService.getBookByName(name);
+        model.addAttribute("book", book);
+        return "book-detail";
     }
 
     // TODO: Implement GET /books/{name} (View detailed information about any book)
