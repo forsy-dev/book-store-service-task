@@ -6,6 +6,7 @@ import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
+import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +38,9 @@ public class ClientServiceImplTest {
 
     @Mock
     private ClientRepository clientRepository;
+
+    @Mock
+    private EmployeeRepository employeeRepository;
 
     @Mock
     private ModelMapper mapper;
@@ -140,7 +144,7 @@ public class ClientServiceImplTest {
         }
 
         @Test
-        void testUpdateClientByEmail_ShouldThrowExceptionWhenEmailAlreadyExist() {
+        void testUpdateClientByEmail_ShouldThrowExceptionWhenClientEmailAlreadyExist() {
             String oldEmail = "oldEmail";
             String newEmail = "newEmail";
             ClientUpdateDTO dto = ClientUpdateDTO.builder().email(newEmail).build();
@@ -153,6 +157,28 @@ public class ClientServiceImplTest {
 
             verify(clientRepository, times(1)).findByEmail(oldEmail);
             verify(clientRepository, times(1)).existsByEmail(newEmail);
+            verify(employeeRepository, never()).existsByEmail(anyString());
+            verify(mapper, never()).map(any(ClientUpdateDTO.class), any(Client.class));
+            verify(clientRepository, never()).save(any(Client.class));
+            verify(mapper, never()).map(any(Client.class), any());
+        }
+
+        @Test
+        void testUpdateClientByEmail_ShouldThrowExceptionWhenEmployeeEmailAlreadyExist() {
+            String oldEmail = "oldEmail";
+            String newEmail = "newEmail";
+            ClientUpdateDTO dto = ClientUpdateDTO.builder().email(newEmail).build();
+            Client client = Client.builder().email(oldEmail).build();
+
+            when(clientRepository.findByEmail(oldEmail)).thenReturn(Optional.of(client));
+            when(clientRepository.existsByEmail(newEmail)).thenReturn(false);
+            when(employeeRepository.existsByEmail(newEmail)).thenReturn(true);
+
+            assertThrows(AlreadyExistException.class, () -> clientService.updateClientByEmail(oldEmail, dto));
+
+            verify(clientRepository, times(1)).findByEmail(oldEmail);
+            verify(clientRepository, times(1)).existsByEmail(newEmail);
+            verify(employeeRepository, times(1)).existsByEmail(newEmail);
             verify(mapper, never()).map(any(ClientUpdateDTO.class), any(Client.class));
             verify(clientRepository, never()).save(any(Client.class));
             verify(mapper, never()).map(any(Client.class), any());
@@ -259,6 +285,7 @@ public class ClientServiceImplTest {
             ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).build();
 
             when(clientRepository.existsByEmail(email)).thenReturn(false);
+            when(employeeRepository.existsByEmail(email)).thenReturn(false);
             when(mapper.map(dto, Client.class)).thenReturn(client);
             when(clientRepository.save(client)).thenReturn(client);
             when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
@@ -266,6 +293,7 @@ public class ClientServiceImplTest {
             ClientDisplayDTO actualClientDto = clientService.addClient(dto);
 
             verify(clientRepository, times(1)).existsByEmail(email);
+            verify(employeeRepository, times(1)).existsByEmail(email);
             verify(mapper, times(1)).map(dto, Client.class);
             verify(clientRepository, times(1)).save(client);
             verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
@@ -274,7 +302,7 @@ public class ClientServiceImplTest {
         }
 
         @Test
-        void testAddClient_ShouldThrowExceptionWhenEmailAlreadyExist() {
+        void testAddClient_ShouldThrowExceptionWhenClientEmailAlreadyExist() {
             String email = "test@test.com";
             ClientCreateDTO dto = ClientCreateDTO.builder().email(email).build();
 
@@ -283,6 +311,24 @@ public class ClientServiceImplTest {
             assertThrows(AlreadyExistException.class, () -> clientService.addClient(dto));
 
             verify(clientRepository, times(1)).existsByEmail(email);
+            verify(employeeRepository, never()).existsByEmail(anyString());
+            verify(mapper, never()).map(any(ClientCreateDTO.class), any());
+            verify(clientRepository, never()).save(any(Client.class));
+            verify(mapper, never()).map(any(Client.class), any());
+        }
+
+        @Test
+        void testAddClient_ShouldThrowExceptionWhenEmployeeEmailAlreadyExist() {
+            String email = "test@test.com";
+            ClientCreateDTO dto = ClientCreateDTO.builder().email(email).build();
+
+            when(clientRepository.existsByEmail(email)).thenReturn(false);
+            when(employeeRepository.existsByEmail(email)).thenReturn(true);
+
+            assertThrows(AlreadyExistException.class, () -> clientService.addClient(dto));
+
+            verify(clientRepository, times(1)).existsByEmail(email);
+            verify(employeeRepository, times(1)).existsByEmail(anyString());
             verify(mapper, never()).map(any(ClientCreateDTO.class), any());
             verify(clientRepository, never()).save(any(Client.class));
             verify(mapper, never()).map(any(Client.class), any());

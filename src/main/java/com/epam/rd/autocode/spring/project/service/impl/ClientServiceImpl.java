@@ -6,6 +6,7 @@ import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
+import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import java.math.BigDecimal;
 public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
+    private final EmployeeRepository employeeRepository;
     private final ModelMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -42,8 +44,9 @@ public class ClientServiceImpl implements ClientService {
         log.info("Attempting to update client with email {}", email);
         Client client = clientRepository.findByEmail(email).orElseThrow(
                 () -> new NotFoundException(String.format("Client with email %s not found", email)));
-        if (!email.equals(dto.getEmail()) && clientRepository.existsByEmail(dto.getEmail())) {
-            throw new AlreadyExistException(String.format("Client with email %s already exists", dto.getEmail()));
+        if (!email.equals(dto.getEmail()) && (clientRepository.existsByEmail(dto.getEmail()) ||
+        employeeRepository.existsByEmail(dto.getEmail()))) {
+            throw new AlreadyExistException(String.format("User with email %s already exists", dto.getEmail()));
         }
         mapper.map(dto, client);
         client = clientRepository.save(client);
@@ -66,7 +69,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientDisplayDTO addClient(ClientCreateDTO dto) {
         log.info("Attempting to add client with email {}", dto.getEmail());
-        if (clientRepository.existsByEmail(dto.getEmail())) {
+        if (clientRepository.existsByEmail(dto.getEmail()) || employeeRepository.existsByEmail(dto.getEmail())) {
             throw new AlreadyExistException(String.format("Client with email %s already exists", dto.getEmail()));
         }
         Client client = mapper.map(dto, Client.class);
