@@ -4,8 +4,6 @@ import com.epam.rd.autocode.spring.project.dto.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-
 public interface ClientService {
 
     Page<ClientDisplayDTO> getAllClients(Pageable pageable);
@@ -16,7 +14,7 @@ public interface ClientService {
 
     void deleteClientByEmail(String email);
 
-    ClientDisplayDTO addClient(ClientCreatDTO client);
+    ClientDisplayDTO addClient(ClientCreateDTO client);
 
     void changePassword(String email, ChangePasswordDTO dto);
 

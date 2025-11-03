@@ -5,7 +5,6 @@ import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
-import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -66,7 +64,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientDisplayDTO addClient(ClientCreatDTO dto) {
+    public ClientDisplayDTO addClient(ClientCreateDTO dto) {
         log.info("Attempting to add client with email {}", dto.getEmail());
         if (clientRepository.existsByEmail(dto.getEmail())) {
             throw new AlreadyExistException(String.format("Client with email %s already exists", dto.getEmail()));

@@ -5,7 +5,6 @@ import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
-import com.epam.rd.autocode.spring.project.model.Employee;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -21,7 +20,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
-import java.rmi.AlreadyBoundException;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -256,7 +254,7 @@ public class ClientServiceImplTest {
         @Test
         void testAddClient_ShouldReturnClient() {
             String email = "test@test.com";
-            ClientCreatDTO dto = ClientCreatDTO.builder().email(email).build();
+            ClientCreateDTO dto = ClientCreateDTO.builder().email(email).build();
             Client client = Client.builder().email(email).build();
             ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).build();
 
@@ -278,14 +276,14 @@ public class ClientServiceImplTest {
         @Test
         void testAddClient_ShouldThrowExceptionWhenEmailAlreadyExist() {
             String email = "test@test.com";
-            ClientCreatDTO dto = ClientCreatDTO.builder().email(email).build();
+            ClientCreateDTO dto = ClientCreateDTO.builder().email(email).build();
 
             when(clientRepository.existsByEmail(email)).thenReturn(true);
 
             assertThrows(AlreadyExistException.class, () -> clientService.addClient(dto));
 
             verify(clientRepository, times(1)).existsByEmail(email);
-            verify(mapper, never()).map(any(ClientCreatDTO.class), any());
+            verify(mapper, never()).map(any(ClientCreateDTO.class), any());
             verify(clientRepository, never()).save(any(Client.class));
             verify(mapper, never()).map(any(Client.class), any());
         }
