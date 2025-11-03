@@ -7,6 +7,7 @@ import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.Employee;
+import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,9 @@ public class EmployeeServiceImplTest {
 
     @Mock
     private EmployeeRepository employeeRepository;
+
+    @Mock
+    private ClientRepository clientRepository;
 
     @Mock
     private ModelMapper mapper;
@@ -143,7 +147,7 @@ public class EmployeeServiceImplTest {
         }
 
         @Test
-        void testUpdateEmployeeByEmail_ShouldThrowExceptionWhenEmailAlreadyExist() {
+        void testUpdateEmployeeByEmail_ShouldThrowExceptionWhenEmployeeEmailAlreadyExist() {
             String oldEmail = "test@test.com";
             String newEmail = "test@test.org";
             Employee employee = Employee.builder().email(oldEmail).build();
@@ -156,6 +160,28 @@ public class EmployeeServiceImplTest {
 
             verify(employeeRepository, times(1)).findByEmail(oldEmail);
             verify(employeeRepository, times(1)).existsByEmail(newEmail);
+            verify(clientRepository, never()).existsByEmail(anyString());
+            verify(mapper, never()).map(any(EmployeeDTO.class), any(Employee.class));
+            verify(employeeRepository, never()).save(any(Employee.class));
+            verify(mapper, never()).map(any(Employee.class), any());
+        }
+
+        @Test
+        void testUpdateEmployeeByEmail_ShouldThrowExceptionWhenClientEmailAlreadyExist() {
+            String oldEmail = "test@test.com";
+            String newEmail = "test@test.org";
+            Employee employee = Employee.builder().email(oldEmail).build();
+            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().email(newEmail).build();
+
+            when(employeeRepository.findByEmail(oldEmail)).thenReturn(Optional.of(employee));
+            when(employeeRepository.existsByEmail(newEmail)).thenReturn(false);
+            when(clientRepository.existsByEmail(newEmail)).thenReturn(true);
+
+            assertThrows(AlreadyExistException.class, () -> employeeService.updateEmployeeByEmail(oldEmail, dto));
+
+            verify(employeeRepository, times(1)).findByEmail(oldEmail);
+            verify(employeeRepository, times(1)).existsByEmail(newEmail);
+            verify(clientRepository, times(1)).existsByEmail(newEmail);
             verify(mapper, never()).map(any(EmployeeDTO.class), any(Employee.class));
             verify(employeeRepository, never()).save(any(Employee.class));
             verify(mapper, never()).map(any(Employee.class), any());
@@ -225,6 +251,7 @@ public class EmployeeServiceImplTest {
             EmployeeDisplayDTO expectedDto = EmployeeDisplayDTO.builder().email(email).birthDate(birthDate).build();
 
             when(employeeRepository.existsByEmail(email)).thenReturn(false);
+            when(clientRepository.existsByEmail(email)).thenReturn(false);
             when(mapper.map(dto, Employee.class)).thenReturn(employee);
             when(passwordEncoder.encode(password)).thenReturn(password);
             when(employeeRepository.save(employee)).thenReturn(employee);
@@ -233,6 +260,7 @@ public class EmployeeServiceImplTest {
             EmployeeDisplayDTO actualEmployeeDto = employeeService.addEmployee(dto);
 
             verify(employeeRepository, times(1)).existsByEmail(email);
+            verify(clientRepository, times(1)).existsByEmail(email);
             verify(mapper, times(1)).map(dto, Employee.class);
             verify(passwordEncoder, times(1)).encode(password);
             verify(employeeRepository, times(1)).save(employee);
@@ -242,7 +270,7 @@ public class EmployeeServiceImplTest {
         }
 
         @Test
-        void testAddEmployee_ShouldThrowExceptionWhenEmailAlreadyExist() {
+        void testAddEmployee_ShouldThrowExceptionWhenEmployeeEmailAlreadyExist() {
             String email = "test@test.com";
             EmployeeDTO dto = EmployeeDTO.builder().email(email).build();;
 
@@ -251,6 +279,25 @@ public class EmployeeServiceImplTest {
             assertThrows(AlreadyExistException.class, () -> employeeService.addEmployee(dto));
 
             verify(employeeRepository, times(1)).existsByEmail(email);
+            verify(clientRepository, never()).existsByEmail(anyString());
+            verify(mapper, never()).map(any(EmployeeDTO.class), any());
+            verify(passwordEncoder, never()).encode(any(String.class));
+            verify(employeeRepository, never()).save(any(Employee.class));
+            verify(mapper, never()).map(any(Employee.class), any());
+        }
+
+        @Test
+        void testAddEmployee_ShouldThrowExceptionWhenClientEmailAlreadyExist() {
+            String email = "test@test.com";
+            EmployeeDTO dto = EmployeeDTO.builder().email(email).build();;
+
+            when(employeeRepository.existsByEmail(email)).thenReturn(false);
+            when(clientRepository.existsByEmail(email)).thenReturn(true);
+
+            assertThrows(AlreadyExistException.class, () -> employeeService.addEmployee(dto));
+
+            verify(employeeRepository, times(1)).existsByEmail(email);
+            verify(clientRepository, times(1)).existsByEmail(email);
             verify(mapper, never()).map(any(EmployeeDTO.class), any());
             verify(passwordEncoder, never()).encode(any(String.class));
             verify(employeeRepository, never()).save(any(Employee.class));

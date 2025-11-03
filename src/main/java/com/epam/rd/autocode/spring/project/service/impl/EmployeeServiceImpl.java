@@ -9,6 +9,7 @@ import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.exception.AgeRestrictionException;
 import com.epam.rd.autocode.spring.project.model.Employee;
+import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import java.time.LocalDate;
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+    private final ClientRepository clientRepository;
     private final ModelMapper mapper;
     private final PasswordEncoder passwordEncoder;
 
@@ -46,7 +48,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         log.info("Attempting to update employee with old email: {}", email);
         Employee employee = employeeRepository.findByEmail(email).orElseThrow(
                 () -> new NotFoundException(String.format("Employee with email %s not found", email)));
-        if (!email.equals(dto.getEmail()) && employeeRepository.existsByEmail(dto.getEmail())) {
+        if (!email.equals(dto.getEmail()) && (employeeRepository.existsByEmail(dto.getEmail()) ||
+                clientRepository.existsByEmail(dto.getEmail()))) {
             throw new AlreadyExistException(String.format("Employee with email %s already exists", dto.getEmail()));
         }
         validateAge(dto.getBirthDate());
@@ -78,7 +81,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public EmployeeDisplayDTO addEmployee(EmployeeDTO employee) {
         log.info("Attempting to add employee with email {}", employee.getEmail());
-        if (employeeRepository.existsByEmail(employee.getEmail())) {
+        if (employeeRepository.existsByEmail(employee.getEmail()) || clientRepository.existsByEmail(employee.getEmail())) {
             throw new AlreadyExistException(String.format("Employee with email %s already exists", employee.getEmail()));
         }
         validateAge(employee.getBirthDate());
