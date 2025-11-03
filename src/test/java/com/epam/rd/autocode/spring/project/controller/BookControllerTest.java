@@ -1,8 +1,12 @@
 package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
+import com.epam.rd.autocode.spring.project.model.enums.AgeGroup;
+import com.epam.rd.autocode.spring.project.model.enums.Language;
 import com.epam.rd.autocode.spring.project.service.BookService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +17,17 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
+import java.rmi.AlreadyBoundException;
+import java.time.LocalDate;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BookController.class)
@@ -92,6 +101,67 @@ public class BookControllerTest {
                     .andExpect(view().name("book-form"))
                     .andExpect(model().attributeExists("book"))
                     .andExpect(model().attribute("book", bookDto));
+        }
+    }
+
+    @Nested
+    class AddBook {
+
+        BookDTO bookDto;
+
+        @BeforeEach
+        void setUp() {
+            bookDto = BookDTO.builder()
+                    .name("book")
+                    .genre("genre")
+                    .ageGroup(AgeGroup.ADULT)
+                    .price(BigDecimal.TEN)
+                    .publicationDate(LocalDate.now().minusYears(1))
+                    .author("author")
+                    .pages(100)
+                    .characteristics("characteristics")
+                    .description("description")
+                    .language(Language.ENGLISH)
+                    .build();
+        }
+
+        @Test
+        void testAddBook_ShouldRedirectToBooks_WhenSuccess() throws Exception {
+            when(bookService.addBook(any(BookDTO.class))).thenReturn(bookDto);
+
+            mockMvc.perform(post("/books")
+                            .with(user("testuser").roles("EMPLOYEE"))
+                            .with(csrf())
+                            .flashAttr("book", bookDto))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/books-list"));
+        }
+
+        @Test
+        void testAddBook_ShouldReturnToForm_WhenValidationFails() throws Exception {
+            bookDto.setName("");
+
+            when(bookService.addBook(any(BookDTO.class))).thenReturn(bookDto);
+
+            mockMvc.perform(post("/books")
+                            .with(user("testuser").roles("EMPLOYEE"))
+                            .with(csrf())
+                            .flashAttr("book", bookDto))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("book-form"));
+        }
+
+        @Test
+        void testAddBook_ShouldReturnToForm_WhenServiceExceptionThrown() throws Exception {
+            when(bookService.addBook(any(BookDTO.class)))
+                    .thenThrow(new AlreadyExistException("Book already exists"));
+
+            mockMvc.perform(post("/books")
+                            .with(user("testuser").roles("EMPLOYEE"))
+                            .with(csrf())
+                            .flashAttr("book", bookDto))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("book-form"));
         }
     }
 }

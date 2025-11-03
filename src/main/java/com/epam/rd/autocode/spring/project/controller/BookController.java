@@ -2,19 +2,22 @@ package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.service.BookService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/books")
 @RequiredArgsConstructor
+@Slf4j
 public class BookController {
 
     private final BookService bookService;
@@ -39,7 +42,25 @@ public class BookController {
         return "book-form";
     }
 
-    // TODO: Implement GET /books/new (Show 'add book' form - Employee)
+    @PostMapping
+    public String addBook(@Valid @ModelAttribute("book") BookDTO bookDTO,
+                          BindingResult bindingResult,
+                          Model model) {
+
+        if (bindingResult.hasErrors()) {
+            log.warn("Validation errors while adding book: {}", bindingResult.getAllErrors());
+            return "book-form";
+        }
+        try {
+            bookService.addBook(bookDTO);
+            return "redirect:/books-list";
+        } catch (Exception ex) {
+            log.error("Error adding book: {}", ex.getMessage());
+            model.addAttribute("errorMessage", ex.getMessage());
+            return "book-form";
+        }
+    }
+
     // TODO: Implement POST /books (Save new book - Employee)
     // TODO: Implement GET /books/{name}/edit (Show 'edit book' form - Employee)
     // TODO: Implement POST /books/{name}/update (Update book - Employee)
