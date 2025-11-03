@@ -203,4 +203,28 @@ public class BookSecurityIntegrationTest {
                     .andExpect(redirectedUrl("/books-list"));
         }
     }
+
+    @Nested
+    class DeleteBook {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testDeleteBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+            String name = "testbook";
+
+            mockMvc.perform(delete("/books/{name}", name))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testDeleteBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+            String name = "testbook";
+
+            doNothing().when(bookService).deleteBookByName(name);
+
+            mockMvc.perform(delete("/books/{name}", name))
+                    .andExpect(status().is3xxRedirection());
+        }
+    }
 }

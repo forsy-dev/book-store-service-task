@@ -23,7 +23,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -254,6 +254,38 @@ public class BookControllerTest {
                             .with(user("testuser").roles("EMPLOYEE"))
                             .with(csrf())
                             .flashAttr("book", bookDto))
+                    .andExpect(status().isNotFound())
+                    .andExpect(view().name("error"));
+        }
+    }
+
+    @Nested
+    class DeleteBook {
+
+        @Test
+        void testDeleteBook_ShouldRedirect_WhenSuccess() throws Exception {
+
+            String bookName = "book";
+
+            doNothing().when(bookService).deleteBookByName(bookName);
+
+            mockMvc.perform(delete("/books/{name}", bookName)
+                            .with(user("testuser").roles("EMPLOYEE"))
+                            .with(csrf()))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/books-list"));
+        }
+
+        @Test
+        void testDeleteBook_ShouldReturnErrorPage_WhenBookNotFound() throws Exception {
+
+            String bookName = "book";
+
+            doThrow(new NotFoundException("Book not found")).when(bookService).deleteBookByName(bookName);
+
+            mockMvc.perform(delete("/books/{name}", bookName)
+                            .with(user("testuser").roles("EMPLOYEE"))
+                            .with(csrf()))
                     .andExpect(status().isNotFound())
                     .andExpect(view().name("error"));
         }

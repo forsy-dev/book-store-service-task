@@ -80,6 +80,9 @@ public class BookController {
         return "redirect:/books-list";
     }
 
-    // TODO: Implement POST /books/{name}/update (Update book - Employee)
-    // TODO: Implement POST /books/{name}/delete (Delete book - Employee)
+    @DeleteMapping("/{name}")
+    public String deleteBookByName(@PathVariable(name="name") String name) {
+        bookService.deleteBookByName(name);
+        return "redirect:/books-list";
+    }
 }
