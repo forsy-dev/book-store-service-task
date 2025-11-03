@@ -24,7 +24,7 @@ public class SecurityConfig{
                 .authorizeHttpRequests(authz -> authz
                         // --- Public Endpoints ---
                         // Allow anyone to see the home page, login/register
-                        .requestMatchers("/", "/home", "/register","/login").permitAll()
+                        .requestMatchers("/", "/home", "/register").permitAll()
                         // Allow access to static resources
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
 

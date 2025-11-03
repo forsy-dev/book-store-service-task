@@ -22,4 +22,11 @@ public class HomeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("login"));
     }
+
+    @Test
+    void testGetRegisterPage() throws Exception {
+        mockMvc.perform(get("/register"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("register-form"));
+    }
 }
