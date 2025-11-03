@@ -10,12 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -44,14 +49,28 @@ public class BookSecurityIntegrationTest {
         @Test
         @WithMockUser(roles = "CLIENT")
         void testGetBooks_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
-            mockMvc.perform(get("/books"))
+            Page<BookDTO> bookPage = new PageImpl<>(Collections.singletonList(new BookDTO()));
+
+            when(bookService.getAllBooks(any(Pageable.class))).thenReturn(bookPage);
+
+            mockMvc.perform(get("/books")
+                            .param("page", "0")
+                            .param("size", "10")
+                            .param("sort", "name"))
                     .andExpect(status().isOk());
         }
 
         @Test
         @WithMockUser(roles = "EMPLOYEE")
         void testGetBooks_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-            mockMvc.perform(get("/books"))
+            Page<BookDTO> bookPage = new PageImpl<>(Collections.singletonList(new BookDTO()));
+
+            when(bookService.getAllBooks(any(Pageable.class))).thenReturn(bookPage);
+
+            mockMvc.perform(get("/books")
+                            .param("page", "0")
+                            .param("size", "10")
+                            .param("sort", "name"))
                     .andExpect(status().isOk());
         }
     }
