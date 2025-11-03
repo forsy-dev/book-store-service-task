@@ -69,7 +69,17 @@ public class BookController {
         return "book-form";
     }
 
-    // TODO: Implement GET /books/{name}/edit (Show 'edit book' form - Employee)
+    @PutMapping("/{name}")
+    public String updateBookByName(@PathVariable(name="name") String name, @Valid @ModelAttribute("book") BookDTO bookDTO,
+                                   BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            log.warn("Validation errors while updating book: {}", bindingResult.getAllErrors());
+            return "book-form";
+        }
+        bookService.updateBookByName(name, bookDTO);
+        return "redirect:/books-list";
+    }
+
     // TODO: Implement POST /books/{name}/update (Update book - Employee)
     // TODO: Implement POST /books/{name}/delete (Delete book - Employee)
 }

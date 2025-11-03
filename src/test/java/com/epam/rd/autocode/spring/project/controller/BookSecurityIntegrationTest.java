@@ -16,11 +16,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -166,6 +165,42 @@ public class BookSecurityIntegrationTest {
 
             mockMvc.perform(get("/books/{name}/edit", bookDto.getName()))
                     .andExpect(status().isOk());
+        }
+    }
+
+    @Nested
+    class EditBook {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testEditBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+            String name = "testbook";
+            mockMvc.perform(put("/books/{name}", name))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testEditBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+            BookDTO bookDto = BookDTO.builder()
+                    .name("book")
+                    .genre("genre")
+                    .ageGroup(AgeGroup.ADULT)
+                    .price(BigDecimal.TEN)
+                    .publicationDate(LocalDate.now().minusYears(1))
+                    .author("author")
+                    .pages(100)
+                    .characteristics("characteristics")
+                    .description("description")
+                    .language(Language.ENGLISH)
+                    .build();
+
+            when(bookService.updateBookByName(bookDto.getName(), bookDto)).thenReturn(bookDto);
+
+            mockMvc.perform(put("/books/{name}", bookDto.getName())
+                            .flashAttr("book", bookDto))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/books-list"));
         }
     }
 }

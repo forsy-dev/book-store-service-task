@@ -26,8 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BookController.class)
@@ -197,6 +196,66 @@ public class BookControllerTest {
                     .andExpect(view().name("book-form"))
                     .andExpect(model().attribute("book", bookDto))
                     .andExpect(model().attribute("isEdit", true));
+        }
+    }
+
+    @Nested
+    class EditBook {
+
+        BookDTO bookDto;
+
+        @BeforeEach
+        void setUp() {
+            bookDto = BookDTO.builder()
+                    .name("book")
+                    .genre("genre")
+                    .ageGroup(AgeGroup.ADULT)
+                    .price(BigDecimal.TEN)
+                    .publicationDate(LocalDate.now().minusYears(1))
+                    .author("author")
+                    .pages(100)
+                    .characteristics("characteristics")
+                    .description("description")
+                    .language(Language.ENGLISH)
+                    .build();
+        }
+
+        @Test
+        void testEditBook_ShouldRedirect_WhenSuccess() throws Exception {
+
+            when(bookService.updateBookByName(bookDto.getName(), bookDto)).thenReturn(bookDto);
+
+            mockMvc.perform(put("/books/{name}", bookDto.getName())
+                            .with(user("testuser").roles("EMPLOYEE"))
+                            .with(csrf())
+                            .flashAttr("book", bookDto))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/books-list"));
+        }
+
+        @Test
+        void testEditBook_ShouldReturnToForm_WhenValidationFails() throws Exception {
+            bookDto.setName("a");
+
+            mockMvc.perform(put("/books/{name}", bookDto.getName())
+                            .with(user("testuser").roles("EMPLOYEE"))
+                            .with(csrf())
+                            .flashAttr("book", bookDto))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("book-form"));
+        }
+
+        @Test
+        void testEditBook_ShouldReturnErrorPage_WhenBookNotFound() throws Exception {
+
+            when(bookService.updateBookByName(bookDto.getName(), bookDto)).thenThrow(new NotFoundException("Book not found"));
+
+            mockMvc.perform(put("/books/{name}", bookDto.getName())
+                            .with(user("testuser").roles("EMPLOYEE"))
+                            .with(csrf())
+                            .flashAttr("book", bookDto))
+                    .andExpect(status().isNotFound())
+                    .andExpect(view().name("error"));
         }
     }
 }
