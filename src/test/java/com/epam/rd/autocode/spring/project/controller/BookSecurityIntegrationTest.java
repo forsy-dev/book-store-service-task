@@ -85,4 +85,29 @@ public class BookSecurityIntegrationTest {
                     .andExpect(status().isOk());
         }
     }
+
+    @Nested
+    class GetBookForm {
+
+        @Test
+        void testGetBookForm_WhenAnonymous_ShouldRedirectToLogin() throws Exception {
+            mockMvc.perform(get("/books/new"))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrlPattern("**/login"));
+        }
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testGetBookForm_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+            mockMvc.perform(get("/books/new"))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testGetBookForm_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+            mockMvc.perform(get("/books/new"))
+                    .andExpect(status().isOk());
+        }
+    }
 }

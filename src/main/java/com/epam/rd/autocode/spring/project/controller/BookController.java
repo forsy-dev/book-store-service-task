@@ -33,7 +33,12 @@ public class BookController {
         return "book-detail";
     }
 
-    // TODO: Implement GET /books/{name} (View detailed information about any book)
+    @GetMapping("/new")
+    public String getNewBookForm(Model model) {
+        model.addAttribute("book", new BookDTO());
+        return "book-form";
+    }
+
     // TODO: Implement GET /books/new (Show 'add book' form - Employee)
     // TODO: Implement POST /books (Save new book - Employee)
     // TODO: Implement GET /books/{name}/edit (Show 'edit book' form - Employee)

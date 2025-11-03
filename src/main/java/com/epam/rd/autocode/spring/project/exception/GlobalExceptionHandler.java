@@ -3,6 +3,7 @@ package com.epam.rd.autocode.spring.project.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,6 +30,18 @@ public class GlobalExceptionHandler {
     public String handleNotFoundException(NotFoundException ex, Model model, HttpServletRequest request) {
         log.warn("Not Found Exception: {} for URL: {}", ex.getMessage(), request.getRequestURL());
         return populateErrorModel(model, ex, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public String handleAccessDeniedException(AccessDeniedException ex, Model model, HttpServletRequest request) {
+        log.warn("Access Denied Exception: {} for URL: {} by user {}",
+                ex.getMessage(),
+                request.getRequestURL(),
+                request.getRemoteUser()
+        );
+        model.addAttribute("errorMessage", "You do not have permission to access this resource.");
+        return populateErrorModel(model, ex, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(Exception.class)

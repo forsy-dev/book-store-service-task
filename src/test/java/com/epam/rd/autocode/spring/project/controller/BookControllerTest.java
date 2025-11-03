@@ -79,6 +79,20 @@ public class BookControllerTest {
         }
     }
 
+    @Nested
+    class GetBookForm {
 
+        @Test
+        void testGetBookForm_ShouldReturnForm() throws Exception {
+            BookDTO bookDto = BookDTO.builder().build();
+
+            mockMvc.perform(get("/books/new")
+                            .with(user("testuser").roles("EMPLOYEE")))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("book-form"))
+                    .andExpect(model().attributeExists("book"))
+                    .andExpect(model().attribute("book", bookDto));
+        }
+    }
 }
 
