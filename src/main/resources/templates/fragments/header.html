@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+<!-- Header -->
+<header class="bg-white shadow-md" th:fragment="header">
+    <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <!-- Main logo/link -->
+        <a th:href="@{/books}" class="text-2xl font-bold text-gray-800">BookStore</a>
+
+        <!-- Navigation Links -->
+        <div>
+            <!-- All Authenticated Users -->
+            <a sec:authorize="isAuthenticated()" th:href="@{/books}" class="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium">Books</a>
+
+            <!-- Employees Only -->
+            <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/clients}" class="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium">Clients</a>
+            <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/books/new}" class="ml-4 px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700">
+                + Add New Book
+            </a>
+
+            <!-- Clients Only -->
+            <a sec:authorize="hasRole('CLIENT')" th:href="@{/cart}" class="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium">Cart</a>
+
+            <!-- Login / Logout Buttons -->
+            <form th:action="@{/logout}" method="post" class="inline" sec:authorize="isAuthenticated()">
+                <button type="submit" class="ml-4 px-5 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">
+                    Logout
+                </button>
+            </form>
+
+            <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="ml-4 px-5 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700">
+                Login
+            </a>
+        </div>
+    </nav>
+</header>
+</body>
+</html>
