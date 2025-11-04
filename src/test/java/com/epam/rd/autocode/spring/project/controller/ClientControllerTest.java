@@ -50,20 +50,21 @@ public class ClientControllerTest {
         }
     }
 
-//    @Nested
-//    class GetClientByEmail {
-//
-//        @Test
-//        void testGetClient_ShouldReturnClient_WhenSuccess() throws Exception {
-//            String email = "a";
-//            ClientDisplayDTO clientDto = ClientDisplayDTO.builder().email(email).build();
-//            when(clientService.getClientByEmail(email)).thenReturn(clientDto);
-//
-//            mockMvc.perform(get("/clients/{email}", email)
-//                            .with(user("testuser").roles("EMPLOYEE")))
-//                    .andExpect(status().isOk())
-//                    .andExpect(view().name("clients"))
-//                    .andExpect(model().attribute("clientPage", clientPage));
-//        }
-//    }
+    @Nested
+    class GetClientByEmail {
+
+        @Test
+        void testGetClient_ShouldReturnClient_WhenSuccess() throws Exception {
+            String email = "a";
+            ClientDisplayDTO clientDto = ClientDisplayDTO.builder().email(email).build();
+
+            when(clientService.getClientByEmail(email)).thenReturn(clientDto);
+
+            mockMvc.perform(get("/clients/{email}", email)
+                            .with(user("testuser").roles("EMPLOYEE")))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("client-detail"))
+                    .andExpect(model().attribute("client", clientDto));
+        }
+    }
 }

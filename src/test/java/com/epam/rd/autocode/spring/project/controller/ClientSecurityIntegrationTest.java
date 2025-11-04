@@ -60,4 +60,28 @@ public class ClientSecurityIntegrationTest {
                     .andExpect(status().isOk());
         }
     }
+
+    @Nested
+    class GetClientByEmail {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testGetClientByEmail_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+            String email = "email";
+
+            mockMvc.perform(get("/clients/{email}", email))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testGetClientByEmail_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+            String email = "email";
+
+            when(clientService.getClientByEmail(email)).thenReturn(new ClientDisplayDTO());
+
+            mockMvc.perform(get("/clients/{email}", email))
+                    .andExpect(status().isOk());
+        }
+    }
 }

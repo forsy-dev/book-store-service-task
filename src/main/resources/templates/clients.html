@@ -55,7 +55,6 @@
                             </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                        <!-- View Button (All Authenticated) -->
                         <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/clients/{email}(email=${client.email})}" class="text-blue-600 hover:text-blue-900">View</a>
 
                     </td>
