@@ -16,4 +16,5 @@ public class ClientDisplayDTO {
     private String email;
     private String name;
     private BigDecimal balance;
+    private Boolean isBlocked;
 }

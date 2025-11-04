@@ -19,4 +19,8 @@ public interface ClientService {
     void changePassword(String email, ChangePasswordDTO dto);
 
     ClientDisplayDTO addBalanceToClient(String email, AddBalanceDTO dto);
+
+    void blockClient(String email);
+
+    void unblockClient(String email);
 }

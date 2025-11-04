@@ -5,6 +5,8 @@ import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Client;
+import com.epam.rd.autocode.spring.project.model.ClientBlockStatus;
+import com.epam.rd.autocode.spring.project.repo.ClientBlockStatusRepository;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
 import org.junit.jupiter.api.Nested;
@@ -43,6 +45,9 @@ public class ClientServiceImplTest {
     private EmployeeRepository employeeRepository;
 
     @Mock
+    private ClientBlockStatusRepository clientBlockStatusRepository;
+
+    @Mock
     private ModelMapper mapper;
 
     @Mock
@@ -54,13 +59,16 @@ public class ClientServiceImplTest {
         ClientDisplayDTO expectedDto = new ClientDisplayDTO();
         Pageable pageable = PageRequest.of(0, 10);
         Page<Client> clientPage = new PageImpl<>(Arrays.asList(client), pageable, 1);
+        ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
         when(clientRepository.findAll(pageable)).thenReturn(clientPage);
+        when(clientBlockStatusRepository.findByClientEmail(client.getEmail())).thenReturn(Optional.of(clientBlockStatus));
         when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
 
         Page<ClientDisplayDTO> actualClientDto = clientService.getAllClients(pageable);
 
         verify(clientRepository, times(1)).findAll(pageable);
+        verify(clientBlockStatusRepository, times(1)).findByClientEmail(client.getEmail());
         verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
 
         assertEquals(1, actualClientDto.getTotalElements());
@@ -76,13 +84,16 @@ public class ClientServiceImplTest {
             String email = "email";
             Client client = Client.builder().email(email).build();
             ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).build();
+            ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
             when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
+            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
             when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
 
             ClientDisplayDTO clientDisplayDTO = clientService.getClientByEmail(email);
 
             verify(clientRepository, times(1)).findByEmail(email);
+            verify(clientBlockStatusRepository, times(1)).findByClientEmail(email);
             verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
 
             assertEquals(expectedDto, clientDisplayDTO);
@@ -112,17 +123,23 @@ public class ClientServiceImplTest {
             ClientUpdateDTO dto = ClientUpdateDTO.builder().email(email).name(newName).build();
             Client client = Client.builder().email(email).name(oldName).build();
             ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).build();
+            ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
             when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
+            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
             doNothing().when(mapper).map(dto, client);
             when(clientRepository.save(client)).thenReturn(client);
+            when(clientBlockStatusRepository.save(any(ClientBlockStatus.class))).thenReturn(clientBlockStatus);
+            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
             when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
 
             ClientDisplayDTO clientDisplayDTO = clientService.updateClientByEmail(email, dto);
 
             verify(clientRepository, times(1)).findByEmail(email);
+            verify(clientBlockStatusRepository, times(2)).findByClientEmail(email);
             verify(mapper, times(1)).map(dto, client);
             verify(clientRepository, times(1)).save(client);
+            verify(clientBlockStatusRepository, times(1)).save(any(ClientBlockStatus.class));
             verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
 
             assertEquals(expectedDto, clientDisplayDTO);
@@ -192,14 +209,19 @@ public class ClientServiceImplTest {
         void testDeleteClientByEmail_ShouldReturnNothing() {
             String email = "email";
             Client client = Client.builder().email(email).build();
+            ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
             when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
+            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
             doNothing().when(clientRepository).delete(client);
+            doNothing().when(clientBlockStatusRepository).delete(clientBlockStatus);
 
             clientService.deleteClientByEmail(email);
 
             verify(clientRepository, times(1)).findByEmail(email);
+            verify(clientBlockStatusRepository, times(1)).findByClientEmail(email);
             verify(clientRepository, times(1)).delete(client);
+            verify(clientBlockStatusRepository, times(1)).delete(clientBlockStatus);
         }
 
         @Test
@@ -283,19 +305,26 @@ public class ClientServiceImplTest {
             ClientCreateDTO dto = ClientCreateDTO.builder().email(email).build();
             Client client = Client.builder().email(email).build();
             ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).build();
+            ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
             when(clientRepository.existsByEmail(email)).thenReturn(false);
             when(employeeRepository.existsByEmail(email)).thenReturn(false);
+            when(clientBlockStatusRepository.existsByClientEmail(email)).thenReturn(false);
             when(mapper.map(dto, Client.class)).thenReturn(client);
             when(clientRepository.save(client)).thenReturn(client);
+            when(clientBlockStatusRepository.save(any(ClientBlockStatus.class))).thenReturn(clientBlockStatus);
+            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
             when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
 
             ClientDisplayDTO actualClientDto = clientService.addClient(dto);
 
             verify(clientRepository, times(1)).existsByEmail(email);
             verify(employeeRepository, times(1)).existsByEmail(email);
+            verify(clientBlockStatusRepository, times(1)).existsByClientEmail(email);
             verify(mapper, times(1)).map(dto, Client.class);
             verify(clientRepository, times(1)).save(client);
+            verify(clientBlockStatusRepository, times(1)).save(any(ClientBlockStatus.class));
+            verify(clientBlockStatusRepository, times(1)).findByClientEmail(email);
             verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
 
             assertEquals(expectedDto, actualClientDto);
@@ -345,15 +374,18 @@ public class ClientServiceImplTest {
             AddBalanceDTO dto = AddBalanceDTO.builder().amount(amount).build();
             Client client = Client.builder().email(email).balance(BigDecimal.ZERO).build();
             ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).balance(amount).build();
+            ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
             when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
             when(clientRepository.save(client)).thenReturn(client);
+            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
             when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
 
             ClientDisplayDTO actualClientDto = clientService.addBalanceToClient(email, dto);
 
             verify(clientRepository, times(1)).findByEmail(email);
             verify(clientRepository, times(1)).save(client);
+            verify(clientBlockStatusRepository, times(1)).findByClientEmail(email);
             verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
 
             assertEquals(expectedDto, actualClientDto);
@@ -371,6 +403,66 @@ public class ClientServiceImplTest {
             verify(clientRepository, times(1)).findByEmail(email);
             verify(clientRepository, never()).save(any(Client.class));
             verify(mapper, never()).map(any(Client.class), any());
+        }
+    }
+
+    @Nested
+    class BlockClient {
+
+        @Test
+        void testBlockClient_ShouldDoNothing() {
+            String email = "test@test.com";
+            ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
+
+            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
+            when(clientBlockStatusRepository.save(clientBlockStatus)).thenReturn(clientBlockStatus);
+
+            clientService.blockClient(email);
+
+            verify(clientBlockStatusRepository, times(1)).findByClientEmail(email);
+            verify(clientBlockStatusRepository, times(1)).save(clientBlockStatus);
+        }
+
+        @Test
+        void testBlockClient_ShouldThrowExceptionWhenEmailNotFound() {
+            String email = "test@test.com";
+
+            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> clientService.blockClient(email));
+
+            verify(clientBlockStatusRepository, times(1)).findByClientEmail(email);
+            verify(clientBlockStatusRepository, never()).save(any(ClientBlockStatus.class));
+        }
+    }
+
+    @Nested
+    class UnblockClient {
+
+        @Test
+        void testBlockClient_ShouldDoNothing() {
+            String email = "test@test.com";
+            ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
+
+            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
+            when(clientBlockStatusRepository.save(clientBlockStatus)).thenReturn(clientBlockStatus);
+
+            clientService.unblockClient(email);
+
+            verify(clientBlockStatusRepository, times(1)).findByClientEmail(email);
+            verify(clientBlockStatusRepository, times(1)).save(clientBlockStatus);
+        }
+
+        @Test
+        void testBlockClient_ShouldThrowExceptionWhenEmailNotFound() {
+            String email = "test@test.com";
+
+            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> clientService.unblockClient(email));
+
+            verify(clientBlockStatusRepository, times(1)).findByClientEmail(email);
+            verify(clientBlockStatusRepository, never()).save(any(ClientBlockStatus.class));
         }
     }
 }
