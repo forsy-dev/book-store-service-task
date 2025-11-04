@@ -25,7 +25,7 @@
 
             <!-- Clients Only -->
             <a sec:authorize="hasRole('CLIENT')" th:href="@{/cart}" class="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium">Cart</a>
-
+            <a sec:authorize="isAuthenticated()" th:href="@{/profile}" class="px-4 py-2 text-gray-700 hover:text-blue-600 font-medium">My Profile</a>
             <!-- Login / Logout Buttons -->
             <form th:action="@{/logout}" method="post" class="inline" sec:authorize="isAuthenticated()">
                 <button type="submit" class="ml-4 px-5 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">
