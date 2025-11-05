@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
+import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,11 +20,11 @@ import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 
@@ -116,6 +117,30 @@ public class ClientSecurityIntegrationTest {
         void testUpdateClient_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
 
             mockMvc.perform(put("/clients/profile"))
+                    .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    class DeleteClient {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testDeleteClient_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+            String email = "test@test.com";
+
+            doNothing().when(clientService).deleteClientByEmail(email);
+
+            mockMvc.perform(delete("/clients/profile"))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/login?accountDeleted=true"));
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testDeleteClient_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
+
+            mockMvc.perform(delete("/clients/profile"))
                     .andExpect(status().isForbidden());
         }
     }

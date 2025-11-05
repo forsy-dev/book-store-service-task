@@ -35,6 +35,7 @@ public class SecurityConfig{
                         // --- Employee Endpoints ---
                         // Only employees can add, edit, or delete books
                         .requestMatchers(HttpMethod.PUT, "/clients/profile").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.DELETE, "/clients/profile").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.GET, "/books/new", "/books/*/edit").hasRole("EMPLOYEE")
                         .requestMatchers(HttpMethod.POST, "/books", "/books/**").hasRole("EMPLOYEE")
                         .requestMatchers(HttpMethod.PUT, "/books", "/books/**").hasRole("EMPLOYEE")

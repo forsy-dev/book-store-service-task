@@ -15,10 +15,6 @@ import java.time.LocalDate;
 public class EmployeeUpdateDTO {
 
     @NotBlank(message = "{NotBlank.invalid}")
-    @Email(message = "{Email.invalid}")
-    private String email;
-
-    @NotBlank(message = "{NotBlank.invalid}")
     @Size(min = 3, max = 255, message = "{Size.invalid}")
     private String name;
 

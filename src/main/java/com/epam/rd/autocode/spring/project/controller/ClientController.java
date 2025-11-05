@@ -4,6 +4,8 @@ import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -62,5 +65,19 @@ public class ClientController {
         redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
         log.info("Client profile updated for: {}", email);
         return "redirect:/profile";
+    }
+
+    @DeleteMapping("/profile")
+    public String deleteClientProfile(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+        log.info("Attempting to delete profile for client: {}", authentication.getName());
+
+        clientService.deleteClientByEmail(authentication.getName());
+
+        log.info("Client profile deleted for: {}", authentication.getName());
+
+        SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
+        logoutHandler.logout(request, response, authentication);
+
+        return "redirect:/login?accountDeleted=true";
     }
 }

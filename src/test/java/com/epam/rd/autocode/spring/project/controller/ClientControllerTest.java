@@ -4,6 +4,7 @@ import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
+import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,11 +20,10 @@ import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 
@@ -113,6 +113,35 @@ public class ClientControllerTest {
                     .andExpect(redirectedUrl("/profile?error=validation"))
                     .andExpect(flash().attributeExists("org.springframework.validation.BindingResult.clientUpdateDTO"))
                     .andExpect(flash().attributeExists("clientUpdateDTO"));
+        }
+    }
+
+    @Nested
+    class DeleteClient {
+
+        @Test
+        void testDeleteClient_ShouldRedirectToLogin_WhenSuccess() throws Exception {
+            String email = "test@test.com";
+
+            doNothing().when(clientService).deleteClientByEmail(email);
+
+            mockMvc.perform(delete("/clients/profile")
+                            .with(user(email).roles("CLIENT"))
+                            .with(csrf()))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/login?accountDeleted=true"));
+        }
+
+        @Test
+        void testDeleteClient_ShouldReturnErrorPage_WhenEmailNotFound() throws Exception {
+            String email = "test@test.com";
+
+            doThrow(new NotFoundException("Client not found")).when(clientService).deleteClientByEmail(email);
+
+            mockMvc.perform(delete("/clients/profile")
+                            .with(user(email).roles("CLIENT"))
+                            .with(csrf()))
+                    .andExpect(status().isNotFound());
         }
     }
 }

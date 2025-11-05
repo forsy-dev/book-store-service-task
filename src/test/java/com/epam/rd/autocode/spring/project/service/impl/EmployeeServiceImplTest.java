@@ -113,7 +113,7 @@ public class EmployeeServiceImplTest {
             String newName = "newName";
             LocalDate birthDate = LocalDate.now().minusYears(18);
             Employee employee = Employee.builder().email(email).name(oldName).build();
-            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().email(email).name(newName).birthDate(birthDate).build();
+            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().name(newName).birthDate(birthDate).build();
             EmployeeDisplayDTO expectedDto = EmployeeDisplayDTO.builder().email(email).name(newName).birthDate(birthDate).build();
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
@@ -147,54 +147,13 @@ public class EmployeeServiceImplTest {
         }
 
         @Test
-        void testUpdateEmployeeByEmail_ShouldThrowExceptionWhenEmployeeEmailAlreadyExist() {
-            String oldEmail = "test@test.com";
-            String newEmail = "test@test.org";
-            Employee employee = Employee.builder().email(oldEmail).build();
-            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().email(newEmail).build();
-
-            when(employeeRepository.findByEmail(oldEmail)).thenReturn(Optional.of(employee));
-            when(employeeRepository.existsByEmail(newEmail)).thenReturn(true);
-
-            assertThrows(AlreadyExistException.class, () -> employeeService.updateEmployeeByEmail(oldEmail, dto));
-
-            verify(employeeRepository, times(1)).findByEmail(oldEmail);
-            verify(employeeRepository, times(1)).existsByEmail(newEmail);
-            verify(clientRepository, never()).existsByEmail(anyString());
-            verify(mapper, never()).map(any(EmployeeDTO.class), any(Employee.class));
-            verify(employeeRepository, never()).save(any(Employee.class));
-            verify(mapper, never()).map(any(Employee.class), any());
-        }
-
-        @Test
-        void testUpdateEmployeeByEmail_ShouldThrowExceptionWhenClientEmailAlreadyExist() {
-            String oldEmail = "test@test.com";
-            String newEmail = "test@test.org";
-            Employee employee = Employee.builder().email(oldEmail).build();
-            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().email(newEmail).build();
-
-            when(employeeRepository.findByEmail(oldEmail)).thenReturn(Optional.of(employee));
-            when(employeeRepository.existsByEmail(newEmail)).thenReturn(false);
-            when(clientRepository.existsByEmail(newEmail)).thenReturn(true);
-
-            assertThrows(AlreadyExistException.class, () -> employeeService.updateEmployeeByEmail(oldEmail, dto));
-
-            verify(employeeRepository, times(1)).findByEmail(oldEmail);
-            verify(employeeRepository, times(1)).existsByEmail(newEmail);
-            verify(clientRepository, times(1)).existsByEmail(newEmail);
-            verify(mapper, never()).map(any(EmployeeDTO.class), any(Employee.class));
-            verify(employeeRepository, never()).save(any(Employee.class));
-            verify(mapper, never()).map(any(Employee.class), any());
-        }
-
-        @Test
         void testUpdateEmployeeByEmail_ShouldThrowExceptionWhenBirtDateInvalid() {
             String email = "test@test.com";
             String oldName = "oldName";
             String newName = "newName";
             LocalDate birthDate = LocalDate.now().minusYears(17);
             Employee employee = Employee.builder().email(email).name(oldName).build();
-            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().email(email).name(newName).birthDate(birthDate).build();
+            EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().name(newName).birthDate(birthDate).build();
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
 
