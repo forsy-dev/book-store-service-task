@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.*;
+import com.epam.rd.autocode.spring.project.exception.InvalidPasswordException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
@@ -12,9 +13,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 
@@ -100,6 +103,176 @@ public class ProfileControllerTest {
                             .with(user(email).roles("EMPLOYEE")))
                     .andExpect(status().isNotFound())
                     .andExpect(view().name("error"));
+        }
+    }
+
+    @Nested
+    class ChangePassword {
+
+        @Test
+        void testChangePassword_WhenAuthenticatedAsClient_ShouldRedirectToProfile() throws Exception {
+            String email = "email";
+            String oldPassword = "oldPassword";
+            String newPassword = "Te$t1234";
+            ChangePasswordDTO changePasswordDTO = ChangePasswordDTO.builder()
+                    .oldPassword(oldPassword)
+                    .newPassword(newPassword)
+                    .build();
+
+            doNothing().when(clientService).changePassword(email, changePasswordDTO);
+
+            mockMvc.perform(put("/profile/password")
+                            .with(user(email).roles("CLIENT"))
+                            .with(csrf())
+                            .flashAttr("changePasswordDTO", changePasswordDTO))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/profile"))
+                    .andExpect(flash().attributeExists("successMessage"));
+        }
+
+        @Test
+        void testChangePassword_WhenAuthenticatedAsClient_ShouldRedirectToProfile_WhenValidationFails() throws Exception {
+            String email = "email";
+            String oldPassword = "oldPassword";
+            String newPassword = "";
+            ChangePasswordDTO changePasswordDTO = ChangePasswordDTO.builder()
+                    .oldPassword(oldPassword)
+                    .newPassword(newPassword)
+                    .build();
+
+            mockMvc.perform(put("/profile/password")
+                            .with(user(email).roles("CLIENT"))
+                            .with(csrf())
+                            .flashAttr("changePasswordDTO", changePasswordDTO))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/profile?error=validation"))
+                    .andExpect(flash().attributeExists("org.springframework.validation.BindingResult.changePasswordDTO"))
+                    .andExpect(flash().attributeExists("changePasswordDTO"));
+        }
+
+        @Test
+        void testChangePassword_WhenAuthenticatedAsClient_ShouldReturnErrorPage_WhenEmailNotFound() throws Exception {
+            String email = "email";
+            String oldPassword = "oldPassword";
+            String newPassword = "Te$t1234";
+            ChangePasswordDTO changePasswordDTO = ChangePasswordDTO.builder()
+                    .oldPassword(oldPassword)
+                    .newPassword(newPassword)
+                    .build();
+
+            doThrow(new NotFoundException("Not Found")).when(clientService).changePassword(email, changePasswordDTO);
+
+            mockMvc.perform(put("/profile/password")
+                            .with(user(email).roles("CLIENT"))
+                            .with(csrf())
+                            .flashAttr("changePasswordDTO", changePasswordDTO))
+                    .andExpect(status().isNotFound())
+                    .andExpect(view().name("error"));
+        }
+
+        @Test
+        void testChangePassword_WhenAuthenticatedAsClient_ShouldRedirectToProfile_WhenPasswordIncorrect() throws Exception {
+            String email = "email";
+            String oldPassword = "oldPassword";
+            String newPassword = "Te$t1234";
+            ChangePasswordDTO changePasswordDTO = ChangePasswordDTO.builder()
+                    .oldPassword(oldPassword)
+                    .newPassword(newPassword)
+                    .build();
+
+            doThrow(new InvalidPasswordException("Invalid password")).when(clientService).changePassword(email, changePasswordDTO);
+
+            mockMvc.perform(put("/profile/password")
+                            .with(user(email).roles("CLIENT"))
+                            .with(csrf())
+                            .flashAttr("changePasswordDTO", changePasswordDTO))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/profile?error=service"))
+                    .andExpect(flash().attributeExists("changePasswordDTO"))
+                    .andExpect(flash().attributeExists("errorMessage"));
+        }
+
+        @Test
+        void testChangePassword_WhenAuthenticatedAsEmployee_ShouldRedirectToProfile() throws Exception {
+            String email = "email";
+            String oldPassword = "oldPassword";
+            String newPassword = "Te$t1234";
+            ChangePasswordDTO changePasswordDTO = ChangePasswordDTO.builder()
+                    .oldPassword(oldPassword)
+                    .newPassword(newPassword)
+                    .build();
+
+            doNothing().when(employeeService).changePassword(email, changePasswordDTO);
+
+            mockMvc.perform(put("/profile/password")
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf())
+                            .flashAttr("changePasswordDTO", changePasswordDTO))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/profile"))
+                    .andExpect(flash().attributeExists("successMessage"));
+        }
+
+        @Test
+        void testChangePassword_WhenAuthenticatedAsEmployee_ShouldRedirectToProfile_WhenValidationFails() throws Exception {
+            String email = "email";
+            String oldPassword = "oldPassword";
+            String newPassword = "";
+            ChangePasswordDTO changePasswordDTO = ChangePasswordDTO.builder()
+                    .oldPassword(oldPassword)
+                    .newPassword(newPassword)
+                    .build();
+
+            mockMvc.perform(put("/profile/password")
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf())
+                            .flashAttr("changePasswordDTO", changePasswordDTO))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/profile?error=validation"))
+                    .andExpect(flash().attributeExists("org.springframework.validation.BindingResult.changePasswordDTO"))
+                    .andExpect(flash().attributeExists("changePasswordDTO"));
+        }
+
+        @Test
+        void testChangePassword_WhenAuthenticatedAsEmployee_ShouldReturnErrorPage_WhenEmailNotFound() throws Exception {
+            String email = "email";
+            String oldPassword = "oldPassword";
+            String newPassword = "Te$t1234";
+            ChangePasswordDTO changePasswordDTO = ChangePasswordDTO.builder()
+                    .oldPassword(oldPassword)
+                    .newPassword(newPassword)
+                    .build();
+
+            doThrow(new NotFoundException("Not Found")).when(employeeService).changePassword(email, changePasswordDTO);
+
+            mockMvc.perform(put("/profile/password")
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf())
+                            .flashAttr("changePasswordDTO", changePasswordDTO))
+                    .andExpect(status().isNotFound())
+                    .andExpect(view().name("error"));
+        }
+
+        @Test
+        void testChangePassword_WhenAuthenticatedAsEmployee_ShouldRedirectToProfile_WhenPasswordIncorrect() throws Exception {
+            String email = "email";
+            String oldPassword = "oldPassword";
+            String newPassword = "Te$t1234";
+            ChangePasswordDTO changePasswordDTO = ChangePasswordDTO.builder()
+                    .oldPassword(oldPassword)
+                    .newPassword(newPassword)
+                    .build();
+
+            doThrow(new InvalidPasswordException("Invalid password")).when(employeeService).changePassword(email, changePasswordDTO);
+
+            mockMvc.perform(put("/profile/password")
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf())
+                            .flashAttr("changePasswordDTO", changePasswordDTO))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/profile?error=service"))
+                    .andExpect(flash().attributeExists("changePasswordDTO"))
+                    .andExpect(flash().attributeExists("errorMessage"));
         }
     }
 }
