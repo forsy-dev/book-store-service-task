@@ -144,4 +144,54 @@ public class ClientSecurityIntegrationTest {
                     .andExpect(status().isForbidden());
         }
     }
+
+    @Nested
+    class BlockClient {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testBlockClient_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+            String email = "test@test.com";
+
+            mockMvc.perform(put("/clients/{email}/block", email))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testBlockClient_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+            String email = "test@test.com";
+
+            doNothing().when(clientService).blockClient(email);
+
+            mockMvc.perform(put("/clients/{email}/block", email))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/clients/" + email));
+        }
+    }
+
+    @Nested
+    class UnblockClient {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testUnblockClient_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+            String email = "test@test.com";
+
+            mockMvc.perform(put("/clients/{email}/unblock", email))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testUnblockClient_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+            String email = "test@test.com";
+
+            doNothing().when(clientService).unblockClient(email);
+
+            mockMvc.perform(put("/clients/{email}/unblock", email))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/clients/" + email));
+        }
+    }
 }

@@ -47,14 +47,14 @@
                 -->
                 <div>
                     <!-- Show UNBLOCK button if client is blocked -->
-                    <form th:if="*{isBlocked}" th:action="@{/clients/{email}/unblock(email=*{email})}" method="post" class="inline">
+                    <form th:if="*{isBlocked}" th:method="put" th:action="@{/clients/{email}/unblock(email=*{email})}" method="post" class="inline">
                         <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700">
                             Unblock Client
                         </button>
                     </form>
 
                     <!-- Show BLOCK button if client is active (not blocked) -->
-                    <form th:unless="*{isBlocked}" th:action="@{/clients/{email}/block(email=*{email})}" method="post" class="inline">
+                    <form th:unless="*{isBlocked}" th:method="put" th:action="@{/clients/{email}/block(email=*{email})}" method="post" class="inline">
                         <button type="submit" class="px-6 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700">
                             Block Client
                         </button>

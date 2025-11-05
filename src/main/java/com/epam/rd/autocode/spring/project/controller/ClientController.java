@@ -80,4 +80,24 @@ public class ClientController {
 
         return "redirect:/login?accountDeleted=true";
     }
+
+    @PutMapping("/{email}/block")
+    public String blockClient(@PathVariable(name="email") String email) {
+        log.info("Attempting to block client: {}", email);
+
+        clientService.blockClient(email);
+
+        log.info("Client {} blocked successfully", email);
+        return "redirect:/clients/" + email;
+    }
+
+    @PutMapping("/{email}/unblock")
+    public String unblockClient(@PathVariable(name="email") String email) {
+        log.info("Attempting to unblock client: {}", email);
+
+        clientService.unblockClient(email);
+
+        log.info("Client {} unblock successfully", email);
+        return "redirect:/clients/" + email;
+    }
 }

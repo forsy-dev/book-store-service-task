@@ -144,4 +144,62 @@ public class ClientControllerTest {
                     .andExpect(status().isNotFound());
         }
     }
+
+    @Nested
+    class BlockClient {
+
+        @Test
+        void testBlockClient_ShouldRedirectToClientDetail_WhenSuccess() throws Exception {
+            String email = "test@test.com";
+
+            doNothing().when(clientService).blockClient(email);
+
+            mockMvc.perform(put("/clients/{email}/block", email)
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf()))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/clients/" + email));
+        }
+
+        @Test
+        void testBlockClient_ShouldReturnErrorPage_WhenEmailNotFound() throws Exception {
+            String email = "test@test.com";
+
+            doThrow(NotFoundException.class).when(clientService).blockClient(email);
+
+            mockMvc.perform(put("/clients/{email}/block", email)
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf()))
+                    .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    class UnblockClient {
+
+        @Test
+        void testUnblockClient_ShouldRedirectToClientDetail_WhenSuccess() throws Exception {
+            String email = "test@test.com";
+
+            doNothing().when(clientService).unblockClient(email);
+
+            mockMvc.perform(put("/clients/{email}/unblock", email)
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf()))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/clients/" + email));
+        }
+
+        @Test
+        void testUnblockClient_ShouldReturnErrorPage_WhenEmailNotFound() throws Exception {
+            String email = "test@test.com";
+
+            doThrow(NotFoundException.class).when(clientService).unblockClient(email);
+
+            mockMvc.perform(put("/clients/{email}/unblock", email)
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf()))
+                    .andExpect(status().isNotFound());
+        }
+    }
 }
