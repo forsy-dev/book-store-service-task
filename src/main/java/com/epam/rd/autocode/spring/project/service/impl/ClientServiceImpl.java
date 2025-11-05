@@ -45,20 +45,14 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientDisplayDTO updateClientByEmail(String email, ClientUpdateDTO dto) {
         log.info("Attempting to update client with email {}", email);
+
         Client client = clientRepository.findByEmail(email).orElseThrow(
                 () -> new NotFoundException(String.format("Client with email %s not found", email)));
-        if (!email.equals(dto.getEmail()) && (clientRepository.existsByEmail(dto.getEmail()) ||
-        employeeRepository.existsByEmail(dto.getEmail()))) {
-            throw new AlreadyExistException(String.format("User with email %s already exists", dto.getEmail()));
-        }
-        ClientBlockStatus clientBlockStatus = clientBlockStatusRepository.findByClientEmail(email)
-                .orElseThrow(() -> new NotFoundException(String.format("Client with email %s not found", email)));
         mapper.map(dto, client);
         client = clientRepository.save(client);
-        clientBlockStatus.setClientEmail(dto.getEmail());
-        clientBlockStatusRepository.save(clientBlockStatus);
+
         log.info("Client with email {} updated successfully", email);
-        return mapToClientDisplayDTO(client);
+        return mapper.map(client, ClientDisplayDTO.class);
     }
 
     @Override

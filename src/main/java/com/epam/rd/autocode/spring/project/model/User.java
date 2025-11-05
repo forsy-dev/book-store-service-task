@@ -25,7 +25,7 @@ public class User {
     @Size(min = 3, max = 255, message = "{Size.invalid}")
     private String name;
 
-    @Column(name = "EMAIL", nullable = false, unique = true)
+    @Column(name = "EMAIL", nullable = false, unique = true, updatable = false)
     @NotBlank(message = "{NotBlank.invalid}")
     @Email(message = "{Email.invalid}")
     private String email;

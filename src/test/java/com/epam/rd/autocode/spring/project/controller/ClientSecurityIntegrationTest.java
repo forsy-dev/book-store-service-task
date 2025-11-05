@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
+import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,10 +18,14 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -82,6 +87,36 @@ public class ClientSecurityIntegrationTest {
 
             mockMvc.perform(get("/clients/{email}", email))
                     .andExpect(status().isOk());
+        }
+    }
+
+    @Nested
+    class UpdateClient {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testUpdateClient_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+            String email = "test@test.com";
+            String name = "name";
+            ClientUpdateDTO clientUpdateDTO = ClientUpdateDTO.builder()
+                    .name(name)
+                    .build();
+            ClientDisplayDTO clientDisplayDTO = new ClientDisplayDTO();
+
+            when(clientService.updateClientByEmail(eq(email), any(ClientUpdateDTO.class))).thenReturn(clientDisplayDTO);
+
+            mockMvc.perform(put("/clients/profile")
+                            .flashAttr("clientUpdateDTO", clientUpdateDTO))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/profile"));
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testUpdateClient_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
+
+            mockMvc.perform(put("/clients/profile"))
+                    .andExpect(status().isForbidden());
         }
     }
 }

@@ -120,26 +120,20 @@ public class ClientServiceImplTest {
             String email = "email";
             String oldName = "oldName";
             String newName = "newName";
-            ClientUpdateDTO dto = ClientUpdateDTO.builder().email(email).name(newName).build();
+            ClientUpdateDTO dto = ClientUpdateDTO.builder().name(newName).build();
             Client client = Client.builder().email(email).name(oldName).build();
             ClientDisplayDTO expectedDto = ClientDisplayDTO.builder().email(email).build();
-            ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
             when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
-            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
             doNothing().when(mapper).map(dto, client);
             when(clientRepository.save(client)).thenReturn(client);
-            when(clientBlockStatusRepository.save(any(ClientBlockStatus.class))).thenReturn(clientBlockStatus);
-            when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
             when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
 
             ClientDisplayDTO clientDisplayDTO = clientService.updateClientByEmail(email, dto);
 
             verify(clientRepository, times(1)).findByEmail(email);
-            verify(clientBlockStatusRepository, times(2)).findByClientEmail(email);
             verify(mapper, times(1)).map(dto, client);
             verify(clientRepository, times(1)).save(client);
-            verify(clientBlockStatusRepository, times(1)).save(any(ClientBlockStatus.class));
             verify(mapper, times(1)).map(client, ClientDisplayDTO.class);
 
             assertEquals(expectedDto, clientDisplayDTO);
@@ -148,54 +142,13 @@ public class ClientServiceImplTest {
         @Test
         void testUpdateClientByEmail_ShouldThrowExceptionWhenEmailNotFound() {
             String email = "email";
-            ClientUpdateDTO dto = ClientUpdateDTO.builder().email(email).build();
+            ClientUpdateDTO dto = ClientUpdateDTO.builder().build();
 
             when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
 
             assertThrows(NotFoundException.class, () -> clientService.updateClientByEmail(email, dto));
 
             verify(clientRepository, times(1)).findByEmail(email);
-            verify(mapper, never()).map(any(ClientUpdateDTO.class), any(Client.class));
-            verify(clientRepository, never()).save(any(Client.class));
-            verify(mapper, never()).map(any(Client.class), any());
-        }
-
-        @Test
-        void testUpdateClientByEmail_ShouldThrowExceptionWhenClientEmailAlreadyExist() {
-            String oldEmail = "oldEmail";
-            String newEmail = "newEmail";
-            ClientUpdateDTO dto = ClientUpdateDTO.builder().email(newEmail).build();
-            Client client = Client.builder().email(oldEmail).build();
-
-            when(clientRepository.findByEmail(oldEmail)).thenReturn(Optional.of(client));
-            when(clientRepository.existsByEmail(newEmail)).thenReturn(true);
-
-            assertThrows(AlreadyExistException.class, () -> clientService.updateClientByEmail(oldEmail, dto));
-
-            verify(clientRepository, times(1)).findByEmail(oldEmail);
-            verify(clientRepository, times(1)).existsByEmail(newEmail);
-            verify(employeeRepository, never()).existsByEmail(anyString());
-            verify(mapper, never()).map(any(ClientUpdateDTO.class), any(Client.class));
-            verify(clientRepository, never()).save(any(Client.class));
-            verify(mapper, never()).map(any(Client.class), any());
-        }
-
-        @Test
-        void testUpdateClientByEmail_ShouldThrowExceptionWhenEmployeeEmailAlreadyExist() {
-            String oldEmail = "oldEmail";
-            String newEmail = "newEmail";
-            ClientUpdateDTO dto = ClientUpdateDTO.builder().email(newEmail).build();
-            Client client = Client.builder().email(oldEmail).build();
-
-            when(clientRepository.findByEmail(oldEmail)).thenReturn(Optional.of(client));
-            when(clientRepository.existsByEmail(newEmail)).thenReturn(false);
-            when(employeeRepository.existsByEmail(newEmail)).thenReturn(true);
-
-            assertThrows(AlreadyExistException.class, () -> clientService.updateClientByEmail(oldEmail, dto));
-
-            verify(clientRepository, times(1)).findByEmail(oldEmail);
-            verify(clientRepository, times(1)).existsByEmail(newEmail);
-            verify(employeeRepository, times(1)).existsByEmail(newEmail);
             verify(mapper, never()).map(any(ClientUpdateDTO.class), any(Client.class));
             verify(clientRepository, never()).save(any(Client.class));
             verify(mapper, never()).map(any(Client.class), any());
