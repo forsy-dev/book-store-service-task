@@ -41,8 +41,9 @@ public class SecurityConfig{
                         .requestMatchers(HttpMethod.POST, "/books", "/books/**").hasRole("EMPLOYEE")
                         .requestMatchers(HttpMethod.PUT, "/books", "/books/**").hasRole("EMPLOYEE")
                         .requestMatchers(HttpMethod.DELETE, "/books", "/books/**").hasRole("EMPLOYEE") // Corrected typo
+                        .requestMatchers("/cart/**").hasRole("CLIENT")
                         // Only employees can manage clients
-                        .requestMatchers("/clients", "/clients/**").hasRole("EMPLOYEE")
+                        .requestMatchers("/clients", "/clients/**", "/employees/**").hasRole("EMPLOYEE")
 
                         // --- Authenticated Users ---
                         // Any other request must be authenticated.

@@ -1,9 +1,7 @@
 package com.epam.rd.autocode.spring.project.controller;
 
-import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
-import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import org.junit.jupiter.api.Nested;
@@ -101,9 +99,6 @@ public class ClientControllerTest {
             String email = "test@test.com";
             ClientUpdateDTO clientUpdateDTO = ClientUpdateDTO.builder()
                     .build();
-            ClientDisplayDTO clientDisplayDTO = new ClientDisplayDTO();
-
-            when(clientService.updateClientByEmail(eq(email), any(ClientUpdateDTO.class))).thenReturn(clientDisplayDTO);
 
             mockMvc.perform(put("/clients/profile")
                             .flashAttr("clientUpdateDTO", clientUpdateDTO)

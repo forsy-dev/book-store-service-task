@@ -32,11 +32,11 @@
 
         <!-- Client Action: Add to Cart -->
         <div sec:authorize="hasRole('CLIENT')" class="mb-8">
-            <form th:action="@{/cart/add}" method="post" class="flex items-center space-x-4">
-                <input type="hidden" name="bookName" th:value="*{name}" />
+            <form th:action="@{/cart/add}" method="post" class="flex items-center space-x-4" th:object="${addToCartDTO}">
+                <input type="hidden" name="bookName" th:value="${book.name}" />
                 <div>
                     <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-                    <input type="number" id="quantity" name="quantity" value="1" min="1" class="mt-1 block w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <input type="number" id="quantity" th:field="*{quantity}" min="1" class="mt-1 block w-20 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                 </div>
                 <button type="submit" class="self-end px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75">
                     Add to Cart

@@ -88,7 +88,7 @@
             <div sec:authorize="hasRole('EMPLOYEE')" class="bg-white p-6 rounded-lg shadow-xl">
                 <h2 class="text-2xl font-semibold mb-4">Update Profile</h2>
                 <!-- Submits to EmployeeController -->
-                <form th:action="@{/employees/profile/update}" th:object="${employeeUpdateDTO}" method="post" class="space-y-4">
+                <form th:action="@{/employees/profile}" th:method="put" th:object="${employeeUpdateDTO}" method="post" class="space-y-4">
                     <!-- Name -->
                     <div>
                         <label for="emp-name" class="block text-sm font-medium text-gray-700">Name</label>

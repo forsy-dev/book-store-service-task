@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.dto.AddToCartDTO;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import jakarta.validation.Valid;
@@ -42,6 +43,11 @@ public class BookController {
 
         BookDTO book = bookService.getBookByName(name);
         model.addAttribute("book", book);
+
+        if (!model.containsAttribute("addToCartDTO")) {
+            model.addAttribute("addToCartDTO", new AddToCartDTO());
+        }
+
         return "book-detail";
     }
 
@@ -111,6 +117,6 @@ public class BookController {
 
         bookService.deleteBookByName(name);
         log.info("Book {} deleted successfully by {}", name, authentication.getName());
-        return "redirect:/books-list";
+        return "redirect:/books";
     }
 }

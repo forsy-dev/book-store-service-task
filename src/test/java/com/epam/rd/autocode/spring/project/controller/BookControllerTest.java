@@ -272,7 +272,7 @@ public class BookControllerTest {
                             .with(user("testuser").roles("EMPLOYEE"))
                             .with(csrf()))
                     .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/books-list"));
+                    .andExpect(redirectedUrl("/books"));
         }
 
         @Test

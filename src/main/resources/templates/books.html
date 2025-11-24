@@ -64,8 +64,6 @@
                     <!-- View Button (All Authenticated) -->
                     <a th:href="@{/books/{name}(name=${book.name})}" class="text-blue-600 hover:text-blue-900">View</a>
 
-                    <!-- Edit Button (Employees Only) -->
-                    <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/books/{name}/edit(name=${book.name})}" class="text-yellow-600 hover:text-yellow-900">Edit</a>
                 </td>
             </tr>
 
