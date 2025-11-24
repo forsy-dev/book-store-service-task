@@ -45,7 +45,7 @@ public class BookController {
         model.addAttribute("book", book);
 
         if (!model.containsAttribute("addToCartDTO")) {
-            model.addAttribute("addToCartDTO", new AddToCartDTO());
+            model.addAttribute("addToCartDTO", AddToCartDTO.builder().quantity(1).build());
         }
 
         return "book-detail";

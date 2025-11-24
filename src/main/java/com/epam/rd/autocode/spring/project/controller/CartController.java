@@ -53,10 +53,7 @@ public class CartController {
             return redirectUrl;
         }
         // 1. Get cart from session, or create it
-        Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("CART");
-        if (cart == null) {
-            cart = new HashMap<>();
-        }
+        Map<String, Integer> cart = getOrCreateCart(session);
 
         // 2. Add item to cart
         cartService.addBookToCart(cart, dto);
@@ -70,36 +67,24 @@ public class CartController {
     /**
      * Handles GET requests to display the cart page.
      */
-//    @GetMapping
-//    public String showCart(HttpSession session, Model model) {
-//        Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("CART");
-//        if (cart == null) {
-//            cart = new HashMap<>();
-//        }
-//
-//        List<CartItemDisplayDTO> cartItems = new ArrayList<>();
-//        BigDecimal totalCost = BigDecimal.ZERO;
-//
-//        // 3. Convert book names from cart into full DTOs for display
-//        for (Map.Entry<String, Integer> entry : cart.entrySet()) {
-//            String bookName = entry.getKey();
-//            Integer quantity = entry.getValue();
-//            try {
-//                BookDTO book = bookService.getBookByName(bookName);
-//                BigDecimal subtotal = book.getPrice().multiply(BigDecimal.valueOf(quantity));
-//                cartItems.add(new CartItemDisplayDTO(book, quantity, subtotal));
-//                totalCost = totalCost.add(subtotal);
-//            } catch (Exception e) {
-//                log.warn("Could not find book {} in cart. Skipping.", bookName);
-//                // Optionally remove it from the cart
-//                // cart.remove(bookName);
-//            }
-//        }
-//
-//        model.addAttribute("cartItems", cartItems);
-//        model.addAttribute("totalCost", totalCost);
-//        log.info("Displaying cart with {} items, total cost {}", cartItems.size(), totalCost);
-//
-//        return "cart";
-//    }
+    @GetMapping
+    public String showCart(HttpSession session, Model model) {
+        Map<String, Integer> cart = getOrCreateCart(session);
+
+        List<CartItemDisplayDTO> cartItems = cartService.getCartItems(cart);
+        BigDecimal totalCost = cartService.calculateTotalCost(cartItems);
+
+        model.addAttribute("cartItems", cartItems);
+        model.addAttribute("totalCost", totalCost);
+
+        return "cart";
+    }
+
+    private Map<String, Integer> getOrCreateCart(HttpSession session) {
+        Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("CART");
+        if (cart == null) {
+            cart = new HashMap<>();
+        }
+        return cart;
+    }
 }

@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.AddToCartDTO;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.dto.CartItemDisplayDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.repo.BookRepository;
@@ -18,9 +19,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -81,5 +81,104 @@ public class CartServiceImplTest {
         }
     }
 
+    @Nested
+    class GetCart {
 
+        @Test
+        void testGetCart_ShouldReturnListWhenSuccess() {
+            String bookName = "book";
+            int quantity = 2;
+            Map<String, Integer> cart = new HashMap<>();
+            cart.put(bookName, quantity);
+
+            BigDecimal price = BigDecimal.TEN;
+            BookDTO bookDto = BookDTO.builder().name(bookName).price(price).build();
+            BigDecimal expectedSubtotal = price.multiply(BigDecimal.valueOf(quantity));
+
+            when(bookService.getBookByName(bookName)).thenReturn(bookDto);
+
+            List<CartItemDisplayDTO> dto = cartService.getCartItems(cart);
+
+            assertEquals(bookName, dto.get(0).getBook().getName());
+            assertEquals(quantity, dto.get(0).getQuantity());
+            assertEquals(0, expectedSubtotal.compareTo(dto.get(0).getSubtotal()), "Subtotal calculation is incorrect");
+
+            verify(bookService, times(1)).getBookByName(bookName);
+        }
+
+        @Test
+        void testGetCart_ShouldReturnEmptyListWhenCartIsNull() {
+            Map<String, Integer> cart = null;
+
+            List<CartItemDisplayDTO> dto = cartService.getCartItems(cart);
+
+            assertEquals(0, dto.size());
+
+            verify(bookService, never()).getBookByName(anyString());
+        }
+    }
+
+    @Nested
+    class GetCartItems {
+
+        @Test
+        void testGetCartItems_ShouldReturnItems() {
+            String bookName = "book";
+            int quantity = 2;
+            Map<String, Integer> cart = new HashMap<>();
+            cart.put(bookName, quantity);
+
+            BigDecimal price = BigDecimal.TEN;
+            BookDTO bookDto = BookDTO.builder().name(bookName).price(price).build();
+            BigDecimal expectedSubtotal = price.multiply(BigDecimal.valueOf(quantity));
+
+            when(bookService.getBookByName(bookName)).thenReturn(bookDto);
+
+            List<CartItemDisplayDTO> dto = cartService.getCartItems(cart);
+
+            assertEquals(bookName, dto.get(0).getBook().getName());
+            assertEquals(quantity, dto.get(0).getQuantity());
+            assertEquals(0, expectedSubtotal.compareTo(dto.get(0).getSubtotal()), "Subtotal calculation is incorrect");
+
+            verify(bookService, times(1)).getBookByName(bookName);
+        }
+
+        @Test
+        void testGetCartItems_ShouldSkipItem_WhenNotFound() {
+            String bookName = "book";
+            int quantity = 2;
+            Map<String, Integer> cart = new HashMap<>();
+            cart.put(bookName, quantity);
+
+            when(bookService.getBookByName(bookName)).thenThrow(new NotFoundException("Book not found"));
+
+            List<CartItemDisplayDTO> dto = cartService.getCartItems(cart);
+
+            assertEquals(0, dto.size());
+
+            verify(bookService, times(1)).getBookByName(bookName);
+        }
+    }
+
+    @Nested
+    class CalculateTotalCost {
+
+        @Test
+        void testCalculateTotalCost_ShouldReturnSum() {
+            CartItemDisplayDTO dto1 = CartItemDisplayDTO.builder().subtotal(BigDecimal.TEN).build();
+            CartItemDisplayDTO dto2 = CartItemDisplayDTO.builder().subtotal(BigDecimal.ONE).build();
+            List<CartItemDisplayDTO> items = Arrays.asList(dto1, dto2);
+
+            BigDecimal total = cartService.calculateTotalCost(items);
+
+            assertEquals(BigDecimal.valueOf(11), total);
+        }
+
+        @Test
+        void testCalculateTotalCost_WhenListEmpty_ShouldReturnZero() {
+            BigDecimal total = cartService.calculateTotalCost(Arrays.asList());
+
+            assertEquals(BigDecimal.ZERO, total);
+        }
+    }
 }

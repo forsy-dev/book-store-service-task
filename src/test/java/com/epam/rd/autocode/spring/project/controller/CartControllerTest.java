@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.AddToCartDTO;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.dto.CartItemDisplayDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import com.epam.rd.autocode.spring.project.service.CartService;
@@ -15,8 +16,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -84,5 +87,25 @@ public class CartControllerTest {
                             .with(csrf()))
                     .andExpect(view().name("error"));
         }
+    }
+
+    @Nested
+    class ShowCart {
+
+        @Test
+        void testShowCart_ShouldReturnPage() throws Exception {
+            List<CartItemDisplayDTO> items = Collections.emptyList();
+            BigDecimal totalCost = BigDecimal.ZERO;
+
+            when(cartService.getCartItems(anyMap())).thenReturn(items);
+            when(cartService.calculateTotalCost(items)).thenReturn(totalCost);
+
+            mockMvc.perform(get("/cart")
+                            .with(user("testuser").roles("CLIENT")))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("cart"));
+        }
+
+
     }
 }

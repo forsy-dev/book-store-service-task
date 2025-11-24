@@ -2,6 +2,7 @@ package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.AddToCartDTO;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
+import com.epam.rd.autocode.spring.project.dto.CartItemDisplayDTO;
 import com.epam.rd.autocode.spring.project.service.CartService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -66,6 +69,32 @@ public class CartSecurityIntegrationTest {
 
             mockMvc.perform(post("/cart/add")
                             .flashAttr("addToCartDTO", dto))
+                    .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    class ShowCart {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testShowCart_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+
+            List<CartItemDisplayDTO> items = Collections.emptyList();
+            BigDecimal totalCost = BigDecimal.ZERO;
+
+            when(cartService.getCartItems(anyMap())).thenReturn(items);
+            when(cartService.calculateTotalCost(items)).thenReturn(totalCost);
+
+            mockMvc.perform(get("/cart"))
+                    .andExpect(status().isOk());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testShowCart_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
+
+            mockMvc.perform(get("/cart"))
                     .andExpect(status().isForbidden());
         }
     }
