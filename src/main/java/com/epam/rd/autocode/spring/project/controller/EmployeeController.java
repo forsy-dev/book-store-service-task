@@ -1,8 +1,6 @@
 package com.epam.rd.autocode.spring.project.controller;
 
-import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeUpdateDTO;
-import com.epam.rd.autocode.spring.project.service.ClientService;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

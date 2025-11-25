@@ -3,9 +3,11 @@ package com.epam.rd.autocode.spring.project.service.impl;
 import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.CreateOrderRequestDTO;
 import com.epam.rd.autocode.spring.project.dto.OrderDTO;
+import com.epam.rd.autocode.spring.project.dto.OrderDisplayDTO;
 import com.epam.rd.autocode.spring.project.exception.InsufficientFundsException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.*;
+import com.epam.rd.autocode.spring.project.model.enums.OrderStatus;
 import com.epam.rd.autocode.spring.project.repo.*;
 import com.epam.rd.autocode.spring.project.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -29,27 +31,35 @@ public class OrderServiceImpl implements OrderService {
     private final ClientRepository clientRepository;
     private final BookRepository bookRepository;
     private final OrderRepository orderRepository;
+    private final OrderStatusRepository orderStatusRepository;
     private final ModelMapper mapper;
 
     @Override
-    public Page<OrderDTO> getOrdersByClient(String clientEmail, Pageable pageable) {
-        return orderRepository.findAllByClientEmail(clientEmail, pageable).map(order -> mapper.map(order, OrderDTO.class));
+    public Page<OrderDisplayDTO> getOrdersByClient(String clientEmail, Pageable pageable) {
+        return orderRepository.findAllByClientEmail(clientEmail, pageable).map(this::mapToDisplayDTO);
     }
 
     @Override
-    public Page<OrderDTO> getOrdersByEmployee(String employeeEmail, Pageable pageable) {
-        return orderRepository.findAllByEmployeeEmail(employeeEmail, pageable).map(order -> mapper.map(order, OrderDTO.class));
+    public Page<OrderDisplayDTO> getOrdersByEmployee(String employeeEmail, Pageable pageable) {
+        return orderRepository.findAllByEmployeeEmail(employeeEmail, pageable).map(this::mapToDisplayDTO);
+    }
+
+    @Override
+    public Page<OrderDisplayDTO> getAllOrders(Pageable pageable) {
+        return orderRepository.findAll(pageable).map(this::mapToDisplayDTO);
     }
 
     @Override
     @Transactional
-    public OrderDTO addOrder(CreateOrderRequestDTO dto) {
+    public OrderDisplayDTO addOrder(CreateOrderRequestDTO dto) {
         log.info("Attempting to add new order for client: {}", dto.getClientEmail());
+
         Employee employee = employeeRepository.findByEmail(dto.getEmployeeEmail()).orElseThrow(
                 () -> new NotFoundException(String.format("Employee with email %s not found", dto.getEmployeeEmail()))
         );
         Client client = clientRepository.findByEmail(dto.getClientEmail()).orElseThrow(
                 () -> new NotFoundException(String.format("Client with email %s not found", dto.getClientEmail())));
+
         BigDecimal totalCost = BigDecimal.ZERO;
         Order order = Order.builder()
                 .employee(employee)
@@ -68,17 +78,39 @@ public class OrderServiceImpl implements OrderService {
             bookItems.add(bookItem);
             totalCost = totalCost.add(book.getPrice().multiply(BigDecimal.valueOf(bookItem.getQuantity())));
         }
-        if (client.getBalance().compareTo(totalCost) < 0) {
-            throw new InsufficientFundsException(
-                    String.format("Insufficient funds for client with email %s", dto.getClientEmail()));
-        }
-        client.setBalance(client.getBalance().subtract(totalCost));
-        clientRepository.save(client);
-        log.info("Charged client {} an amount of {}", client.getEmail(), totalCost);
+
         order.setPrice(totalCost);
         order.setBookItems(bookItems);
         order = orderRepository.save(order);
-        log.info("Order {} created successfully", order.getId());
-        return mapper.map(order, OrderDTO.class);
+
+        OrderStatusRecord statusRecord = OrderStatusRecord.builder()
+                .orderId(order.getId())
+                .status(OrderStatus.PENDING)
+                .build();
+        orderStatusRepository.save(statusRecord);
+
+        log.info("Order {} created successfully in PENDING state", order.getId());
+        return mapToDisplayDTO(order);
+    }
+
+    @Override
+    public void confirmOrder(Long orderId) {
+
+    }
+
+    @Override
+    public void cancelOrder(Long orderId) {
+
+    }
+
+    private OrderDisplayDTO mapToDisplayDTO(Order order) {
+        OrderDisplayDTO dto = mapper.map(order, OrderDisplayDTO.class);
+        // Manually fetch status
+        OrderStatus status = orderStatusRepository.findByOrderId(order.getId())
+                .map(OrderStatusRecord::getStatus)
+                .orElse(OrderStatus.PENDING); // Default if missing
+        dto.setStatus(status);
+        dto.setId(order.getId());
+        return dto;
     }
 }

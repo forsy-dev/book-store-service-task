@@ -1,16 +1,11 @@
 package com.epam.rd.autocode.spring.project.service.impl;
 
-import com.epam.rd.autocode.spring.project.dto.BookDTO;
-import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
-import com.epam.rd.autocode.spring.project.dto.CreateOrderRequestDTO;
-import com.epam.rd.autocode.spring.project.dto.OrderDTO;
+import com.epam.rd.autocode.spring.project.dto.*;
 import com.epam.rd.autocode.spring.project.exception.InsufficientFundsException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.model.*;
-import com.epam.rd.autocode.spring.project.repo.BookRepository;
-import com.epam.rd.autocode.spring.project.repo.ClientRepository;
-import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
-import com.epam.rd.autocode.spring.project.repo.OrderRepository;
+import com.epam.rd.autocode.spring.project.model.enums.OrderStatus;
+import com.epam.rd.autocode.spring.project.repo.*;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,48 +48,64 @@ public class OrderServiceImplTest {
     private EmployeeRepository employeeRepository;
 
     @Mock
+    OrderStatusRepository orderStatusRepository;
+
+    @Mock
     private BookRepository bookRepository;
 
     @Test
     void testGetAllOrdersByClient_ShouldReturnPagedOrders() {
         String clientEmail = "test@test.com";
-        Order order = Order.builder().build();
-        OrderDTO expectedDto = new OrderDTO();
+        Long orderId = 1L;
+        Order order = Order.builder().id(orderId).build();
+        OrderDisplayDTO expectedDto = new OrderDisplayDTO();
         Pageable pageable = PageRequest.of(0, 10);
         Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
 
-        when(orderRepository.findAllByClientEmail(clientEmail, pageable)).thenReturn(orderPage);
-        when(mapper.map(order, OrderDTO.class)).thenReturn(expectedDto);
+        OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
-        Page<OrderDTO> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable);
+        when(orderRepository.findAllByClientEmail(clientEmail, pageable)).thenReturn(orderPage);
+        when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
+        when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+
+        Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable);
 
         verify(orderRepository, times(1)).findAllByClientEmail(clientEmail, pageable);
-        verify(mapper, times(1)).map(order, OrderDTO.class);
+        verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
+        verify(orderStatusRepository, times(1)).findByOrderId(orderId);
 
         assertEquals(1, actualOrderDto.getTotalElements());
         assertEquals(1, actualOrderDto.getContent().size());
         assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+        assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
     }
 
     @Test
     void testGetAllOrdersByEmployee_ShouldReturnPagedOrders() {
         String employeeEmail = "test@test.com";
-        Order order = Order.builder().build();
-        OrderDTO expectedDto = new OrderDTO();
+        Long orderId = 1L;
+        Order order = Order.builder().id(orderId).build();
+        OrderDisplayDTO expectedDto = new OrderDisplayDTO();
         Pageable pageable = PageRequest.of(0, 10);
         Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
 
-        when(orderRepository.findAllByEmployeeEmail(employeeEmail, pageable)).thenReturn(orderPage);
-        when(mapper.map(order, OrderDTO.class)).thenReturn(expectedDto);
+        // Mock status
+        OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.CONFIRMED).build();
 
-        Page<OrderDTO> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable);
+        when(orderRepository.findAllByEmployeeEmail(employeeEmail, pageable)).thenReturn(orderPage);
+        when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
+        when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+
+        Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable);
 
         verify(orderRepository, times(1)).findAllByEmployeeEmail(employeeEmail, pageable);
-        verify(mapper, times(1)).map(order, OrderDTO.class);
+        verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
+        verify(orderStatusRepository, times(1)).findByOrderId(orderId);
 
         assertEquals(1, actualOrderDto.getTotalElements());
         assertEquals(1, actualOrderDto.getContent().size());
         assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+        assertEquals(OrderStatus.CONFIRMED, actualOrderDto.getContent().get(0).getStatus());
     }
 
     @Nested
@@ -106,9 +117,7 @@ public class OrderServiceImplTest {
             Employee employee = Employee.builder().email(employeeEmail).build();
 
             String clientEmail = "client@test.com)";
-            BigDecimal clientOldBalance = BigDecimal.TEN;
-            BigDecimal clientNewBalance = BigDecimal.ZERO;
-            Client client = Client.builder().email(clientEmail).balance(clientOldBalance).build();
+            Client client = Client.builder().email(clientEmail).build();
 
             String bookName = "bookName";
             BigDecimal bookPrice = BigDecimal.TEN;
@@ -117,34 +126,38 @@ public class OrderServiceImplTest {
             BookItemDTO bookItemDto = BookItemDTO.builder().bookName(bookName).quantity(1).build();
             List<BookItemDTO> bookItems = Arrays.asList(bookItemDto);
 
-            BookItem bookItem = BookItem.builder().book(book).quantity(1).build();
-            List<BookItem> bookItemsList = Arrays.asList(bookItem);
-
             CreateOrderRequestDTO orderDTO = CreateOrderRequestDTO.builder()
                     .employeeEmail(employeeEmail)
                     .clientEmail(clientEmail)
                     .bookItems(bookItems)
                     .build();
 
-            Client savedClient = Client.builder().email(clientEmail).balance(clientNewBalance).build();
-            Order order = Order.builder().client(client).employee(employee).price(bookPrice).bookItems(bookItemsList).build();
-            OrderDTO expectedDto = OrderDTO.builder().build();
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).client(client).employee(employee).price(bookPrice).build();
+            OrderDisplayDTO expectedDto = OrderDisplayDTO.builder()
+                    .clientEmail(clientEmail)
+                    .employeeEmail(employeeEmail)
+                    .build();
+
+            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
             when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.of(client));
             when(bookRepository.findByName(bookName)).thenReturn(Optional.of(book));
-            when(clientRepository.save(client)).thenReturn(savedClient);
             when(orderRepository.save(any(Order.class))).thenReturn(order);
-            when(mapper.map(any(Order.class), eq(OrderDTO.class))).thenReturn(expectedDto);
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+            when(mapper.map(any(Order.class), eq(OrderDisplayDTO.class))).thenReturn(expectedDto);
 
-            orderService.addOrder(orderDTO);
+            OrderDisplayDTO actualDTO = orderService.addOrder(orderDTO);
 
             verify(employeeRepository, times(1)).findByEmail(employeeEmail);
             verify(clientRepository, times(1)).findByEmail(clientEmail);
             verify(bookRepository, times(1)).findByName(bookName);
-            verify(clientRepository, times(1)).save(client);
             verify(orderRepository, times(1)).save(any(Order.class));
-            verify(mapper, times(1)).map(any(Order.class), eq(OrderDTO.class));
+            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+            verify(mapper, times(1)).map(any(Order.class), eq(OrderDisplayDTO.class));
+
+            assertEquals(expectedDto, actualDTO);
         }
 
         @Test
@@ -224,41 +237,36 @@ public class OrderServiceImplTest {
             verify(orderRepository, never()).save(any(Order.class));
             verify(mapper, never()).map(any(Order.class), any());
         }
+    }
+
+    @Nested
+    class GetAllOrders {
 
         @Test
-        void testAddOrder_ShouldThrowExceptionWhenInsufficientFunds() {
-            String employeeEmail = "employee@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
+        void testGetAllOrders_ShouldReturnOrders() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Order> orders = new PageImpl<>(Arrays.asList(new Order()));
 
-            String clientEmail = "client@test.com)";
-            BigDecimal clientOldBalance = BigDecimal.ZERO;
-            Client client = Client.builder().email(clientEmail).balance(clientOldBalance).build();
+            when(orderRepository.findAll(pageable)).thenReturn(orders);
+            when(mapper.map(any(Order.class), eq(OrderDisplayDTO.class))).thenReturn(new OrderDisplayDTO());
 
-            String bookName = "bookName";
-            BigDecimal bookPrice = BigDecimal.TEN;
-            Book book = Book.builder().name(bookName).price(bookPrice).build();
+            orderService.getAllOrders(pageable);
 
-            BookItemDTO bookItemDto = BookItemDTO.builder().bookName(bookName).quantity(1).build();
-            List<BookItemDTO> bookItems = Arrays.asList(bookItemDto);
+            verify(orderRepository, times(1)).findAll(pageable);
+            verify(mapper, times(1)).map(any(Order.class), eq(OrderDisplayDTO.class));
+        }
 
-            CreateOrderRequestDTO orderDTO = CreateOrderRequestDTO.builder()
-                    .employeeEmail(employeeEmail)
-                    .clientEmail(clientEmail)
-                    .bookItems(bookItems)
-                    .build();
+        @Test
+        void testGetAllOrders_ShouldReturnEmptyList_WhenOrdersNotFound() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Order> orders = new PageImpl<>(Arrays.asList());
 
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.of(client));
-            when(bookRepository.findByName(bookName)).thenReturn(Optional.of(book));
+            when(orderRepository.findAll(pageable)).thenReturn(orders);
 
-            assertThrows(InsufficientFundsException.class, () -> orderService.addOrder(orderDTO));
+            orderService.getAllOrders(pageable);
 
-            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
-            verify(clientRepository, times(1)).findByEmail(clientEmail);
-            verify(bookRepository, times(1)).findByName(bookName);
-            verify(clientRepository, never()).save(any(Client.class));
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(mapper, never()).map(any(Order.class), any());
+            verify(orderRepository, times(1)).findAll(pageable);
+            verify(mapper, never()).map(any(Order.class), eq(OrderDisplayDTO.class));
         }
     }
 }

@@ -81,7 +81,7 @@
                 <!-- Checkout Button -->
                 <div class="mt-6" th:if="${!#lists.isEmpty(cartItems)}">
                     <!-- TODO: Implement /order/submit endpoint -->
-                    <form th:action="@{/order/submit}" method="post">
+                    <form th:action="@{/orders/submit}" method="post">
                         <button type="submit" class="w-full px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700">
                             Proceed to Checkout
                         </button>

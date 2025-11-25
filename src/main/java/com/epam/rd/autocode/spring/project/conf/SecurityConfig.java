@@ -42,6 +42,7 @@ public class SecurityConfig{
                         .requestMatchers(HttpMethod.PUT, "/books", "/books/**").hasRole("EMPLOYEE")
                         .requestMatchers(HttpMethod.DELETE, "/books", "/books/**").hasRole("EMPLOYEE") // Corrected typo
                         .requestMatchers("/cart/**").hasRole("CLIENT")
+                        .requestMatchers("/orders/submit").hasRole("CLIENT")
                         // Only employees can manage clients
                         .requestMatchers("/clients", "/clients/**", "/employees/**").hasRole("EMPLOYEE")
 
