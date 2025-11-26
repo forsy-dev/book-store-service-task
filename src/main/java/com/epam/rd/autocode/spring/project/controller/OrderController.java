@@ -148,4 +148,21 @@ public class OrderController {
             return "redirect:/cart";
         }
     }
+
+    @PostMapping("/{id}/cancel")
+    public String cancelOrder(@PathVariable Long id,
+                              Authentication authentication,
+                              RedirectAttributes redirectAttributes) {
+        String employeeEmail = authentication.getName();
+        log.info("Employee {} canceling order {}", employeeEmail, id);
+        try {
+            // Pass the employee email to service to take ownership of the order
+            orderService.cancelOrder(id, employeeEmail);
+            redirectAttributes.addFlashAttribute("successMessage", "Order " + id + " canceled.");
+        } catch (Exception e) {
+            log.warn("Failed to cancel order {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/orders";
+    }
 }

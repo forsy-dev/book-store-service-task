@@ -25,6 +25,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -137,6 +138,34 @@ public class OrderSecurityIntegrationTest {
 
             mockMvc.perform(post("/orders/submit"))
                     .andExpect(status().isForbidden());
+        }
+    }
+
+    @Nested
+    class CancelOrder {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testCancelOrder_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+
+            long orderId = 1L;
+
+            mockMvc.perform(post("/orders/{id}/cancel", orderId))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
+        void testCancelOrder_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+
+            long orderId = 1L;
+            String email = "test@test.com";
+
+            doNothing().when(orderService).cancelOrder(orderId, email);
+
+            mockMvc.perform(post("/orders/{id}/cancel", orderId))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/orders"));
         }
     }
 }

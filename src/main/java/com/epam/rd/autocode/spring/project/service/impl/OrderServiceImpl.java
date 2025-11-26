@@ -94,14 +94,30 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void confirmOrder(Long orderId) {
+    public void confirmOrder(Long orderId, String employeeEmail) {
 
     }
 
     @Override
-    public void cancelOrder(Long orderId) {
-
+    @Transactional
+    public void cancelOrder(Long orderId, String employeeEmail) {
+        log.info("Attempting to cancel order with id {}", orderId);
+        Order order = orderRepository.findById(orderId).orElseThrow(
+                () -> new NotFoundException("Order with id " + orderId + " not found"));
+        Employee employee = employeeRepository.findByEmail(employeeEmail).orElseThrow(
+                () -> new NotFoundException(String.format("Employee with email %s not found", employeeEmail)));
+        OrderStatusRecord orderStatusRecord = orderStatusRepository.findByOrderId(orderId).orElseThrow(
+                () -> new NotFoundException("Order status record for order with id " + orderId + " not found"));
+        if (orderStatusRecord.getStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("Order status is not PENDING");
+        }
+        orderStatusRecord.setStatus(OrderStatus.CANCELED);
+        orderStatusRepository.save(orderStatusRecord);
+        order.setEmployee(employee);
+        orderRepository.save(order);
+        log.info("Order {} canceled successfully", orderId);
     }
+
 
     private OrderDisplayDTO mapToDisplayDTO(Order order) {
         OrderDisplayDTO dto = mapper.map(order, OrderDisplayDTO.class);

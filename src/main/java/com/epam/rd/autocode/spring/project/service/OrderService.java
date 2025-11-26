@@ -18,6 +18,6 @@ public interface OrderService {
 
     OrderDisplayDTO addOrder(CreateOrderRequestDTO order);
 
-    void confirmOrder(Long orderId);
-    void cancelOrder(Long orderId);
+    void confirmOrder(Long orderId, String employeeEmail);
+    void cancelOrder(Long orderId, String employeeEmail);
 }

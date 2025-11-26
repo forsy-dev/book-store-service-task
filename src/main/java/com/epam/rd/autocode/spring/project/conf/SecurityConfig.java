@@ -40,9 +40,10 @@ public class SecurityConfig{
                         .requestMatchers(HttpMethod.GET, "/books/new", "/books/*/edit").hasRole("EMPLOYEE")
                         .requestMatchers(HttpMethod.POST, "/books", "/books/**").hasRole("EMPLOYEE")
                         .requestMatchers(HttpMethod.PUT, "/books", "/books/**").hasRole("EMPLOYEE")
-                        .requestMatchers(HttpMethod.DELETE, "/books", "/books/**").hasRole("EMPLOYEE") // Corrected typo
+                        .requestMatchers(HttpMethod.DELETE, "/books", "/books/**").hasRole("EMPLOYEE")
                         .requestMatchers("/cart/**").hasRole("CLIENT")
                         .requestMatchers("/orders/submit").hasRole("CLIENT")
+                        .requestMatchers("/orders/*/cancel").hasRole("EMPLOYEE")
                         // Only employees can manage clients
                         .requestMatchers("/clients", "/clients/**", "/employees/**").hasRole("EMPLOYEE")
 

@@ -9,6 +9,8 @@ import com.epam.rd.autocode.spring.project.repo.*;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -267,6 +269,116 @@ public class OrderServiceImplTest {
 
             verify(orderRepository, times(1)).findAll(pageable);
             verify(mapper, never()).map(any(Order.class), eq(OrderDisplayDTO.class));
+        }
+    }
+
+    @Nested
+    class CancelOrder {
+
+        @Test
+        void testCancelOrder_ShouldReturnNothing() {
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+
+            String employeeEmail = "test@test.com";
+            Employee employee = Employee.builder().email(employeeEmail).build();
+
+            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+            when(orderRepository.save(order)).thenReturn(order);
+            when(orderStatusRepository.save(statusRecord)).thenReturn(statusRecord);
+
+            orderService.cancelOrder(orderId, employeeEmail);
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+            verify(orderRepository, times(1)).save(order);
+            verify(orderStatusRepository, times(1)).save(statusRecord);
+        }
+
+        @Test
+        void testCancelOrder_WhenOrderNotFound_ShouldThrowException() {
+            Long orderId = 1L;
+
+            String employeeEmail = "test@test.com";
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, never()).findByEmail(anyString());
+            verify(orderStatusRepository, never()).findByOrderId(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+        }
+
+        @Test
+        void testCancelOrder_WhenEmployeeNotFound_ShouldThrowException() {
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+
+            String employeeEmail = "test@test.com";
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+            verify(orderStatusRepository, never()).findByOrderId(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+        }
+
+        @Test
+        void testCancelOrder_WhenOrderStatusRecordNotFound_ShouldThrowException() {
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+
+            String employeeEmail = "test@test.com";
+            Employee employee = Employee.builder().email(employeeEmail).build();
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+            verify(orderRepository, never()).save(any(Order.class));
+            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = OrderStatus.class, names = {"CANCELED", "CONFIRMED"})
+        void testCancelOrder_WhenOrderStatusRecordNotPending_ShouldThrowException(OrderStatus orderStatus) {
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+
+            String employeeEmail = "test@test.com";
+            Employee employee = Employee.builder().email(employeeEmail).build();
+
+            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(orderStatus).build();
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+
+            assertThrows(IllegalStateException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+            verify(orderRepository, never()).save(any(Order.class));
+            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
         }
     }
 }

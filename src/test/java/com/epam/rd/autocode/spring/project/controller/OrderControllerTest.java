@@ -22,7 +22,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -204,6 +204,40 @@ public class OrderControllerTest {
                             .with(csrf()))
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/books"));
+        }
+    }
+
+    @Nested
+    class CancelOrder {
+
+        @Test
+        void testCancelOrder_WhenSuccess_ShouldRedirect() throws Exception {
+            long orderId = 1L;
+            String email = "test@test.com";
+
+            doNothing().when(orderService).cancelOrder(orderId, email);
+
+            mockMvc.perform(post("/orders/{id}/cancel", orderId)
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf()))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/orders"))
+                    .andExpect(flash().attributeExists("successMessage"));
+        }
+
+        @Test
+        void testCancelOrder_WhenFails_ShouldRedirect() throws Exception {
+            long orderId = 1L;
+            String email = "test@test.com";
+
+            doThrow(new RuntimeException("Error")).when(orderService).cancelOrder(orderId, email);
+
+            mockMvc.perform(post("/orders/{id}/cancel", orderId)
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf()))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/orders"))
+                    .andExpect(flash().attributeExists("errorMessage"));
         }
     }
 }
