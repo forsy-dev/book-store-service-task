@@ -94,8 +94,33 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void confirmOrder(Long orderId, String employeeEmail) {
+        log.info("Attempting to confirm order with id {}", orderId);
 
+        Order order = orderRepository.findById(orderId).orElseThrow(
+                () -> new NotFoundException("Order with id " + orderId + " not found"));
+        Employee employee = employeeRepository.findByEmail(employeeEmail).orElseThrow(
+                () -> new NotFoundException(String.format("Employee with email %s not found", employeeEmail)));
+        OrderStatusRecord orderStatusRecord = orderStatusRepository.findByOrderId(orderId).orElseThrow(
+                () -> new NotFoundException("Order status record for order with id " + orderId + " not found"));
+
+        if (orderStatusRecord.getStatus() != OrderStatus.PENDING) {
+            throw new IllegalStateException("Order status is not PENDING");
+        }
+
+        Client client = order.getClient();
+        if (client.getBalance().compareTo(order.getPrice()) < 0) {
+            throw new InsufficientFundsException("Client does not have enough funds to confirm this order.");
+        }
+
+        order.setEmployee(employee);
+        orderRepository.save(order);
+        orderStatusRecord.setStatus(OrderStatus.CONFIRMED);
+        orderStatusRepository.save(orderStatusRecord);
+        client.setBalance(client.getBalance().subtract(order.getPrice()));
+        clientRepository.save(client);
+        log.info("Order {} confirmed successfully", orderId);
     }
 
     @Override

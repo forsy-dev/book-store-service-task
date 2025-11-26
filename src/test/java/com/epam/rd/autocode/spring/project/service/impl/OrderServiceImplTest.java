@@ -381,4 +381,158 @@ public class OrderServiceImplTest {
             verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
         }
     }
+
+    @Nested
+    class ConfirmOrder {
+
+        @Test
+        void testConfirmOrder_ShouldReturnNothing() {
+
+            BigDecimal clientBalance = BigDecimal.TEN;
+            Client client = Client.builder().balance(clientBalance).build();
+
+            Long orderId = 1L;
+            BigDecimal price = BigDecimal.TEN;
+            Order order = Order.builder().id(orderId).price(price).client(client).build();
+
+            String employeeEmail = "test@test.com";
+            Employee employee = Employee.builder().email(employeeEmail).build();
+
+            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));;
+            when(orderRepository.save(order)).thenReturn(order);
+            when(orderStatusRepository.save(statusRecord)).thenReturn(statusRecord);
+            when(clientRepository.save(client)).thenReturn(client);
+
+            orderService.confirmOrder(orderId, employeeEmail);
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+            verify(orderRepository, times(1)).save(order);
+            verify(orderStatusRepository, times(1)).save(statusRecord);
+            verify(clientRepository, times(1)).save(client);
+        }
+
+        @Test
+        void testConfirmOrder_WhenOrderNotFound_ShouldThrowException() {
+
+            Long orderId = 1L;
+
+            String employeeEmail = "test@test.com";
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, never()).findByEmail(anyString());
+            verify(orderStatusRepository, never()).findByOrderId(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+            verify(clientRepository, never()).save(any(Client.class));
+        }
+
+        @Test
+        void testConfirmOrder_WhenEmployeeNotFound_ShouldThrowException() {
+
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+
+            String employeeEmail = "test@test.com";
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
+
+            assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, times(1)).findByEmail(anyString());
+            verify(orderStatusRepository, never()).findByOrderId(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+            verify(clientRepository, never()).save(any(Client.class));
+        }
+
+        @Test
+        void testConfirmOrder_WhenOrderStatusNotFound_ShouldThrowException() {
+
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+
+            String employeeEmail = "test@test.com";
+            Employee employee = Employee.builder().email(employeeEmail).build();
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());;
+
+            assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, times(1)).findByEmail(anyString());
+            verify(orderStatusRepository, times(1)).findByOrderId(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+            verify(clientRepository, never()).save(any(Client.class));
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = OrderStatus.class, names = {"CANCELED", "CONFIRMED"})
+        void testConfirmOrder_WhenOrderStatusNotPending_ShouldThrowException(OrderStatus orderStatus) {
+
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+
+            String employeeEmail = "test@test.com";
+            Employee employee = Employee.builder().email(employeeEmail).build();
+
+            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(orderStatus).build();
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));;
+
+            assertThrows(IllegalStateException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, times(1)).findByEmail(anyString());
+            verify(orderStatusRepository, times(1)).findByOrderId(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+            verify(clientRepository, never()).save(any(Client.class));
+        }
+
+        @Test
+        void testConfirmOrder_WhenBalanceInsufficient_ShouldThrowException() {
+
+            BigDecimal clientBalance = BigDecimal.ZERO;
+            Client client = Client.builder().balance(clientBalance).build();
+
+            Long orderId = 1L;
+            BigDecimal price = BigDecimal.TEN;
+            Order order = Order.builder().id(orderId).price(price).client(client).build();
+
+            String employeeEmail = "test@test.com";
+            Employee employee = Employee.builder().email(employeeEmail).build();
+
+            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+
+            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));;
+
+            assertThrows(InsufficientFundsException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
+
+            verify(orderRepository, times(1)).findById(orderId);
+            verify(employeeRepository, times(1)).findByEmail(anyString());
+            verify(orderStatusRepository, times(1)).findByOrderId(anyLong());
+            verify(orderRepository, never()).save(any(Order.class));
+            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+            verify(clientRepository, never()).save(any(Client.class));
+        }
+    }
 }

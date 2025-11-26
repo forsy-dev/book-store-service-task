@@ -163,6 +163,25 @@ public class OrderController {
             log.warn("Failed to cancel order {}: {}", id, e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
+        log.info("Order {} cancelled successfully", id);
+        return "redirect:/orders";
+    }
+
+    @PostMapping("/{id}/confirm")
+    public String confirmOrder(@PathVariable Long id,
+                              Authentication authentication,
+                              RedirectAttributes redirectAttributes) {
+        String employeeEmail = authentication.getName();
+        log.info("Employee {} confirming order {}", employeeEmail, id);
+        try {
+            // Pass the employee email to service to take ownership of the order
+            orderService.confirmOrder(id, employeeEmail);
+            redirectAttributes.addFlashAttribute("successMessage", "Order " + id + " confirmed.");
+        } catch (Exception e) {
+            log.warn("Failed to confirm order {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        log.info("Order {} confirmed successfully", id);
         return "redirect:/orders";
     }
 }

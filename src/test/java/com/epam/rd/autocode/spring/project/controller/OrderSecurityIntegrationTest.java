@@ -168,4 +168,32 @@ public class OrderSecurityIntegrationTest {
                     .andExpect(redirectedUrl("/orders"));
         }
     }
+
+    @Nested
+    class ConfirmOrder {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testConfirmOrder_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+
+            long orderId = 1L;
+
+            mockMvc.perform(post("/orders/{id}/confirm", orderId))
+                    .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
+        void testConfirmOrder_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+
+            long orderId = 1L;
+            String email = "test@test.com";
+
+            doNothing().when(orderService).confirmOrder(orderId, email);
+
+            mockMvc.perform(post("/orders/{id}/confirm", orderId))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/orders"));
+        }
+    }
 }

@@ -240,4 +240,38 @@ public class OrderControllerTest {
                     .andExpect(flash().attributeExists("errorMessage"));
         }
     }
+
+    @Nested
+    class ConfirmOrder {
+
+        @Test
+        void testConfirmOrder_WhenSuccess_ShouldRedirect() throws Exception {
+            long orderId = 1L;
+            String email = "test@test.com";
+
+            doNothing().when(orderService).confirmOrder(orderId, email);
+
+            mockMvc.perform(post("/orders/{id}/confirm", orderId)
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf()))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/orders"))
+                    .andExpect(flash().attributeExists("successMessage"));
+        }
+
+        @Test
+        void testConfirmOrder_WhenFailure_ShouldRedirect() throws Exception {
+            long orderId = 1L;
+            String email = "test@test.com";
+
+            doThrow(new RuntimeException("Error occurred")).when(orderService).confirmOrder(orderId, email);
+
+            mockMvc.perform(post("/orders/{id}/confirm", orderId)
+                            .with(user(email).roles("EMPLOYEE"))
+                            .with(csrf()))
+                    .andExpect(status().is3xxRedirection())
+                    .andExpect(redirectedUrl("/orders"))
+                    .andExpect(flash().attributeExists("errorMessage"));
+        }
+    }
 }
