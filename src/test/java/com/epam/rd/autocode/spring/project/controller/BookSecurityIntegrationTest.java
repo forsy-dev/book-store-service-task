@@ -20,8 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -52,13 +51,9 @@ public class BookSecurityIntegrationTest {
         void testGetBooks_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
             Page<BookDTO> bookPage = new PageImpl<>(Collections.singletonList(new BookDTO()));
 
-            when(bookService.getAllBooks(any(Pageable.class), anyString())).thenReturn(bookPage);
+            when(bookService.getAllBooks(any(Pageable.class), nullable(String.class))).thenReturn(bookPage);
 
-            mockMvc.perform(get("/books")
-                            .param("page", "0")
-                            .param("size", "10")
-                            .param("sort", "name")
-                            .param("keyword", ""))
+            mockMvc.perform(get("/books"))
                     .andExpect(status().isOk());
         }
 
@@ -67,13 +62,9 @@ public class BookSecurityIntegrationTest {
         void testGetBooks_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
             Page<BookDTO> bookPage = new PageImpl<>(Collections.singletonList(new BookDTO()));
 
-            when(bookService.getAllBooks(any(Pageable.class), anyString())).thenReturn(bookPage);
+            when(bookService.getAllBooks(any(Pageable.class), nullable(String.class))).thenReturn(bookPage);
 
-            mockMvc.perform(get("/books")
-                            .param("page", "0")
-                            .param("size", "10")
-                            .param("sort", "name")
-                            .param("keyword", ""))
+            mockMvc.perform(get("/books"))
                     .andExpect(status().isOk());
         }
     }

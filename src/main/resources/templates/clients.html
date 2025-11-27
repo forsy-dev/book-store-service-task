@@ -16,24 +16,36 @@
 
     <!-- Main Content -->
     <main class="container mx-auto px-6 py-12">
-        <h1 class="text-3xl font-bold mb-8" th:text="#{clients.registered}">Registered Clients</h1>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold mb-8" th:text="#{clients.registered}">Registered Clients</h1>
+
+            <!-- Search Form -->
+            <div th:replace="~{fragments/search :: searchForm(@{/clients}, 'client.search.placeholder')}"></div>
+        </div>
+
 
         <!-- Client Table -->
         <div class="bg-white shadow-xl rounded-lg overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        th:text="#{user.fullname}">
-                        Full Name
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <a th:href="@{/clients(page=${clientPage.number}, size=${clientPage.size}, sort='name,' + (${param.sort != null && param.sort[0] == 'name,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
+                           class="flex items-center hover:text-gray-700">
+                            <span th:text="#{user.fullname}">Name</span>
+                        </a>
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        th:text="#{user.email}">
-                        Email
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <a th:href="@{/clients(page=${clientPage.number}, size=${clientPage.size}, sort='email,' + (${param.sort != null && param.sort[0] == 'email,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
+                           class="flex items-center hover:text-gray-700">
+                            <span th:text="#{user.email}">Email</span>
+                        </a>
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        th:text="#{client.balance}">
-                        Balance
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <a th:href="@{/clients(page=${clientPage.number}, size=${clientPage.size}, sort='balance,' + (${param.sort != null && param.sort[0] == 'balance,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
+                           class="flex items-center hover:text-gray-700">
+                            <span th:text="#{client.balance}">Balance</span>
+                        </a>
                     </th>
                     <th scope="col" class="relative px-6 py-3" th:text="#{actions}">
                         <span class="sr-only">Actions</span>

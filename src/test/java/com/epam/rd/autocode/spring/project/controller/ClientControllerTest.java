@@ -40,12 +40,9 @@ public class ClientControllerTest {
         @Test
         void testGetAllClients_ShouldReturnClientsList() throws Exception {
             Page<ClientDisplayDTO> clientPage = new PageImpl<>(Collections.singletonList(new ClientDisplayDTO()));
-            when(clientService.getAllClients(any(Pageable.class))).thenReturn(clientPage);
+            when(clientService.getAllClients(any(Pageable.class), nullable(String.class))).thenReturn(clientPage);
 
             mockMvc.perform(get("/clients")
-                            .param("page", "0")
-                            .param("size", "10")
-                            .param("sort", "name")
                             .with(user("testuser").roles("EMPLOYEE")))
                     .andExpect(status().isOk())
                     .andExpect(view().name("clients"))

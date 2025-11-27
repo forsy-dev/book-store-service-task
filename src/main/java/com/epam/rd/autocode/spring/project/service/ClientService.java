@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface ClientService {
 
-    Page<ClientDisplayDTO> getAllClients(Pageable pageable);
+    Page<ClientDisplayDTO> getAllClients(Pageable pageable, String keyword);
 
     ClientDisplayDTO getClientByEmail(String email);
 

@@ -32,8 +32,14 @@ public class ClientServiceImpl implements ClientService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public Page<ClientDisplayDTO> getAllClients(Pageable pageable) {
-        return clientRepository.findAll(pageable).map(this::mapToClientDisplayDTO);
+    public Page<ClientDisplayDTO> getAllClients(Pageable pageable, String keyword) {
+        Page<Client> clients;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            clients = clientRepository.findAllByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(keyword, keyword, pageable);
+        } else {
+            clients = clientRepository.findAll(pageable);
+        }
+        return clients.map(this::mapToClientDisplayDTO);
     }
 
     @Override

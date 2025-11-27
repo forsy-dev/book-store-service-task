@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
@@ -28,9 +29,15 @@ public class ClientController {
     private final ClientService clientService;
 
     @GetMapping
-    public String getAllClients(Model model, @PageableDefault(size = 10, sort = "name") Pageable pageable) {
-        Page<ClientDisplayDTO> clientPage = clientService.getAllClients(pageable);
+    public String getAllClients(Model model,
+                                @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.DESC) Pageable pageable,
+                                @RequestParam(name = "keyword", required = false) String keyword) {
+        if (keyword != null && keyword.trim().isEmpty()) {
+            keyword = null;
+        }
+        Page<ClientDisplayDTO> clientPage = clientService.getAllClients(pageable, keyword);
         model.addAttribute("clientPage", clientPage);
+        model.addAttribute("keyword", keyword);
         return "clients";
     }
 

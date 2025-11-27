@@ -20,13 +20,7 @@
         <h1 class="text-3xl font-bold mb-8" th:text="#{book.header}">Available Books</h1>
 
         <!-- Search Form -->
-        <form th:action="@{/books}" method="get" class="flex gap-2">
-            <input type="text" name="keyword" th:value="${keyword}"
-                   th:placeholder="#{book.search.placeholder}"
-                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" th:text="#{btn.search}">Search</button>
-            <a th:if="${keyword}" th:href="@{/books}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300" th:text="#{btn.clear}">Clear</a>
-        </form>
+        <div th:replace="~{fragments/search :: searchForm(@{/books}, 'book.search.placeholder')}"></div>
     </div>
 
     <!-- Book Table -->

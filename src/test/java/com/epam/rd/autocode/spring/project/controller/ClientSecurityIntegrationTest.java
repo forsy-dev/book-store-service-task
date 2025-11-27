@@ -60,7 +60,7 @@ public class ClientSecurityIntegrationTest {
         void testGetClients_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
             Page<ClientDisplayDTO> clientPage = new PageImpl<>(Collections.singletonList(new ClientDisplayDTO()));
 
-            when(clientService.getAllClients(any(Pageable.class))).thenReturn(clientPage);
+            when(clientService.getAllClients(any(Pageable.class), nullable(String.class))).thenReturn(clientPage);
 
             mockMvc.perform(get("/clients"))
                     .andExpect(status().isOk());

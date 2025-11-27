@@ -60,12 +60,13 @@ public class ClientServiceImplTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Client> clientPage = new PageImpl<>(Arrays.asList(client), pageable, 1);
         ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
+        String keyword = "a";
 
         when(clientRepository.findAll(pageable)).thenReturn(clientPage);
         when(clientBlockStatusRepository.findByClientEmail(client.getEmail())).thenReturn(Optional.of(clientBlockStatus));
         when(mapper.map(client, ClientDisplayDTO.class)).thenReturn(expectedDto);
 
-        Page<ClientDisplayDTO> actualClientDto = clientService.getAllClients(pageable);
+        Page<ClientDisplayDTO> actualClientDto = clientService.getAllClients(pageable, keyword);
 
         verify(clientRepository, times(1)).findAll(pageable);
         verify(clientBlockStatusRepository, times(1)).findByClientEmail(client.getEmail());
