@@ -43,12 +43,13 @@ public class BookControllerTest {
         @Test
         void testGetAllBooks_ShouldReturnBooksList() throws Exception {
             Page<BookDTO> bookPage = new PageImpl<>(Collections.singletonList(new BookDTO()));
-            when(bookService.getAllBooks(any(Pageable.class))).thenReturn(bookPage);
+            when(bookService.getAllBooks(any(Pageable.class), anyString())).thenReturn(bookPage);
 
             mockMvc.perform(get("/books")
                             .param("page", "0")
                             .param("size", "10")
                             .param("sort", "name")
+                            .param("keyword", "")
                             .with(user("testuser").roles("CLIENT")))
                     .andExpect(status().isOk())
                     .andExpect(view().name("books"))

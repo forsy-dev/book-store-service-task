@@ -24,8 +24,16 @@ public class BookServiceImpl implements BookService {
     private final ModelMapper mapper;
 
     @Override
-    public Page<BookDTO> getAllBooks(Pageable pageable) {
-        return bookRepository.findAll(pageable).map(book -> mapper.map(book, BookDTO.class));
+    public Page<BookDTO> getAllBooks(Pageable pageable, String keyword) {
+        Page<Book> books;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            books = bookRepository.findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable);
+        } else {
+            books = bookRepository.findAll(pageable);
+        }
+
+        return books.map(book -> mapper.map(book, BookDTO.class));
     }
 
     @Override

@@ -5,12 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -65,24 +61,5 @@ public class SecurityConfig{
                 .csrf(csrf -> csrf.disable()); // Disabling CSRF for simplicity in this project
 
         return http.build();
-    }
-
-//    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        // Create an Employee user
-        UserDetails employee = User.builder()
-                .username("john.doe@email.com")
-                .password(passwordEncoder.encode("pass123"))
-                .roles("EMPLOYEE")
-                .build();
-
-        // Create a Client user
-        UserDetails client = User.builder()
-                .username("client1@example.com")
-                .password(passwordEncoder.encode("password123"))
-                .roles("CLIENT")
-                .build();
-
-        return new InMemoryUserDetailsManager(employee, client);
     }
 }

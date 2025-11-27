@@ -35,24 +35,52 @@ public class BookServiceImplTest {
     @Mock
     private ModelMapper mapper;
 
-    @Test
-    void testGetAllBooks_ShouldReturnPagedBooks() {
-        Book book = Book.builder().build();
-        BookDTO expectedDto = new BookDTO();
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Book> bookPage = new PageImpl<>(Arrays.asList(book), pageable, 1);
+    @Nested
+    class GetAllBooks {
 
-        when(bookRepository.findAll(pageable)).thenReturn(bookPage);
-        when(mapper.map(book, BookDTO.class)).thenReturn(expectedDto);
+        @Test
+        void testGetAllBooks_WhenKeywordNotGiven_ShouldReturnAllBooks() {
+            Book book = Book.builder().build();
+            BookDTO expectedDto = new BookDTO();
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Book> bookPage = new PageImpl<>(Arrays.asList(book), pageable, 1);
+            String keyword = "";
 
-        Page<BookDTO> actualBookDto = bookService.getAllBooks(pageable);
+            when(bookRepository.findAll(pageable)).thenReturn(bookPage);
+            when(mapper.map(book, BookDTO.class)).thenReturn(expectedDto);
 
-        verify(bookRepository, times(1)).findAll(pageable);
-        verify(mapper, times(1)).map(book, BookDTO.class);
+            Page<BookDTO> actualBookDto = bookService.getAllBooks(pageable, keyword);
 
-        assertEquals(1, actualBookDto.getTotalElements());
-        assertEquals(1, actualBookDto.getContent().size());
-        assertEquals(expectedDto, actualBookDto.getContent().get(0));
+            verify(bookRepository, times(1)).findAll(pageable);
+            verify(mapper, times(1)).map(book, BookDTO.class);
+
+            assertEquals(1, actualBookDto.getTotalElements());
+            assertEquals(1, actualBookDto.getContent().size());
+            assertEquals(expectedDto, actualBookDto.getContent().get(0));
+        }
+
+        @Test
+        void testGetAllBooks_WhenKeywordGivenShouldReturnFoundBooks() {
+            Book book = Book.builder().build();
+            BookDTO expectedDto = new BookDTO();
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Book> bookPage = new PageImpl<>(Arrays.asList(book), pageable, 1);
+            String keyword = "test";
+
+            when(bookRepository.findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable))
+                .thenReturn(bookPage);
+            when(mapper.map(book, BookDTO.class)).thenReturn(expectedDto);
+
+            Page<BookDTO> actualBookDto = bookService.getAllBooks(pageable, keyword);
+
+            verify(bookRepository, times(1))
+                .findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable);
+            verify(mapper, times(1)).map(book, BookDTO.class);
+
+            assertEquals(1, actualBookDto.getTotalElements());
+            assertEquals(1, actualBookDto.getContent().size());
+            assertEquals(expectedDto, actualBookDto.getContent().get(0));
+        }
     }
 
     @Nested

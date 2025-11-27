@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -25,13 +26,14 @@ public class BookController {
 
     @GetMapping
     public String getAllBooks(Model model,
-                              @PageableDefault(size = 10, sort = "name") Pageable pageable,
-                              Authentication authentication) {
-        log.info("User {} fetching book list for page: {}",
-                authentication.getName(), pageable.getPageNumber());
-
-        Page<BookDTO> bookPage = bookService.getAllBooks(pageable);
+                              @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable,
+                              @RequestParam(name = "keyword", required = false) String keyword) {
+        if (keyword != null && keyword.trim().isEmpty()) {
+            keyword = null;
+        }
+        Page<BookDTO> bookPage = bookService.getAllBooks(pageable, keyword);
         model.addAttribute("bookPage", bookPage);
+        model.addAttribute("keyword", keyword);
         return "books";
     }
 

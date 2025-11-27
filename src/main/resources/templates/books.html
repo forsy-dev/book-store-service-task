@@ -16,24 +16,45 @@
 
 <!-- Main Content -->
 <main class="container mx-auto px-6 py-12">
-    <h1 class="text-3xl font-bold mb-8" th:text="#{book.header}">Available Books</h1>
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold mb-8" th:text="#{book.header}">Available Books</h1>
+
+        <!-- Search Form -->
+        <form th:action="@{/books}" method="get" class="flex gap-2">
+            <input type="text" name="keyword" th:value="${keyword}"
+                   th:placeholder="#{book.search.placeholder}"
+                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" />
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" th:text="#{btn.search}">Search</button>
+            <a th:if="${keyword}" th:href="@{/books}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300" th:text="#{btn.clear}">Clear</a>
+        </form>
+    </div>
 
     <!-- Book Table -->
     <div class="bg-white shadow-xl rounded-lg overflow-hidden">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
             <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" th:text="#{book.name}">
-                    Name
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <a th:href="@{/books(page=${bookPage.number}, size=${bookPage.size}, sort='name,' + (${param.sort != null && param.sort[0] == 'name,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
+                       class="flex items-center hover:text-gray-700">
+                        <span th:text="#{book.name}">Name</span>
+                        <!-- Add icon logic here if desired -->
+                    </a>
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" th:text="#{book.author}">
-                    Author
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <a th:href="@{/books(page=${bookPage.number}, size=${bookPage.size}, sort='author,' + (${param.sort != null && param.sort[0] == 'author,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
+                       class="flex items-center hover:text-gray-700">
+                        <span th:text="#{book.author}">Author</span>
+                    </a>
                 </th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" th:text="#{book.genre}">
                     Genre
                 </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" th:text="#{book.price}">
-                    Price
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <a th:href="@{/books(page=${bookPage.number}, size=${bookPage.size}, sort='price,' + (${param.sort != null && param.sort[0] == 'price,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
+                       class="flex items-center hover:text-gray-700">
+                        <span th:text="#{book.price}">Price</span>
+                    </a>
                 </th>
                 <th scope="col" class="relative px-6 py-3">
                     <span class="sr-only" th:text="#{actions}">Actions</span>
