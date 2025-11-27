@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Client List</title>
+        <title th:text="#{client.list}">Client List</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <style>
             body {
@@ -16,23 +16,26 @@
 
     <!-- Main Content -->
     <main class="container mx-auto px-6 py-12">
-        <h1 class="text-3xl font-bold mb-8">Registered Clients</h1>
+        <h1 class="text-3xl font-bold mb-8" th:text="#{clients.registered}">Registered Clients</h1>
 
         <!-- Client Table -->
         <div class="bg-white shadow-xl rounded-lg overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                 <tr>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Name
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        th:text="#{user.fullname}">
+                        Full Name
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        th:text="#{user.email}">
                         Email
                     </th>
-                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        th:text="#{client.balance}">
                         Balance
                     </th>
-                    <th scope="col" class="relative px-6 py-3">
+                    <th scope="col" class="relative px-6 py-3" th:text="#{actions}">
                         <span class="sr-only">Actions</span>
                     </th>
                 </tr>
@@ -62,7 +65,7 @@
 
                 <!-- Row for when no books are found -->
                 <tr th:if="${clientPage.empty}">
-                    <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                    <td colspan="5" class="px-6 py-12 text-center text-gray-500" th:text="#{client.noFound}">
                         No clients found.
                     </td>
                 </tr>

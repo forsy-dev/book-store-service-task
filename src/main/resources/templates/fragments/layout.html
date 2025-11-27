@@ -23,7 +23,7 @@
 <main class="container mx-auto px-6 py-12 flex-grow">
     <div th:replace="${main}">
         <!-- Default content goes here if no fragment is provided -->
-        <p>Welcome to the BookStore!</p>
+        <p th:text="#{layout.main}">Welcome to the BookStore!</p>
     </div>
 </main>
 

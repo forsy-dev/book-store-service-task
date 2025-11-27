@@ -53,7 +53,7 @@ public class OrderSecurityIntegrationTest {
     class GetAllOrders {
 
         @Test
-        @WithMockUser(roles = "CLIENT")
+        @WithMockUser(roles = "CLIENT", username = "test@test.com")
         void testGetAllOrders_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
             String email = "test@test.com";
 

@@ -67,7 +67,7 @@ public class SecurityConfig{
         return http.build();
     }
 
-    @Bean
+//    @Bean
     public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
         // Create an Employee user
         UserDetails employee = User.builder()
