@@ -39,13 +39,13 @@ public class CartServiceImpl implements CartService {
         log.info("Added {} of {} to cart", dto.getBookName(), dto.getQuantity());
     }
 
-//    @Override
-//    public void removeBookFromCart(Map<String, Integer> cart, String bookName) {
-//        if (cart != null && cart.containsKey(bookName)) {
-//            cart.remove(bookName);
-//            log.info("Removed {} from cart", bookName);
-//        }
-//    }
+    @Override
+    public void removeBookFromCart(Map<String, Integer> cart, String bookName) {
+        if (cart != null && cart.containsKey(bookName)) {
+            cart.remove(bookName);
+            log.info("Removed {} from cart", bookName);
+        }
+    }
 
     @Override
     public List<CartItemDisplayDTO> getCartItems(Map<String, Integer> cart) {

@@ -181,4 +181,16 @@ public class CartServiceImplTest {
             assertEquals(BigDecimal.ZERO, total);
         }
     }
+
+    @Nested
+    class RemoveBookFromCart {
+
+        @Test
+        void testRemoveBookFromCart_ShouldRemoveBook() {
+            Map<String, Integer> cart = new HashMap<>();
+            cart.put("book", 1);
+            cartService.removeBookFromCart(cart, "book");
+            assertEquals(0, cart.size());
+        }
+    }
 }

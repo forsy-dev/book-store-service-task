@@ -82,4 +82,14 @@ public class CartController {
 
         return "cart";
     }
+
+    @PostMapping("/remove")
+    public String removeBookFromCart(@RequestParam("bookName") String bookName,
+                                     HttpServletRequest request,
+                                     HttpServletResponse response) {
+        Map<String, Integer> cart = cartCookieUtil.getCartFromCookie(request);
+        cartService.removeBookFromCart(cart, bookName);
+        cartCookieUtil.saveCartToCookie(response, cart);
+        return "redirect:/cart";
+    }
 }

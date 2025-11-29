@@ -6,6 +6,8 @@ import com.epam.rd.autocode.spring.project.dto.CartItemDisplayDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.CartService;
 import com.epam.rd.autocode.spring.project.util.CartCookieUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -109,7 +113,29 @@ public class CartControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(view().name("cart"));
         }
+    }
 
+    @Nested
+    class RemoveBookFromCart {
 
+        @Test
+        void testRemoveBookFromCart_ShouldRemoveItemAndRedirect() throws Exception {
+            String bookName = "book1";
+            Map<String, Integer> cart = new HashMap<>();
+            cart.put(bookName, 1);
+
+            when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
+            doNothing().when(cartCookieUtil).saveCartToCookie(any(HttpServletResponse.class), anyMap());
+
+            mockMvc.perform(post("/cart/remove")
+                    .param("bookName", bookName)
+                    .with(user("client").roles("CLIENT"))
+                    .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/cart"));
+
+            verify(cartService).removeBookFromCart(cart, bookName);
+            verify(cartCookieUtil).saveCartToCookie(any(HttpServletResponse.class), eq(cart));
+        }
     }
 }

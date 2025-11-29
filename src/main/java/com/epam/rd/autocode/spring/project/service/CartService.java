@@ -20,7 +20,7 @@ public interface CartService {
      * @param cart The current session cart.
      * @param bookName The name of the book to remove.
      */
-//    void removeBookFromCart(Map<String, Integer> cart, String bookName);
+    void removeBookFromCart(Map<String, Integer> cart, String bookName);
 
     /**
      * Converts the simple Map (Name -> Qty) into a list of detailed DTOs
