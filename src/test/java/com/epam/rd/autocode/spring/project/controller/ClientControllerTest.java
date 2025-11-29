@@ -1,9 +1,12 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.conf.jwt.JwtUtils;
+import com.epam.rd.autocode.spring.project.dto.AddBalanceDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
+import com.epam.rd.autocode.spring.project.util.CartCookieUtil;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -14,8 +17,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -37,7 +42,13 @@ public class ClientControllerTest {
     private ClientService clientService;
 
     @MockBean
-    private SessionRegistry sessionRegistry;
+    private JwtUtils jwtUtils;
+
+    @MockBean
+    private UserDetailsService userDetailsService;
+
+    @MockBean
+    private CartCookieUtil cartCookieUtil;
 
     @Nested
     class GetClients {
@@ -197,6 +208,63 @@ public class ClientControllerTest {
                             .with(user(email).roles("EMPLOYEE"))
                             .with(csrf()))
                     .andExpect(status().isNotFound());
+        }
+    }
+
+    @Nested
+    class AddBalanceToClient {
+
+        @Test
+        void testAddBalanceToClient_ShouldRedirectToClientDetail_WhenSuccess() throws Exception {
+            String clientEmail = "test@test.com";
+            String employeeEmail = "test@emp.com";
+            AddBalanceDTO dto = AddBalanceDTO.builder().amount(BigDecimal.TEN).build();
+            ClientDisplayDTO clientDisplayDTO = ClientDisplayDTO.builder().email(clientEmail).balance(BigDecimal.TEN).build();
+
+            when(clientService.addBalanceToClient(clientEmail, dto)).thenReturn(clientDisplayDTO);
+
+            mockMvc.perform(post("/clients/{email}/add-balance", clientEmail)
+                    .with(user(employeeEmail).roles("EMPLOYEE"))
+                    .flashAttr("addBalanceDTO", dto)
+                    .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clients/" + clientEmail))
+                .andExpect(flash().attributeExists("successMessage"));
+        }
+
+        @Test
+        void testAddBalanceToClient_ShouldRedirectToClientDetail_WhenValidationFails() throws Exception {
+            String clientEmail = "test@test.com";
+            String employeeEmail = "test@emp.com";
+            AddBalanceDTO dto = AddBalanceDTO.builder().amount(BigDecimal.ZERO).build();
+            ClientDisplayDTO clientDisplayDTO = ClientDisplayDTO.builder().email(clientEmail).balance(BigDecimal.ZERO).build();
+
+            when(clientService.addBalanceToClient(clientEmail, dto)).thenReturn(clientDisplayDTO);
+
+            mockMvc.perform(post("/clients/{email}/add-balance", clientEmail)
+                    .with(user(employeeEmail).roles("EMPLOYEE"))
+                    .flashAttr("addBalanceDTO", dto)
+                    .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clients/" + clientEmail))
+                .andExpect(flash().attributeExists("errorMessage"));
+        }
+
+        @Test
+        void testAddBalanceToClient_ShouldRedirectToClientDetail_WhenAddingBalanceToClientFails() throws Exception {
+            String clientEmail = "test@test.com";
+            String employeeEmail = "test@emp.com";
+            AddBalanceDTO dto = AddBalanceDTO.builder().amount(BigDecimal.ZERO).build();
+
+            when(clientService.addBalanceToClient(clientEmail, dto)).thenThrow(new RuntimeException());
+
+            mockMvc.perform(post("/clients/{email}/add-balance", clientEmail)
+                    .with(user(employeeEmail).roles("EMPLOYEE"))
+                    .flashAttr("addBalanceDTO", dto)
+                    .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clients/" + clientEmail))
+                .andExpect(flash().attributeExists("errorMessage"));
         }
     }
 }

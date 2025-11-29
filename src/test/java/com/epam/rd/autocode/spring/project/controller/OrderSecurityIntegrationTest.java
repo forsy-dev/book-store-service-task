@@ -6,6 +6,8 @@ import com.epam.rd.autocode.spring.project.service.BookService;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import com.epam.rd.autocode.spring.project.service.OrderService;
+import com.epam.rd.autocode.spring.project.util.CartCookieUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,9 @@ public class OrderSecurityIntegrationTest {
 
     @MockBean
     private ClientService clientService;
+
+    @MockBean
+    private CartCookieUtil cartCookieUtil;
 
     @Nested
     class GetAllOrders {
@@ -119,11 +124,11 @@ public class OrderSecurityIntegrationTest {
             EmployeeDisplayDTO employeeDisplayDTO = EmployeeDisplayDTO.builder().email(employeeEmail).build();
             Page<EmployeeDisplayDTO> page = new PageImpl<>(java.util.List.of(employeeDisplayDTO));
 
+            when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
             when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(page);
             when(orderService.addOrder(any(CreateOrderRequestDTO.class))).thenReturn(OrderDisplayDTO.builder().build());
 
-            mockMvc.perform(post("/orders/submit")
-                            .sessionAttr("CART", cart))
+            mockMvc.perform(post("/orders/submit"))
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/books"));
         }

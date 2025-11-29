@@ -1,8 +1,11 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.dto.AddBalanceDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
 import com.epam.rd.autocode.spring.project.service.ClientService;
+import com.epam.rd.autocode.spring.project.util.CartCookieUtil;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -32,7 +35,8 @@ import java.util.List;
 public class ClientController {
 
     private final ClientService clientService;
-    private final SessionRegistry sessionRegistry;
+
+    private final CartCookieUtil cartCookieUtil;
 
     @GetMapping
     public String getAllClients(Model model,
@@ -79,15 +83,23 @@ public class ClientController {
     }
 
     @DeleteMapping("/profile")
-    public String deleteClientProfile(Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
+    public String deleteClientProfile(Authentication authentication,
+                                      HttpServletRequest request,
+                                      HttpServletResponse response) {
         log.info("Attempting to delete profile for client: {}", authentication.getName());
 
         clientService.deleteClientByEmail(authentication.getName());
 
         log.info("Client profile deleted for: {}", authentication.getName());
 
-        SecurityContextLogoutHandler logoutHandler = new SecurityContextLogoutHandler();
-        logoutHandler.logout(request, response, authentication);
+        Cookie jwtCookie = new Cookie("access_token", null);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(0); // Delete immediately
+        response.addCookie(jwtCookie);
+
+        // 3. Clear Cart Cookie (cart_cookie)
+        cartCookieUtil.deleteCartCookie(response);
 
         return "redirect:/login?accountDeleted=true";
     }
@@ -97,7 +109,6 @@ public class ClientController {
         log.info("Attempting to block client: {}", email);
 
         clientService.blockClient(email);
-        expireUserSessions(email);
 
         log.info("Client {} blocked successfully", email);
         return "redirect:/clients/" + email;
@@ -113,20 +124,31 @@ public class ClientController {
         return "redirect:/clients/" + email;
     }
 
-    private void expireUserSessions(String email) {
-        List<Object> principals = sessionRegistry.getAllPrincipals();
+    @PostMapping("/{email}/add-balance")
+    public String addBalance(@PathVariable("email") String email,
+                             @Valid @ModelAttribute("addBalanceDTO") AddBalanceDTO dto,
+                             BindingResult bindingResult,
+                             Authentication authentication,
+                             RedirectAttributes redirectAttributes) {
 
-        for (Object principal : principals) {
-            if (principal instanceof UserDetails) {
-                UserDetails userDetails = (UserDetails) principal;
-                if (userDetails.getUsername().equals(email)) {
-                    List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal, false);
-                    for (SessionInformation session : sessions) {
-                        session.expireNow(); // Mark session as expired
-                    }
-                    log.info("Terminated {} active sessions for blocked user {}", sessions.size(), email);
-                }
-            }
+        log.info("Employee {} adding balance {} to client {}", authentication.getName(), dto.getAmount(), email);
+
+        if (bindingResult.hasErrors()) {
+            log.warn("Validation errors while adding balance: {}", bindingResult.getAllErrors());
+            redirectAttributes.addFlashAttribute("errorMessage", "Invalid amount provided. Must be greater than 0.");
+            // We rely on the GET method to re-add the DTO if we redirect back,
+            // or we could add it to flash attributes here if we wanted to preserve the bad input.
+            return "redirect:/clients/" + email;
         }
+
+        try {
+            clientService.addBalanceToClient(email, dto);
+            redirectAttributes.addFlashAttribute("successMessage", "Balance added successfully.");
+        } catch (Exception e) {
+            log.warn("Error adding balance: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+
+        return "redirect:/clients/" + email;
     }
 }

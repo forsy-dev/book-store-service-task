@@ -27,4 +27,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.employee.email = :email AND " +
         "(CAST(o.id AS string) LIKE %:keyword%)")
     Page<Order> searchByEmployee(@Param("email") String email, @Param("keyword") String keyword, Pageable pageable);
+
+    void deleteAllByClientEmail(String clientEmail);
 }

@@ -61,7 +61,7 @@
                     <!-- Empty Cart Message -->
                     <tr th:if="${#lists.isEmpty(cartItems)}">
                         <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                            Your cart is empty.
+                            <span class="block mb-2" th:text="#{cart.empty}">Your cart is empty.</span>
                             <a th:href="@{/books}" class="text-blue-600 hover:text-blue-800 font-medium" th:text="#{cart.startShopping}">Start shopping!</a>
                         </td>
                     </tr>

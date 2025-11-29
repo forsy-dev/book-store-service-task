@@ -5,7 +5,9 @@ import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.dto.CartItemDisplayDTO;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import com.epam.rd.autocode.spring.project.service.CartService;
+import com.epam.rd.autocode.spring.project.util.CartCookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ import java.util.Map;
 public class CartController {
 
     private final CartService cartService;
+    private final CartCookieUtil cartCookieUtil;
 
     /**
      * Handles POST requests to add a book to the session-based cart.
@@ -37,8 +40,8 @@ public class CartController {
     public String addBookToCart(@Valid @ModelAttribute("addToCartDTO") AddToCartDTO dto,
                                 BindingResult bindingResult,
                                 RedirectAttributes redirectAttributes,
-                                HttpSession session,
-                                HttpServletRequest request) {
+                                HttpServletRequest request,
+                                HttpServletResponse response) {
 
         log.info("Trying to add {} of {} to cart", dto.getBookName(), dto.getQuantity());
 
@@ -53,11 +56,11 @@ public class CartController {
             return redirectUrl;
         }
         // 1. Get cart from session, or create it
-        Map<String, Integer> cart = getOrCreateCart(session);
+        Map<String, Integer> cart = cartCookieUtil.getCartFromCookie(request);
 
         // 2. Add item to cart
         cartService.addBookToCart(cart, dto);
-        session.setAttribute("CART", cart);
+        cartCookieUtil.saveCartToCookie(response, cart);
         log.info("Added {} of {} to cart", dto.getBookName(), dto.getQuantity());
 
         // 3. Redirect back to the page the user came from
@@ -68,8 +71,8 @@ public class CartController {
      * Handles GET requests to display the cart page.
      */
     @GetMapping
-    public String showCart(HttpSession session, Model model) {
-        Map<String, Integer> cart = getOrCreateCart(session);
+    public String showCart(HttpServletRequest request, Model model) {
+        Map<String, Integer> cart = cartCookieUtil.getCartFromCookie(request);
 
         List<CartItemDisplayDTO> cartItems = cartService.getCartItems(cart);
         BigDecimal totalCost = cartService.calculateTotalCost(cartItems);
@@ -78,13 +81,5 @@ public class CartController {
         model.addAttribute("totalCost", totalCost);
 
         return "cart";
-    }
-
-    private Map<String, Integer> getOrCreateCart(HttpSession session) {
-        Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("CART");
-        if (cart == null) {
-            cart = new HashMap<>();
-        }
-        return cart;
     }
 }

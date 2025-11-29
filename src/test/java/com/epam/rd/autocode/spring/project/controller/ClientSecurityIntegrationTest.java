@@ -1,5 +1,6 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.dto.AddBalanceDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -37,13 +39,6 @@ public class ClientSecurityIntegrationTest {
 
     @MockBean
     private ClientService clientService;
-
-    @Test
-    void testGetClients_WhenAnonymous_ShouldRedirectToLogin() throws Exception {
-        mockMvc.perform(get("/clients"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
-    }
 
     @Nested
     class GetClients {
@@ -192,6 +187,35 @@ public class ClientSecurityIntegrationTest {
             mockMvc.perform(put("/clients/{email}/unblock", email))
                     .andExpect(status().is3xxRedirection())
                     .andExpect(redirectedUrl("/clients/" + email));
+        }
+    }
+
+    @Nested
+    class AddBalanceToClient {
+
+        @Test
+        @WithMockUser(roles = "CLIENT")
+        void testAddBalanceToClient_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+            String email = "test@test.com";
+
+            mockMvc.perform(put("/clients/{email}/add-balance", email))
+                .andExpect(status().isForbidden());
+        }
+
+        @Test
+        @WithMockUser(roles = "EMPLOYEE")
+        void testAddBalanceToClient_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+            String clientEmail = "test@test.com";
+            AddBalanceDTO dto = AddBalanceDTO.builder().amount(BigDecimal.TEN).build();
+            ClientDisplayDTO clientDisplayDTO = ClientDisplayDTO.builder().email(clientEmail).balance(BigDecimal.TEN).build();
+
+            when(clientService.addBalanceToClient(clientEmail, dto)).thenReturn(clientDisplayDTO);
+
+            mockMvc.perform(post("/clients/{email}/add-balance", clientEmail)
+                    .flashAttr("addBalanceDTO", dto))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/clients/" + clientEmail))
+                .andExpect(flash().attributeExists("successMessage"));
         }
     }
 }

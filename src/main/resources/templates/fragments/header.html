@@ -44,10 +44,6 @@
                     Logout
                 </button>
             </form>
-
-            <a sec:authorize="!isAuthenticated()" th:href="@{/login}" class="ml-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 text-sm" th:text="#{nav.login}">
-                Login
-            </a>
         </div>
     </nav>
 </header>

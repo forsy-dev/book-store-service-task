@@ -1,5 +1,7 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.conf.jwt.JwtAuthenticationFilter;
+import com.epam.rd.autocode.spring.project.conf.jwt.JwtUtils;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
@@ -15,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -36,6 +39,12 @@ public class BookControllerTest {
 
     @MockBean
     private BookService bookService;
+
+    @MockBean
+    private JwtUtils jwtUtils;
+
+    @MockBean
+    private UserDetailsService userDetailsService;
 
     @Nested
     class GetBooks {
@@ -226,7 +235,7 @@ public class BookControllerTest {
                             .with(csrf())
                             .flashAttr("book", bookDto))
                     .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/books-list"));
+                    .andExpect(redirectedUrl("/books"));
         }
 
         @Test

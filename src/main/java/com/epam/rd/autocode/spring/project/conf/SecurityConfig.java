@@ -1,20 +1,32 @@
 package com.epam.rd.autocode.spring.project.conf;
 
+import com.epam.rd.autocode.spring.project.conf.jwt.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig{
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -22,22 +34,21 @@ public class SecurityConfig{
     }
 
     @Bean
-    public SessionRegistry sessionRegistry() {
-        return new SessionRegistryImpl();
-    }
-
-    @Bean
-    public HttpSessionEventPublisher httpSessionEventPublisher() {
-        return new HttpSessionEventPublisher();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(AbstractHttpConfigurer::disable)
+            .logout(AbstractHttpConfigurer::disable)
+            // *** STATELESS SESSION ***
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
                         // --- Public Endpoints ---
                         // Allow anyone to see the home page, login/register
-                        .requestMatchers("/register").permitAll()
+                        .requestMatchers("/register", "/login", "/logout", "/").permitAll()
                         // Allow access to static resources
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
 
@@ -62,22 +73,7 @@ public class SecurityConfig{
                         // placing orders, and viewing profiles.
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form
-                        .loginPage("/login") // Specify custom login page
-                        .defaultSuccessUrl("/books", true)
-                        .permitAll() // Allow everyone to see the login page
-                )
-                .logout(logout -> logout
-                        .logoutSuccessUrl("/login") // Redirect to home page on logout
-                        .permitAll()
-                )
-                .sessionManagement(session -> session
-                    .maximumSessions(1) // Limit to 1 session per user for security
-                    .maxSessionsPreventsLogin(false)
-                    .sessionRegistry(sessionRegistry())
-                    .expiredUrl("/login")// Register the session registry
-                )
-                .csrf(csrf -> csrf.disable()); // Disabling CSRF for simplicity in this project
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Disabling CSRF for simplicity in this project
 
         return http.build();
     }

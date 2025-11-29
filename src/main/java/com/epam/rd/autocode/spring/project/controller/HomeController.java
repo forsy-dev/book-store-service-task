@@ -6,6 +6,7 @@ import com.epam.rd.autocode.spring.project.service.ClientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,13 +23,16 @@ public class HomeController {
     private final ClientService clientService;
 
     @GetMapping("/login")
-    public String showLoginPage() {
+    public String showLoginPage(Authentication authentication) {
+        if (isAuthenticated(authentication)) {
+            return "redirect:/books";
+        }
         return "login";
     }
 
     @GetMapping("/register")
     public String showRegisterPage(Model model, Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
+        if (isAuthenticated(authentication)) {
             return "redirect:/books";
         }
 
@@ -56,5 +60,11 @@ public class HomeController {
             model.addAttribute("errorMessage", ex.getMessage());
             return "register-form";
         }
+    }
+
+    private boolean isAuthenticated(Authentication authentication) {
+        return authentication != null
+            && authentication.isAuthenticated()
+            && !(authentication instanceof AnonymousAuthenticationToken);
     }
 }

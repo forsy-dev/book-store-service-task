@@ -109,7 +109,7 @@ public class BookController {
         }
         bookService.updateBookByName(name, bookDTO);
         log.info("Book {} updated successfully by {}", name, authentication.getName());
-        return "redirect:/books-list";
+        return "redirect:/books";
     }
 
     @DeleteMapping("/{name}")

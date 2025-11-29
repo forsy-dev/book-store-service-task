@@ -9,6 +9,7 @@ import com.epam.rd.autocode.spring.project.model.ClientBlockStatus;
 import com.epam.rd.autocode.spring.project.repo.ClientBlockStatusRepository;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
+import com.epam.rd.autocode.spring.project.repo.OrderRepository;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -30,6 +32,7 @@ public class ClientServiceImpl implements ClientService {
     private final ClientBlockStatusRepository clientBlockStatusRepository;
     private final ModelMapper mapper;
     private final PasswordEncoder passwordEncoder;
+    private final OrderRepository orderRepository;
 
     @Override
     public Page<ClientDisplayDTO> getAllClients(Pageable pageable, String keyword) {
@@ -62,9 +65,11 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    @Transactional
     public void deleteClientByEmail(String email) {
         log.info("Attempting to delete client with email {}", email);
         clientRepository.findByEmail(email).ifPresentOrElse(client -> {
+                    orderRepository.deleteAllByClientEmail(email);
                     ClientBlockStatus clientBlockStatus = clientBlockStatusRepository.findByClientEmail(email)
                                     .orElseThrow(() -> new NotFoundException(String.format("Client with email %s not found", email)));
                     clientRepository.delete(client);

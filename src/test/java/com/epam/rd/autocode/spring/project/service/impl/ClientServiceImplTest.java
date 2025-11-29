@@ -9,6 +9,7 @@ import com.epam.rd.autocode.spring.project.model.ClientBlockStatus;
 import com.epam.rd.autocode.spring.project.repo.ClientBlockStatusRepository;
 import com.epam.rd.autocode.spring.project.repo.ClientRepository;
 import com.epam.rd.autocode.spring.project.repo.EmployeeRepository;
+import com.epam.rd.autocode.spring.project.repo.OrderRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,6 +53,9 @@ public class ClientServiceImplTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private OrderRepository orderRepository;
 
     @Test
     void testGetAllClients_ShouldReturnPagedClients() {
@@ -166,6 +170,7 @@ public class ClientServiceImplTest {
             ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
             when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
+            doNothing().when(orderRepository).deleteAllByClientEmail(email);
             when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
             doNothing().when(clientRepository).delete(client);
             doNothing().when(clientBlockStatusRepository).delete(clientBlockStatus);
@@ -173,6 +178,7 @@ public class ClientServiceImplTest {
             clientService.deleteClientByEmail(email);
 
             verify(clientRepository, times(1)).findByEmail(email);
+            verify(orderRepository, times(1)).deleteAllByClientEmail(email);
             verify(clientBlockStatusRepository, times(1)).findByClientEmail(email);
             verify(clientRepository, times(1)).delete(client);
             verify(clientBlockStatusRepository, times(1)).delete(clientBlockStatus);

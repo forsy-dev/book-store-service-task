@@ -5,6 +5,9 @@ import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import com.epam.rd.autocode.spring.project.service.OrderService;
+import com.epam.rd.autocode.spring.project.util.CartCookieUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +40,7 @@ public class OrderController {
     private final OrderService orderService;
     private final EmployeeService employeeService;
     private final ClientService clientService;
+    private final CartCookieUtil cartCookieUtil;
 
     @GetMapping
     public String getAllOrders(Model model,
@@ -97,14 +101,15 @@ public class OrderController {
 
     @PostMapping("/submit")
     public String submitOrder(Authentication authentication,
-                              HttpSession session,
+                              HttpServletRequest request,
+                              HttpServletResponse response,
                               RedirectAttributes redirectAttributes) {
 
         String clientEmail = authentication.getName();
         log.info("Client {} is attempting to submit an order.", clientEmail);
 
         // 1. Get Cart
-        Map<String, Integer> cart = (Map<String, Integer>) session.getAttribute("CART");
+        Map<String, Integer> cart = cartCookieUtil.getCartFromCookie(request);
         if (cart == null || cart.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Your cart is empty.");
             return "redirect:/cart";
@@ -127,7 +132,7 @@ public class OrderController {
         String assigneeEmail = employees.getContent().get(0).getEmail();
 
         // 4. Create the Request DTO
-        CreateOrderRequestDTO request = CreateOrderRequestDTO.builder()
+        CreateOrderRequestDTO req = CreateOrderRequestDTO.builder()
                 .clientEmail(clientEmail)
                 .employeeEmail(assigneeEmail)
                 .orderDate(LocalDateTime.now())
@@ -136,11 +141,11 @@ public class OrderController {
 
         // 5. Call Service
         try {
-            OrderDisplayDTO createdOrder = orderService.addOrder(request);
+            OrderDisplayDTO createdOrder = orderService.addOrder(req);
             log.info("Order created successfully. ID/Details: {}", createdOrder);
 
             // Clear the cart on success
-            session.removeAttribute("CART");
+            cartCookieUtil.deleteCartCookie(response);
 
             redirectAttributes.addFlashAttribute("successMessage", "Order placed successfully!");
             return "redirect:/books";

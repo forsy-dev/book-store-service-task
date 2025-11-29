@@ -1,10 +1,13 @@
 package com.epam.rd.autocode.spring.project.controller;
 
+import com.epam.rd.autocode.spring.project.conf.jwt.JwtUtils;
 import com.epam.rd.autocode.spring.project.dto.*;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import com.epam.rd.autocode.spring.project.service.OrderService;
+import com.epam.rd.autocode.spring.project.util.CartCookieUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,6 +19,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
@@ -47,6 +51,15 @@ public class OrderControllerTest {
 
     @MockBean
     private ClientService clientService;
+
+    @MockBean
+    private JwtUtils jwtUtils;
+
+    @MockBean
+    private UserDetailsService userDetailsService;
+
+    @MockBean
+    CartCookieUtil cartCookieUtil;
 
     @Nested
     class GetOrdersForUser {
@@ -155,8 +168,9 @@ public class OrderControllerTest {
             String email = "test@test.com";
             Map<String, Integer> cart = new HashMap<>();
 
+            when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
+
             mockMvc.perform(post("/orders/submit")
-                            .sessionAttr("CART", cart)
                             .with(user(email).roles("CLIENT"))
                             .with(csrf()))
                     .andExpect(status().is3xxRedirection())
@@ -169,10 +183,10 @@ public class OrderControllerTest {
             Map<String, Integer> cart = new HashMap<>();
             cart.put("book", 1);
 
+            when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
             when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(Page.empty());
 
             mockMvc.perform(post("/orders/submit")
-                            .sessionAttr("CART", cart)
                             .with(user(email).roles("CLIENT"))
                             .with(csrf()))
                     .andExpect(status().is3xxRedirection())
@@ -189,11 +203,11 @@ public class OrderControllerTest {
             EmployeeDisplayDTO employeeDisplayDTO = EmployeeDisplayDTO.builder().email(employeeEmail).build();
             Page<EmployeeDisplayDTO> page = new PageImpl<>(java.util.List.of(employeeDisplayDTO));
 
+            when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
             when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(page);
             when(orderService.addOrder(any(CreateOrderRequestDTO.class))).thenThrow(new RuntimeException("Error"));
 
             mockMvc.perform(post("/orders/submit")
-                            .sessionAttr("CART", cart)
                             .with(user(email).roles("CLIENT"))
                             .with(csrf()))
                     .andExpect(status().is3xxRedirection())
@@ -210,11 +224,11 @@ public class OrderControllerTest {
             EmployeeDisplayDTO employeeDisplayDTO = EmployeeDisplayDTO.builder().email(employeeEmail).build();
             Page<EmployeeDisplayDTO> page = new PageImpl<>(java.util.List.of(employeeDisplayDTO));
 
+            when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
             when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(page);
             when(orderService.addOrder(any(CreateOrderRequestDTO.class))).thenReturn(OrderDisplayDTO.builder().build());
 
             mockMvc.perform(post("/orders/submit")
-                            .sessionAttr("CART", cart)
                             .with(user(email).roles("CLIENT"))
                             .with(csrf()))
                     .andExpect(status().is3xxRedirection())

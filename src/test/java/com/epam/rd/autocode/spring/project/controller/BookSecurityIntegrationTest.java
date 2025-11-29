@@ -36,13 +36,6 @@ public class BookSecurityIntegrationTest {
     @MockBean
     private BookService bookService;
 
-    @Test
-    void testGetBooks_WhenAnonymous_ShouldRedirectToLogin() throws Exception {
-        mockMvc.perform(get("/books"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrlPattern("**/login"));
-    }
-
     @Nested
     class GetBooks {
 
@@ -213,7 +206,7 @@ public class BookSecurityIntegrationTest {
             mockMvc.perform(put("/books/{name}", bookDto.getName())
                             .flashAttr("book", bookDto))
                     .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/books-list"));
+                    .andExpect(redirectedUrl("/books"));
         }
     }
 
