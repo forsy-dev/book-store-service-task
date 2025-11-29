@@ -1,161 +1,97 @@
-# Book Store. Spring Project
+# **Book Store Service**
 
-The purpose of this task is to check your knowledge and understanding in Java and Spring.
+A Spring Boot web application for managing an online book store. This system supports role-based access control (RBAC) for **Clients** and **Employees**, allowing users to browse books, manage carts, and place orders, while employees can manage inventory, users, and order fulfillment.
 
-Duration: **15** hours
+## **🚀 Features**
 
-## Description
+### **Public Access**
 
-Your objective is to develop a "Book Store Service" following the MVC pattern.
+* **Browse Books:** View a paginated, sortable, and searchable list of books.
+* **Book Details:** View detailed information about specific books.
+* **Registration:** Create a new Client account.
+* **Localization:** Switch between English and Ukrainian languages.
 
-> Project may have two main roles of authority: customer and employee.
+### **Client Role**
 
-The project structure is already set up, with essential classes waiting for implementation in their respective folders.
-Your project is organized into several packages. Here's a brief overview of each:
+* **Shopping Cart:** Add/remove items, view total cost (stored in Cookies for statelessness).
+* **Order Placement:** Submit orders for processing.
+* **Order History:** View, search, and sort personal order history.
+* **Profile Management:** Update name and change password.
+* **Account Deletion:** Delete own account (cascades to delete order history).
 
-### Packages Overview
+### **Employee Role**
 
-#### `conf`
+* **Book Management:** Add, Edit, and Delete books.
+* **Client Management:**
+  * View, **search**, and **sort** the list of registered clients.
+  * **Top up** client balances (add funds).
+  * **Block/Unblock** users to restrict access (immediately terminates active sessions).
+* **Order Management:**
+  * View, **search**, and **sort** all orders in the system.
+  * **Confirm** orders (deducts balance from client).
+  * **Cancel** pending orders.
+* **Profile Management:** Update name, phone, **birthdate**, and change password.
 
-- Houses all configuration classes.
+## **🛠️ Technology Stack**
 
-#### `controller`
+* **Java 17**
+* **Spring Boot 3.x** (Web, Data JPA, Security, Validation)
+* **Thymeleaf** (Server-side templating)
+* **MySQL** (Production database) & **H2** (Test/Dev database)
+* **Lombok** (Boilerplate reduction)
+* **ModelMapper** (DTO mapping)
+* **Tailwind CSS** (Styling)
 
-- Contains controller files.
+## **⚙️ Configuration & Profiles**
 
-#### `dto`
+The application is configured with two profiles:
 
-- Contains DTO files.
+### **1\. Default (Dev/Test)**
 
-#### `model`
+* **Database:** H2 (In-Memory).
+* **Data Init:** Automatically loads sample data from src/main/resources/sql/data-h2.sql.
+* **Run:** Just start the application normally.
 
-- Contains all model classes.
+### **2\. Production (prod)**
 
-#### `exception`
+* **Database:** MySQL.
+* **Data Init:** Uses src/main/resources/sql/data-mysql.sql.
+* **Setup:** Requires a MySQL server running on port 3306 with a database named book\_store\_db.
+* **Run:**
+> java \-jar target/book-store-service.jar \--spring.profiles.active=prod
 
-- Contains custom user exception files.
+## **🔑 Default Credentials**
 
-#### `repo`
+The application comes pre-loaded with sample data.
+**Note:** Each user has a specific password defined in the SQL initialization scripts.
+**Common Examples:**
 
-- Contains repository files.
+| Role | Email | Password |
+| :---- | :---- | :---- |
+| **Employee** | john.doe@email.com | pass123 |
+| **Client** | client1@example.com | password123 |
 
-#### `service`
+For the full list of users and their specific passwords (e.g. abc456, qwerty789), please refer to the SQL files:
 
-- Includes interfaces with declared methods for all services.
+* src/main/resources/sql/data-h2.sql
+* src/main/resources/sql/data-mysql.sql
 
-- `impl`: Encompasses implementations of declared services.
+## **🏗️ Project Structure**
 
-The class diagram of the Domain model is shown in the figure below:
+* **config/**: Security configurations (SecurityConfig, JwtAuthenticationFilter, WebConfig for i18n).
+* **controller/**: MVC controllers handling web requests.
+* **service/**: Business logic.
+* **dto/**: Data Transfer Objects for API/View communication.
+* **model/**: JPA Entities.
+* **repo/**: Spring Data JPA repositories.
 
-<img src="img/Diagram.png" alt="DTO" width="1000"/>
+## **🧪 Testing**
 
-### Permissions
+The project includes a comprehensive test suite:
 
-> For Any Registered Users
+* **Unit Tests (@WebMvcTest):** Verifies controller logic in isolation.
+* **Security Integration Tests (@SpringBootTest):** Verifies security rules (access control, redirects, CSRF).
+* **Service Tests:** Verifies business logic using Mockito.
 
-- Access a list of available books.
-- View detailed information about any book.
-- Edit personal information and view user profile.
-
-> For Employees
-
-- Add, edit, or delete books from the list.
-- Confirm orders placed by customers.
-- Block or unblock customer accounts.
-- Access a list of registered customers.
-
-> For Customers
-
-- Add books to the basket for purchase.
-- Delete their account.
-- Submit orders for purchase.
-
-### Services
-
-Below is a list of available services with corresponding methods for implementation.
-
-> Note: You can add your own methods to existing services, as well as create additional services.
-
-#### OrderService
-
-* `getAllOrdersByClient(email: String)`
-  Retrieves a list of all orders by client's email placed in the system.
-* `getAllOrdersByEmployee(email: String)`
-  Retrieves a list of all orders by employee's email placed in the system.
-* `addOrder(order: OrderDTO)`
-  Adds a new order to the system, incorporating the provided order details.
-
-#### EmployeeService
-
-* `getAllEmployees()`
-  Retrieves a list of all employees registered in the system.
-* `getEmployeeByEmail(email: String)`
-  Fetches details of a specific employee based on their email.
-* `updateEmployeeByEmail(email: String, employee: EmployeeDTO)`
-  Updates the information of an existing employee identified by their email with the provided details.
-* `deleteEmployeeByEmail(email: String)`
-  Removes an employee from the system based on their email.
-* `addEmployee(employee: EmployeeDTO)`
-  Registers a new employee in the system with the provided details.
-
-#### ClientService
-
-* `getAllClients()`
-  Retrieves a list of all clients (customers) registered in the system.
-* `getClientByEmail(email: String)`
-  Fetches details of a specific client based on their email.
-* `updateClientByEmail(email: String, client: ClientDTO)`
-  Updates the information of an existing client identified by their email with the provided details.
-* `deleteClientByEmail(email: String)`
-  Removes a client from the system based on their email.
-* `addClient(client: ClientDTO)`
-  Registers a new client in the system with the provided details.
-
-#### BookService
-
-* `getAllBooks()`
-  Retrieves a list of all books available in the store.
-* `getBookByName(name: String)`
-  Fetches details of a specific book based on its name.
-* `updateBookByName(name: String, book: BookDTO)`
-  Updates the information of an existing book identified by its name with the provided details.
-* `deleteBookByName(name: String)`
-  Removes a book from the system based on its name.
-* `addBook(book: BookDTO)`
-  Adds a new book to the system with the provided details.
-
-## Requirements
-
-Ensure implementation of the following:
-
-- `Spring Data JPA` for efficient data management.
--  Incorporate `Spring Security` for robust authentication and authorization.
--  Enable `Internationalization and Localization` to support English and any language you choose.
--  Implement `Validation` for data integrity.
--  Establish `Error handling` for graceful error management.
--  Utilize `DTOs` - data transfer objects structured as illustrated below:
-
-<img src="img/DTO.png" alt="DTO" width="600"/>
-
-## Would be nice
-
-Consider the following additional features:
-
-- Incorporate `Logging` for comprehensive system monitoring.
-- Implement `Pagination and Sorting` for enhanced data presentation.
-
-## Recommendations
-
-> Use wrapper classes (like Long, Integer, etc.) instead of primitive types whenever possible.
-
-- Utilize `Lombok` for streamlined Java code.
-- Use `ModelMapper` for easy mapping between objects.
-- Utilize `Thymeleaf` for HTML templating.
-- Explore the `test` folder to execute provided test cases for your solution.
-- Refer to the `main\resources\sql` folder for SQL scripts to initialize data.
-
-## Special message
-
-- Make the most of the time available.
-  While we understand you may not cover all the points,
-  aim to accomplish as much as possible within the given duration of 15 hours.
+To run tests:
+> mvn test
