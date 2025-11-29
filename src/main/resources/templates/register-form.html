@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Book Store</title>
+    <title th:text="#{register.title}">Register - Book Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -13,7 +13,9 @@
     </style>
 </head>
 <body class="bg-gray-100">
-
+<div class="absolute top-6 right-6 bg-white p-2 rounded-md shadow-sm">
+    <div th:replace="~{fragments/language :: switcher}"></div>
+</div>
 <div class="flex min-h-screen items-center justify-center">
     <div class="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
 
@@ -22,7 +24,7 @@
             <svg class="mx-auto h-12 w-auto text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
             </svg>
-            <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
+            <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900" th:text="#{register.title}">
                 Create your account
             </h2>
         </div>
@@ -37,11 +39,12 @@
 
             <!-- Name Field -->
             <div>
-                <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                <label for="name" class="block text-sm font-medium text-gray-700" th:text="#{user.fullname}">Full Name</label>
                 <div class="mt-1">
                     <input id="name" name="name" type="text" th:field="*{name}"
                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                           placeholder="John Doe" required>
+                           placeholder="John Doe" required
+                    th:placeholder="#{register.placeholder.name}">
                 </div>
                 <!-- Validation Error -->
                 <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}"
@@ -50,12 +53,13 @@
 
             <!-- Email Field -->
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+                <label for="email" class="block text-sm font-medium text-gray-700" th:text="#{user.email}">Email</label>
                 <div class="mt-1">
                     <input id="email" name="email" type="email" th:field="*{email}"
                            autocomplete="email"
                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                           placeholder="you@example.com" required>
+                           placeholder="you@example.com" required
+                           th:placeholder="#{register.placeholder.email}">
                 </div>
                 <!-- Validation Error -->
                 <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}"
@@ -64,12 +68,13 @@
 
             <!-- Password Field -->
             <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <label for="password" class="block text-sm font-medium text-gray-700" th:text="#{label.password}">Password</label>
                 <div class="mt-1">
                     <input id="password" name="password" type="password" th:field="*{password}"
                            autocomplete="new-password"
                            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                           placeholder="Min. 8 characters with 1 uppercase, 1 number, 1 special char" required>
+                           placeholder="Min. 8 characters with 1 uppercase, 1 number, 1 special char" required
+                           th:placeholder="#{register.placeholder.password}">
                 </div>
                 <!-- Validation Error -->
                 <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}"
@@ -79,7 +84,8 @@
             <!-- Submit Button -->
             <div>
                 <button type="submit"
-                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        th:text="#{register.btn.submit}">
                     Create account
                 </button>
             </div>
@@ -87,7 +93,7 @@
 
         <!-- Link to Login -->
         <div class="text-sm text-center">
-            <a th:href="@{/login}" class="font-medium text-indigo-600 hover:text-indigo-500">
+            <a th:href="@{/login}" class="font-medium text-indigo-600 hover:text-indigo-500" th:text="#{register.login.link}">
                 Already have an account? Sign in
             </a>
         </div>

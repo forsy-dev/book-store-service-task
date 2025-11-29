@@ -129,7 +129,7 @@ public class BookControllerTest {
                             .with(csrf())
                             .flashAttr("book", bookDto))
                     .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/books-list"));
+                    .andExpect(redirectedUrl("/books"));
         }
 
         @Test

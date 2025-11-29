@@ -41,15 +41,21 @@ public class OrderController {
     @GetMapping
     public String getAllOrders(Model model,
                                Authentication authentication,
-                               @PageableDefault(size = 10, sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable) {
+                               @PageableDefault(size = 10, sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable,
+                               @RequestParam(name = "keyword", required = false) String keyword) {
 
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
             return "redirect:/orders/" + authentication.getName();
         }
-
+        if (keyword != null && keyword.trim().isEmpty()) {
+            keyword = null;
+        }
         log.info("Fetching ALL orders for employee: {}", authentication.getName());
-        Page<OrderDisplayDTO> orders = orderService.getAllOrders(pageable);
+        Page<OrderDisplayDTO> orders = orderService.getAllOrders(pageable, keyword);
         model.addAttribute("orderPage", orders);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("baseSearchUrl", "/orders");
+        model.addAttribute("pageTitle", "nav.all_orders");
 
         return "orders";
     }
@@ -58,36 +64,33 @@ public class OrderController {
     public String getOrdersForUser(Model model,
                                    @PathVariable String email,
                                    Authentication authentication,
-                                   @PageableDefault(size = 10, sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable) {
+                                   @PageableDefault(size = 10, sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable,
+                                   @RequestParam(name = "keyword", required = false) String keyword) {
 
         // Security Check for Clients
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
-            if (!authentication.getName().equals(email)) {
-                log.warn("Client {} attempted to view orders for {}", authentication.getName(), email);
-                throw new AccessDeniedException("You are not authorized to view these orders.");
-            }
+        if (!authentication.getName().equals(email)) {
+            log.warn("User {} attempted to view orders for {}", authentication.getName(), email);
+            throw new AccessDeniedException("You are not authorized to view these orders.");
+        }
+        if (keyword != null && keyword.trim().isEmpty()) {
+            keyword = null;
         }
 
         log.info("Fetching orders for user: {}", email);
         Page<OrderDisplayDTO> orders;
 
         // Determine if the email belongs to a Client or an Employee to call the correct service method
-        try {
-            // Try as Client first
-            clientService.getClientByEmail(email); // Acts as an existence check
-            orders = orderService.getOrdersByClient(email, pageable);
-        } catch (NotFoundException e) {
-            // Not a client, try as Employee
-            try {
-                employeeService.getEmployeeByEmail(email); // Acts as an existence check
-                orders = orderService.getOrdersByEmployee(email, pageable);
-            } catch (NotFoundException ex) {
-                log.error("User with email {} not found", email);
-                throw new NotFoundException("User with email " + email + " not found.");
-            }
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
+            orders = orderService.getOrdersByClient(email, pageable, keyword);
+        } else {
+            // Assuming ROLE_EMPLOYEE
+            orders = orderService.getOrdersByEmployee(email, pageable, keyword);
         }
 
         model.addAttribute("orderPage", orders);
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("baseSearchUrl", "/orders/" + email);
+        model.addAttribute("pageTitle", "nav.my_orders");
         return "orders";
     }
 

@@ -10,10 +10,8 @@
         <!-- Navigation Links -->
         <div class="flex items-center space-x-4">
             <!-- Language Switcher -->
-            <div class="flex space-x-2 text-sm border-r pr-4 mr-4 border-gray-300">
-                <a th:href="@{''(lang='en')}" class="text-gray-500 hover:text-blue-600" th:classappend="${#locale.language == 'en'} ? 'font-bold text-blue-600'">EN</a>
-                <span class="text-gray-300">|</span>
-                <a th:href="@{''(lang='uk')}" class="text-gray-500 hover:text-blue-600" th:classappend="${#locale.language == 'uk'} ? 'font-bold text-blue-600'">UA</a>
+            <div class="border-r pr-4 mr-4 border-gray-300">
+                <div th:replace="~{fragments/language :: switcher}"></div>
             </div>
 
             <!-- All Authenticated Users -->

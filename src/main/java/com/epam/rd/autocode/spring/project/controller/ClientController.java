@@ -13,12 +13,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/clients")
@@ -27,6 +32,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ClientController {
 
     private final ClientService clientService;
+    private final SessionRegistry sessionRegistry;
 
     @GetMapping
     public String getAllClients(Model model,
@@ -91,6 +97,7 @@ public class ClientController {
         log.info("Attempting to block client: {}", email);
 
         clientService.blockClient(email);
+        expireUserSessions(email);
 
         log.info("Client {} blocked successfully", email);
         return "redirect:/clients/" + email;
@@ -104,5 +111,22 @@ public class ClientController {
 
         log.info("Client {} unblock successfully", email);
         return "redirect:/clients/" + email;
+    }
+
+    private void expireUserSessions(String email) {
+        List<Object> principals = sessionRegistry.getAllPrincipals();
+
+        for (Object principal : principals) {
+            if (principal instanceof UserDetails) {
+                UserDetails userDetails = (UserDetails) principal;
+                if (userDetails.getUsername().equals(email)) {
+                    List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal, false);
+                    for (SessionInformation session : sessions) {
+                        session.expireNow(); // Mark session as expired
+                    }
+                    log.info("Terminated {} active sessions for blocked user {}", sessions.size(), email);
+                }
+            }
+        }
     }
 }

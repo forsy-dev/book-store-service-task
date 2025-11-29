@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+    Reusable Language Switcher Fragment
+    Uses URL parameters (e.g., ?lang=uk) to switch locale.
+    Preserves existing parameters using @{''(...)}.
+-->
+<div th:fragment="switcher" class="flex space-x-2 text-sm font-medium">
+    <a th:href="@{''(lang='en')}" class="hover:text-blue-600 transition-colors duration-200"
+       th:classappend="${#locale.language == 'en'} ? 'text-blue-600 font-bold' : 'text-gray-500'">EN</a>
+    <span class="text-gray-300">|</span>
+    <a th:href="@{''(lang='uk')}" class="hover:text-blue-600 transition-colors duration-200"
+       th:classappend="${#locale.language == 'uk'} ? 'text-blue-600 font-bold' : 'text-gray-500'">UA</a>
+</div>
+</body>
+</html>

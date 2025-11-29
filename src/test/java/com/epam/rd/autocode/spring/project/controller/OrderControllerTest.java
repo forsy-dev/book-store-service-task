@@ -7,6 +7,8 @@ import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import com.epam.rd.autocode.spring.project.service.OrderService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -49,8 +51,9 @@ public class OrderControllerTest {
     @Nested
     class GetOrdersForUser {
 
-        @Test
-        void testGetOrderForUser_WhenAuthenticatedAsClientAndTryingToAccessOtherUserOrders_ShouldReturnError() throws Exception {
+        @ParameterizedTest
+        @ValueSource(strings = {"CLIENT", "EMPLOYEE"})
+        void testGetOrderForUser_WhenTryingToAccessOtherUserOrders_ShouldReturnError() throws Exception {
             String otherEmail = "test1@test.com";
             String email = "test@test.com";
 
@@ -61,13 +64,11 @@ public class OrderControllerTest {
         }
 
         @Test
-        void testGetOrderForUser_WhenAuthenticatedAsClient_ShouldReturnOrders() throws Exception {
+        void testGetOrderForUser_WhenAuthenticatedAsClientAndKeywordNotGiven_ShouldReturnAllOrders() throws Exception {
             String email = "test@test.com";
-            ClientDisplayDTO clientDisplayDTO = ClientDisplayDTO.builder().email(email).build();
             Page<OrderDisplayDTO> orders = Page.empty();
 
-            when(clientService.getClientByEmail(email)).thenReturn(clientDisplayDTO);
-            when(orderService.getOrdersByClient(eq(email), any(Pageable.class))).thenReturn(orders);
+            when(orderService.getOrdersByClient(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
 
             mockMvc.perform(get("/orders/{email}", email)
                             .with(user(email).roles("CLIENT")))
@@ -76,32 +77,46 @@ public class OrderControllerTest {
         }
 
         @Test
-        void testGetOrderForUser_WhenAuthenticatedAsEmployee_ShouldReturnOrders() throws Exception {
+        void testGetOrderForUser_WhenAuthenticatedAsClientAndKeywordGiven_ShouldReturnSelectedOrders() throws Exception {
             String email = "test@test.com";
-            EmployeeDisplayDTO employeeDisplayDTO = EmployeeDisplayDTO.builder().email(email).build();
             Page<OrderDisplayDTO> orders = Page.empty();
+            String keyword = "keyword";
 
-            when(clientService.getClientByEmail(email)).thenThrow(NotFoundException.class);
-            when(employeeService.getEmployeeByEmail(email)).thenReturn(employeeDisplayDTO);
-            when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class))).thenReturn(orders);
+            when(orderService.getOrdersByClient(eq(email), any(Pageable.class), eq(keyword))).thenReturn(orders);
 
             mockMvc.perform(get("/orders/{email}", email)
-                            .with(user(email).roles("EMPLOYEE")))
-                    .andExpect(status().isOk())
-                    .andExpect(view().name("orders"));
+                    .param("keyword", keyword)
+                    .with(user(email).roles("CLIENT")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("orders"));
         }
 
         @Test
-        void testGetOrderForUser_WhenUserNotFound_ShouldReturnError() throws Exception {
+        void testGetOrderForUser_WhenAuthenticatedAsEmployeeAndKeywordNotGiven_ShouldReturnAllOrders() throws Exception {
             String email = "test@test.com";
+            Page<OrderDisplayDTO> orders = Page.empty();
 
-            when(clientService.getClientByEmail(email)).thenThrow(NotFoundException.class);
-            when(employeeService.getEmployeeByEmail(email)).thenThrow(NotFoundException.class);
+            when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
 
             mockMvc.perform(get("/orders/{email}", email)
-                            .with(user(email).roles("EMPLOYEE")))
-                    .andExpect(status().isNotFound())
-                    .andExpect(view().name("error"));
+                    .with(user(email).roles("EMPLOYEE")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("orders"));
+        }
+
+        @Test
+        void testGetOrderForUser_WhenAuthenticatedAsEmployeeAndKeywordGiven_ShouldReturnSelectedOrders() throws Exception {
+            String email = "test@test.com";
+            Page<OrderDisplayDTO> orders = Page.empty();
+            String keyword = "keyword";
+
+            when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), eq(keyword))).thenReturn(orders);
+
+            mockMvc.perform(get("/orders/{email}", email)
+                    .param("keyword", keyword)
+                    .with(user(email).roles("EMPLOYEE")))
+                .andExpect(status().isOk())
+                .andExpect(view().name("orders"));
         }
     }
 
@@ -122,7 +137,7 @@ public class OrderControllerTest {
         void testGetAllOrders_WhenAuthenticatedAsEmployee_ShouldReturnOrders() throws Exception {
             String email = "test@test.com";
 
-            when(orderService.getAllOrders(any(Pageable.class))).thenReturn(Page.empty());
+            when(orderService.getAllOrders(any(Pageable.class), nullable(String.class))).thenReturn(Page.empty());
 
             mockMvc.perform(get("/orders")
                             .with(user(email).roles("EMPLOYEE")))

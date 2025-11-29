@@ -60,7 +60,7 @@ public class ClientServiceImplTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Client> clientPage = new PageImpl<>(Arrays.asList(client), pageable, 1);
         ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
-        String keyword = "a";
+        String keyword = null;
 
         when(clientRepository.findAll(pageable)).thenReturn(clientPage);
         when(clientBlockStatusRepository.findByClientEmail(client.getEmail())).thenReturn(Optional.of(clientBlockStatus));

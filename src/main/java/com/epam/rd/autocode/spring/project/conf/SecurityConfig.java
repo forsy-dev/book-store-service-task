@@ -5,9 +5,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
@@ -19,12 +22,22 @@ public class SecurityConfig{
     }
 
     @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
                         // --- Public Endpoints ---
                         // Allow anyone to see the home page, login/register
-                        .requestMatchers("/", "/home", "/register").permitAll()
+                        .requestMatchers("/register").permitAll()
                         // Allow access to static resources
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
 
@@ -57,6 +70,12 @@ public class SecurityConfig{
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login") // Redirect to home page on logout
                         .permitAll()
+                )
+                .sessionManagement(session -> session
+                    .maximumSessions(1) // Limit to 1 session per user for security
+                    .maxSessionsPreventsLogin(false)
+                    .sessionRegistry(sessionRegistry())
+                    .expiredUrl("/login")// Register the session registry
                 )
                 .csrf(csrf -> csrf.disable()); // Disabling CSRF for simplicity in this project
 

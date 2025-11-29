@@ -12,7 +12,9 @@
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 flex items-center justify-center min-h-screen">
-
+<div class="absolute top-6 right-6 bg-white p-2 rounded-md shadow-sm">
+    <div th:replace="~{fragments/language :: switcher}"></div>
+</div>
 <div class="w-full max-w-md p-8 space-y-6 bg-white shadow-xl rounded-lg">
     <h1 class="text-3xl font-bold text-center text-gray-800" th:text="#{login.header}">BookStore Login</h1>
 

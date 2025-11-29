@@ -35,18 +35,30 @@ public class OrderServiceImpl implements OrderService {
     private final ModelMapper mapper;
 
     @Override
-    public Page<OrderDisplayDTO> getOrdersByClient(String clientEmail, Pageable pageable) {
+    public Page<OrderDisplayDTO> getOrdersByClient(String clientEmail, Pageable pageable, String keyword) {
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            return orderRepository.searchByClient(clientEmail, keyword, pageable).map(this::mapToDisplayDTO);
+        }
         return orderRepository.findAllByClientEmail(clientEmail, pageable).map(this::mapToDisplayDTO);
     }
 
     @Override
-    public Page<OrderDisplayDTO> getOrdersByEmployee(String employeeEmail, Pageable pageable) {
+    public Page<OrderDisplayDTO> getOrdersByEmployee(String employeeEmail, Pageable pageable, String keyword) {
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            return orderRepository.searchByEmployee(employeeEmail, keyword, pageable).map(this::mapToDisplayDTO);
+        }
         return orderRepository.findAllByEmployeeEmail(employeeEmail, pageable).map(this::mapToDisplayDTO);
     }
 
     @Override
-    public Page<OrderDisplayDTO> getAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable).map(this::mapToDisplayDTO);
+    public Page<OrderDisplayDTO> getAllOrders(Pageable pageable, String keyword) {
+        Page<Order> orders;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            orders = orderRepository.searchOrders(keyword, pageable);
+        } else {
+            orders = orderRepository.findAll(pageable);
+        }
+        return orders.map(this::mapToDisplayDTO);
     }
 
     @Override

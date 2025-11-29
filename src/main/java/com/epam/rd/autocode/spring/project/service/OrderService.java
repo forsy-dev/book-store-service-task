@@ -10,11 +10,11 @@ import java.util.*;
 
 public interface OrderService {
 
-    Page<OrderDisplayDTO> getOrdersByClient(String clientEmail, Pageable pageable);
+    Page<OrderDisplayDTO> getOrdersByClient(String clientEmail, Pageable pageable, String keyword);
 
-    Page<OrderDisplayDTO> getOrdersByEmployee(String employeeEmail, Pageable pageable);
+    Page<OrderDisplayDTO> getOrdersByEmployee(String employeeEmail, Pageable pageable, String keyword);
 
-    Page<OrderDisplayDTO> getAllOrders(Pageable pageable);
+    Page<OrderDisplayDTO> getAllOrders(Pageable pageable, String keyword);
 
     OrderDisplayDTO addOrder(CreateOrderRequestDTO order);
 

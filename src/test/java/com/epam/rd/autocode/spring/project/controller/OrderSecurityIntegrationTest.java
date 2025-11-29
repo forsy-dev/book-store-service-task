@@ -23,8 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -66,7 +65,7 @@ public class OrderSecurityIntegrationTest {
         @WithMockUser(roles = "EMPLOYEE")
         void testGetAllOrders_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
 
-            when(orderService.getAllOrders(any(Pageable.class))).thenReturn(Page.empty());
+            when(orderService.getAllOrders(any(Pageable.class), nullable((String.class)))).thenReturn(Page.empty());
 
             mockMvc.perform(get("/orders"))
                     .andExpect(status().isOk())
@@ -86,26 +85,23 @@ public class OrderSecurityIntegrationTest {
             Page<OrderDisplayDTO> orders = Page.empty();
 
             when(clientService.getClientByEmail(email)).thenReturn(clientDisplayDTO);
-            when(orderService.getOrdersByClient(eq(email), any(Pageable.class))).thenReturn(orders);
+            when(orderService.getOrdersByClient(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
 
             mockMvc.perform(get("/orders/{email}", email))
                     .andExpect(status().isOk());
         }
 
         @Test
-        @WithMockUser(roles = "CLIENT", username = "test@test.com")
+        @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
         void testGetOrderForUser_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
 
             String email = "test@test.com";
-            EmployeeDisplayDTO employeeDisplayDTO = EmployeeDisplayDTO.builder().email(email).build();
             Page<OrderDisplayDTO> orders = Page.empty();
 
-            when(clientService.getClientByEmail(email)).thenThrow(NotFoundException.class);
-            when(employeeService.getEmployeeByEmail(email)).thenReturn(employeeDisplayDTO);
-            when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class))).thenReturn(orders);
+            when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
 
             mockMvc.perform(get("/orders/{email}", email))
-                    .andExpect(status().isOk());
+                .andExpect(status().isOk());
         }
     }
 

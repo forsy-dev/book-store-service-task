@@ -11,12 +11,12 @@
 
     <!-- Mobile Pagination -->
     <div class="flex flex-1 justify-between sm:hidden">
-        <a th:href="@{${url}(page=${page.number - 1}, size=${page.size}, sort=${param.sort})}"
+        <a th:href="@{${url}(page=${page.number - 1}, size=${page.size}, sort=${param.sort}, keyword=${keyword})}"
            th:classappend="${page.first} ? 'pointer-events-none opacity-50' : ''"
            class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             <span th:text="#{pagination.previous}"></span>
         </a>
-        <a th:href="@{${url}(page=${page.number + 1}, size=${page.size}, sort=${param.sort})}"
+        <a th:href="@{${url}(page=${page.number + 1}, size=${page.size}, sort=${param.sort}, keyword=${keyword})}"
            th:classappend="${page.last} ? 'pointer-events-none opacity-50' : ''"
            class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
             <span th:text="#{pagination.next}"></span>
@@ -27,19 +27,19 @@
     <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
             <p class="text-sm text-gray-700">
-                Showing
+                <span th:text="#{pagination.indicators.showing}">Showing</span>
                 <span class="font-medium" th:text="${page.number * page.size + 1}">1</span>
-                to
+                <span th:text="#{pagination.indicators.to}">to</span>
                 <span class="font-medium" th:text="${page.number * page.size + page.numberOfElements}">10</span>
-                of
+                <span th:text="#{pagination.indicators.of}">of</span>
                 <span class="font-medium" th:text="${page.totalElements}">97</span>
-                results
+                <span th:text="#{pagination.indicators.results}">results</span>
             </p>
         </div>
         <div>
             <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                 <!-- Previous Button -->
-                <a th:href="@{${url}(page=${page.number - 1}, size=${page.size}, sort=${param.sort})}"
+                <a th:href="@{${url}(page=${page.number - 1}, size=${page.size}, sort=${param.sort}, keyword=${keyword})}"
                    th:classappend="${page.first} ? 'pointer-events-none opacity-50' : ''"
                    class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
                     <span class="sr-only" th:text="#{pagination.previous}">Previous</span>
@@ -50,7 +50,7 @@
 
                 <!-- Page Numbers -->
                 <span th:each="pageNumber : ${#numbers.sequence(0, page.totalPages - 1)}">
-                    <a th:href="@{${url}(page=${pageNumber}, size=${page.size}, sort=${param.sort})}"
+                    <a th:href="@{${url}(page=${pageNumber}, size=${page.size}, sort=${param.sort}, keyword=${keyword})}"
                        th:text="${pageNumber + 1}"
                        th:classappend="${pageNumber == page.number} ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600' : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'"
                        class="relative inline-flex items-center px-4 py-2 text-sm font-semibold focus:z-20 focus:outline-offset-0">
@@ -58,7 +58,7 @@
                 </span>
 
                 <!-- Next Button -->
-                <a th:href="@{${url}(page=${page.number + 1}, size=${page.size}, sort=${param.sort})}"
+                <a th:href="@{${url}(page=${page.number + 1}, size=${page.size}, sort=${param.sort}, keyword=${keyword})}"
                    th:classappend="${page.last} ? 'pointer-events-none opacity-50' : ''"
                    class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
                     <span class="sr-only" th:text="#{pagination.next}">Next</span>

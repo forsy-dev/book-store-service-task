@@ -55,59 +55,124 @@ public class OrderServiceImplTest {
     @Mock
     private BookRepository bookRepository;
 
-    @Test
-    void testGetAllOrdersByClient_ShouldReturnPagedOrders() {
-        String clientEmail = "test@test.com";
-        Long orderId = 1L;
-        Order order = Order.builder().id(orderId).build();
-        OrderDisplayDTO expectedDto = new OrderDisplayDTO();
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
+    @Nested
+    class GetAllOrdersByClient {
 
-        OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+        @Test
+        void testGetAllOrdersByClient_WhenKeywordNotGiven_ShouldReturnAllOrders() {
+            String clientEmail = "test@test.com";
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+            OrderDisplayDTO expectedDto = new OrderDisplayDTO();
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
+            String keyword = null;
 
-        when(orderRepository.findAllByClientEmail(clientEmail, pageable)).thenReturn(orderPage);
-        when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
-        when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
-        Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable);
+            when(orderRepository.findAllByClientEmail(clientEmail, pageable)).thenReturn(orderPage);
+            when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
 
-        verify(orderRepository, times(1)).findAllByClientEmail(clientEmail, pageable);
-        verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
-        verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable, keyword);
 
-        assertEquals(1, actualOrderDto.getTotalElements());
-        assertEquals(1, actualOrderDto.getContent().size());
-        assertEquals(expectedDto, actualOrderDto.getContent().get(0));
-        assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
+            verify(orderRepository, times(1)).findAllByClientEmail(clientEmail, pageable);
+            verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
+            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+
+            assertEquals(1, actualOrderDto.getTotalElements());
+            assertEquals(1, actualOrderDto.getContent().size());
+            assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+            assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
+        }
+
+        @Test
+        void testGetAllOrdersByClient_WhenKeywordGiven_ShouldReturnSelectedOrders() {
+            String clientEmail = "test@test.com";
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+            OrderDisplayDTO expectedDto = new OrderDisplayDTO();
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
+            String keyword = "a";
+
+            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+
+            when(orderRepository.searchByClient(clientEmail, keyword, pageable)).thenReturn(orderPage);
+            when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+
+            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable, keyword);
+
+            verify(orderRepository, times(1)).searchByClient(clientEmail, keyword, pageable);
+            verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
+            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+
+            assertEquals(1, actualOrderDto.getTotalElements());
+            assertEquals(1, actualOrderDto.getContent().size());
+            assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+            assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
+        }
     }
 
-    @Test
-    void testGetAllOrdersByEmployee_ShouldReturnPagedOrders() {
-        String employeeEmail = "test@test.com";
-        Long orderId = 1L;
-        Order order = Order.builder().id(orderId).build();
-        OrderDisplayDTO expectedDto = new OrderDisplayDTO();
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
+    @Nested
+    class GetAllOrdersByEmployee {
 
-        // Mock status
-        OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.CONFIRMED).build();
+        @Test
+        void testGetAllOrdersByEmployee_WhenKeywordNotGiven_ShouldReturnAllOrders() {
+            String employeeEmail = "test@test.com";
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+            OrderDisplayDTO expectedDto = new OrderDisplayDTO();
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
+            String keyword = null;
 
-        when(orderRepository.findAllByEmployeeEmail(employeeEmail, pageable)).thenReturn(orderPage);
-        when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
-        when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
-        Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable);
+            when(orderRepository.findAllByEmployeeEmail(employeeEmail, pageable)).thenReturn(orderPage);
+            when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
 
-        verify(orderRepository, times(1)).findAllByEmployeeEmail(employeeEmail, pageable);
-        verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
-        verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable, keyword);
 
-        assertEquals(1, actualOrderDto.getTotalElements());
-        assertEquals(1, actualOrderDto.getContent().size());
-        assertEquals(expectedDto, actualOrderDto.getContent().get(0));
-        assertEquals(OrderStatus.CONFIRMED, actualOrderDto.getContent().get(0).getStatus());
+            verify(orderRepository, times(1)).findAllByEmployeeEmail(employeeEmail, pageable);
+            verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
+            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+
+            assertEquals(1, actualOrderDto.getTotalElements());
+            assertEquals(1, actualOrderDto.getContent().size());
+            assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+            assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
+        }
+
+        @Test
+        void testGetAllOrdersByEmployee_WhenKeywordGiven_ShouldReturnSelectedOrders() {
+            String employeeEmail = "test@test.com";
+            Long orderId = 1L;
+            Order order = Order.builder().id(orderId).build();
+            OrderDisplayDTO expectedDto = new OrderDisplayDTO();
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
+            String keyword = "a";
+
+            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+
+            when(orderRepository.searchByEmployee(employeeEmail, keyword, pageable)).thenReturn(orderPage);
+            when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+
+            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable, keyword);
+
+            verify(orderRepository, times(1)).searchByEmployee(employeeEmail, keyword, pageable);
+            verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
+            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+
+            assertEquals(1, actualOrderDto.getTotalElements());
+            assertEquals(1, actualOrderDto.getContent().size());
+            assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+            assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
+        }
     }
 
     @Nested
@@ -245,16 +310,31 @@ public class OrderServiceImplTest {
     class GetAllOrders {
 
         @Test
-        void testGetAllOrders_ShouldReturnOrders() {
+        void testGetAllOrders_WhenKeywordNotGiven_ShouldReturnAllOrders() {
             Pageable pageable = PageRequest.of(0, 10);
             Page<Order> orders = new PageImpl<>(Arrays.asList(new Order()));
 
             when(orderRepository.findAll(pageable)).thenReturn(orders);
             when(mapper.map(any(Order.class), eq(OrderDisplayDTO.class))).thenReturn(new OrderDisplayDTO());
 
-            orderService.getAllOrders(pageable);
+            orderService.getAllOrders(pageable, null);
 
             verify(orderRepository, times(1)).findAll(pageable);
+            verify(mapper, times(1)).map(any(Order.class), eq(OrderDisplayDTO.class));
+        }
+
+        @Test
+        void testGetAllOrders_WhenKeywordGiven_ShouldReturnSelectedOrders() {
+            Pageable pageable = PageRequest.of(0, 10);
+            Page<Order> orders = new PageImpl<>(Arrays.asList(new Order()));
+            String keyword = "keyword";
+
+            when(orderRepository.searchOrders(keyword, pageable)).thenReturn(orders);
+            when(mapper.map(any(Order.class), eq(OrderDisplayDTO.class))).thenReturn(new OrderDisplayDTO());
+
+            orderService.getAllOrders(pageable, keyword);
+
+            verify(orderRepository, times(1)).searchOrders(keyword, pageable);
             verify(mapper, times(1)).map(any(Order.class), eq(OrderDisplayDTO.class));
         }
 
@@ -265,7 +345,7 @@ public class OrderServiceImplTest {
 
             when(orderRepository.findAll(pageable)).thenReturn(orders);
 
-            orderService.getAllOrders(pageable);
+            orderService.getAllOrders(pageable, null);
 
             verify(orderRepository, times(1)).findAll(pageable);
             verify(mapper, never()).map(any(Order.class), eq(OrderDisplayDTO.class));

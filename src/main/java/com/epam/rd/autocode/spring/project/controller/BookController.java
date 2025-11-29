@@ -75,7 +75,7 @@ public class BookController {
         try {
             bookService.addBook(bookDTO);
             log.info("Book {} added successfully by {}", bookDTO.getName(), authentication.getName());
-            return "redirect:/books-list";
+            return "redirect:/books";
         } catch (Exception ex) {
             log.warn("Error adding book: {}", ex.getMessage());
 
