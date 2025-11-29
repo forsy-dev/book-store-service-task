@@ -29,7 +29,6 @@ public class ProfileController {
     private final EmployeeService employeeService;
     private final ModelMapper mapper;
 
-    // In ProfileController.java
     @GetMapping
     public String showProfilePage(Model model, Authentication auth) {
         String email = auth.getName();
@@ -39,32 +38,26 @@ public class ProfileController {
         }
 
         if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
-            // --- This is for the CLIENT ---
             ClientDisplayDTO client = clientService.getClientByEmail(email);
-            model.addAttribute("userProfile", client); // For the details box
+            model.addAttribute("userProfile", client);
 
-            // Add the pre-filled DTO for the CLIENT update form
             if (!model.containsAttribute("clientUpdateDTO")) {
                 model.addAttribute("clientUpdateDTO", mapper.map(client, ClientUpdateDTO.class));
             }
-            // Add an EMPTY DTO for the EMPLOYEE form (to prevent Thymeleaf errors)
             model.addAttribute("employeeUpdateDTO", new EmployeeUpdateDTO());
 
         } else if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_EMPLOYEE"))) {
-            // --- This is for the EMPLOYEE ---
             EmployeeDisplayDTO employee = employeeService.getEmployeeByEmail(email);
             model.addAttribute("userProfile", employee); // For the details box
 
-            // Add the pre-filled DTO for the EMPLOYEE update form
             if (!model.containsAttribute("employeeUpdateDTO")) {
                 model.addAttribute("employeeUpdateDTO", mapper.map(employee, EmployeeUpdateDTO.class));
             }
 
-            // Add an EMPTY DTO for the CLIENT form (to prevent Thymeleaf errors)
             model.addAttribute("clientUpdateDTO", new ClientUpdateDTO());
         }
 
-        return "profile"; // Renders your profile.html page
+        return "profile";
     }
 
     @PutMapping("/password")

@@ -16,17 +16,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.List;
 
 @Controller
 @RequestMapping("/clients")
@@ -68,8 +62,6 @@ public class ClientController {
 
         if (bindingResult.hasErrors()) {
             log.warn("Validation errors while updating client profile: {}", bindingResult.getAllErrors());
-            // We must re-populate the model for the profile page to render
-            // This is a complex page, so we must add all required attributes back.
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.clientUpdateDTO", bindingResult);
             redirectAttributes.addFlashAttribute("clientUpdateDTO", dto);
             return "redirect:/profile?error=validation";
@@ -95,10 +87,9 @@ public class ClientController {
         Cookie jwtCookie = new Cookie("access_token", null);
         jwtCookie.setHttpOnly(true);
         jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(0); // Delete immediately
+        jwtCookie.setMaxAge(0);
         response.addCookie(jwtCookie);
 
-        // 3. Clear Cart Cookie (cart_cookie)
         cartCookieUtil.deleteCartCookie(response);
 
         return "redirect:/login?accountDeleted=true";
@@ -136,8 +127,6 @@ public class ClientController {
         if (bindingResult.hasErrors()) {
             log.warn("Validation errors while adding balance: {}", bindingResult.getAllErrors());
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid amount provided. Must be greater than 0.");
-            // We rely on the GET method to re-add the DTO if we redirect back,
-            // or we could add it to flash attributes here if we wanted to preserve the bad input.
             return "redirect:/clients/" + email;
         }
 

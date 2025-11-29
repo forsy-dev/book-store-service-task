@@ -15,15 +15,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -55,6 +54,9 @@ public class OrderServiceImplTest {
     @Mock
     private BookRepository bookRepository;
 
+    @Mock
+    private MessageSource messageSource;
+
     @Nested
     class GetAllOrdersByClient {
 
@@ -65,8 +67,7 @@ public class OrderServiceImplTest {
             Order order = Order.builder().id(orderId).build();
             OrderDisplayDTO expectedDto = new OrderDisplayDTO();
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
-            String keyword = null;
+            Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
 
             OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
@@ -74,7 +75,7 @@ public class OrderServiceImplTest {
             when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
             when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
 
-            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable, keyword);
+            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable, null);
 
             verify(orderRepository, times(1)).findAllByClientEmail(clientEmail, pageable);
             verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
@@ -93,7 +94,7 @@ public class OrderServiceImplTest {
             Order order = Order.builder().id(orderId).build();
             OrderDisplayDTO expectedDto = new OrderDisplayDTO();
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
+            Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
             String keyword = "a";
 
             OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
@@ -125,8 +126,7 @@ public class OrderServiceImplTest {
             Order order = Order.builder().id(orderId).build();
             OrderDisplayDTO expectedDto = new OrderDisplayDTO();
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
-            String keyword = null;
+            Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
 
             OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
@@ -134,7 +134,7 @@ public class OrderServiceImplTest {
             when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
             when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
 
-            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable, keyword);
+            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable, null);
 
             verify(orderRepository, times(1)).findAllByEmployeeEmail(employeeEmail, pageable);
             verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
@@ -153,7 +153,7 @@ public class OrderServiceImplTest {
             Order order = Order.builder().id(orderId).build();
             OrderDisplayDTO expectedDto = new OrderDisplayDTO();
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orderPage = new PageImpl<>(Arrays.asList(order), pageable, 1);
+            Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
             String keyword = "a";
 
             OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
@@ -191,7 +191,7 @@ public class OrderServiceImplTest {
             Book book = Book.builder().name(bookName).price(bookPrice).build();
 
             BookItemDTO bookItemDto = BookItemDTO.builder().bookName(bookName).quantity(1).build();
-            List<BookItemDTO> bookItems = Arrays.asList(bookItemDto);
+            List<BookItemDTO> bookItems = Collections.singletonList(bookItemDto);
 
             CreateOrderRequestDTO orderDTO = CreateOrderRequestDTO.builder()
                     .employeeEmail(employeeEmail)
@@ -234,8 +234,10 @@ public class OrderServiceImplTest {
             CreateOrderRequestDTO orderDTO = CreateOrderRequestDTO.builder()
                     .employeeEmail(employeeEmail)
                     .build();
+            String message = String.format("Employee with email %s not found", employeeEmail);
 
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDTO));
 
@@ -258,9 +260,11 @@ public class OrderServiceImplTest {
                     .employeeEmail(employeeEmail)
                     .clientEmail(clientEmail)
                     .build();
+            String message =  String.format("Client with email %s not found", employeeEmail);
 
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
             when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDTO));
 
@@ -283,17 +287,19 @@ public class OrderServiceImplTest {
             String bookName = "bookName";
 
             BookItemDTO bookItemDto = BookItemDTO.builder().bookName(bookName).build();
-            List<BookItemDTO> bookItems = Arrays.asList(bookItemDto);
+            List<BookItemDTO> bookItems = Collections.singletonList(bookItemDto);
 
             CreateOrderRequestDTO orderDTO = CreateOrderRequestDTO.builder()
                     .employeeEmail(employeeEmail)
                     .clientEmail(clientEmail)
                     .bookItems(bookItems)
                     .build();
+            String message =  String.format("Book with name %s not found", bookName);
 
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
             when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.of(client));
             when(bookRepository.findByName(bookName)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDTO));
 
@@ -312,7 +318,7 @@ public class OrderServiceImplTest {
         @Test
         void testGetAllOrders_WhenKeywordNotGiven_ShouldReturnAllOrders() {
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orders = new PageImpl<>(Arrays.asList(new Order()));
+            Page<Order> orders = new PageImpl<>(List.of(new Order()));
 
             when(orderRepository.findAll(pageable)).thenReturn(orders);
             when(mapper.map(any(Order.class), eq(OrderDisplayDTO.class))).thenReturn(new OrderDisplayDTO());
@@ -326,7 +332,7 @@ public class OrderServiceImplTest {
         @Test
         void testGetAllOrders_WhenKeywordGiven_ShouldReturnSelectedOrders() {
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orders = new PageImpl<>(Arrays.asList(new Order()));
+            Page<Order> orders = new PageImpl<>(List.of(new Order()));
             String keyword = "keyword";
 
             when(orderRepository.searchOrders(keyword, pageable)).thenReturn(orders);
@@ -341,7 +347,7 @@ public class OrderServiceImplTest {
         @Test
         void testGetAllOrders_ShouldReturnEmptyList_WhenOrdersNotFound() {
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orders = new PageImpl<>(Arrays.asList());
+            Page<Order> orders = new PageImpl<>(List.of());
 
             when(orderRepository.findAll(pageable)).thenReturn(orders);
 
@@ -385,8 +391,10 @@ public class OrderServiceImplTest {
             Long orderId = 1L;
 
             String employeeEmail = "test@test.com";
+            String message = String.format("Order with id %s not found", orderId);
 
             when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.order.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
 
@@ -403,9 +411,11 @@ public class OrderServiceImplTest {
             Order order = Order.builder().id(orderId).build();
 
             String employeeEmail = "test@test.com";
+            String message = String.format("Employee with email %s not found", employeeEmail);
 
             when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
 
@@ -423,10 +433,12 @@ public class OrderServiceImplTest {
 
             String employeeEmail = "test@test.com";
             Employee employee = Employee.builder().email(employeeEmail).build();
+            String message =  String.format("Order status record for order with id %s not found", orderId);
 
             when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
             when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.order.status.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
 
@@ -447,10 +459,12 @@ public class OrderServiceImplTest {
             Employee employee = Employee.builder().email(employeeEmail).build();
 
             OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(orderStatus).build();
+            String message =  "Order status is not pending";
 
             when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
             when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+            when(messageSource.getMessage(eq("error.order.status.not.pending"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(IllegalStateException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
 
@@ -503,8 +517,10 @@ public class OrderServiceImplTest {
             Long orderId = 1L;
 
             String employeeEmail = "test@test.com";
+            String message = String.format("Order with id '%s' not found", orderId);
 
             when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.order.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
 
@@ -523,9 +539,11 @@ public class OrderServiceImplTest {
             Order order = Order.builder().id(orderId).build();
 
             String employeeEmail = "test@test.com";
+            String message = "Employee with email '%s' not found";
 
             when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
 
@@ -545,10 +563,12 @@ public class OrderServiceImplTest {
 
             String employeeEmail = "test@test.com";
             Employee employee = Employee.builder().email(employeeEmail).build();
+            String message =  String.format("Order status for order with id '%s' not found", orderId);
 
             when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());;
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.order.status.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
 
@@ -571,10 +591,12 @@ public class OrderServiceImplTest {
             Employee employee = Employee.builder().email(employeeEmail).build();
 
             OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(orderStatus).build();
+            String message = "Order status is not pending";
 
             when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));;
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+            when(messageSource.getMessage(eq("error.order.status.not.pending"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(IllegalStateException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
 
@@ -600,10 +622,12 @@ public class OrderServiceImplTest {
             Employee employee = Employee.builder().email(employeeEmail).build();
 
             OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+            String message = "User has not enough money";
 
             when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
             when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));;
+            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+            when(messageSource.getMessage(eq("error.user.insufficient.funds"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(InsufficientFundsException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
 

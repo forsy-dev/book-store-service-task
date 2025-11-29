@@ -59,9 +59,7 @@
         <!-- Column 2: Update Forms -->
         <div class="md:col-span-2 space-y-8">
 
-            <!-- #################################### -->
             <!--   CLIENT Update Profile Form         -->
-            <!-- #################################### -->
             <div sec:authorize="hasRole('CLIENT')" class="bg-white p-6 rounded-lg shadow-xl">
                 <h2 class="text-2xl font-semibold mb-4" th:text="#{profile.update}">Update Profile</h2>
                 <!-- Submits to ClientController -->
@@ -82,12 +80,9 @@
                 </form>
             </div>
 
-            <!-- #################################### -->
             <!--   EMPLOYEE Update Profile Form       -->
-            <!-- #################################### -->
             <div sec:authorize="hasRole('EMPLOYEE')" class="bg-white p-6 rounded-lg shadow-xl">
                 <h2 class="text-2xl font-semibold mb-4" th:text="#{profile.update}">Update Profile</h2>
-                <!-- Submits to EmployeeController -->
                 <form th:action="@{/employees/profile}" th:method="put" th:object="${employeeUpdateDTO}" method="post" class="space-y-4">
                     <!-- Name -->
                     <div>
@@ -117,9 +112,7 @@
                 </form>
             </div>
 
-            <!-- #################################### -->
             <!--   Change Password Form (Common)      -->
-            <!-- #################################### -->
             <div class="bg-white p-6 rounded-lg shadow-xl">
                 <h2 class="text-2xl font-semibold mb-4" th:text="#{profile.changePassword}">Change Password</h2>
                 <!-- Submits to ProfileController -->
@@ -143,13 +136,10 @@
                 </form>
             </div>
 
-            <!-- #################################### -->
             <!--   Delete Account Form (Client Only)  -->
-            <!-- #################################### -->
             <div sec:authorize="hasRole('CLIENT')" class="bg-white p-6 rounded-lg shadow-xl border border-red-300">
                 <h2 class="text-2xl font-semibold mb-4 text-red-700" th:text="#{profile.delete.account}">Delete Account</h2>
                 <p class="text-gray-600 mb-4" th:text="#{profile.delete.account.text}">This action is permanent and cannot be undone. Your account and all associated orders will be deleted.</p>
-                <!-- Submits to ClientController -->
                 <form th:action="@{/clients/profile}" th:method="delete" method="post"
                       onsubmit="return confirm('Are you absolutely sure you want to delete your account? This is permanent.');"
                       th:onsubmit="return confirm([[#{profile.delete.account.btn.confirm}]]);">

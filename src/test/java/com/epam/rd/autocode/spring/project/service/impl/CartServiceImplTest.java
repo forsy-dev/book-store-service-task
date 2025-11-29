@@ -4,8 +4,6 @@ import com.epam.rd.autocode.spring.project.dto.AddToCartDTO;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.dto.CartItemDisplayDTO;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
-import com.epam.rd.autocode.spring.project.model.Book;
-import com.epam.rd.autocode.spring.project.repo.BookRepository;
 import com.epam.rd.autocode.spring.project.service.BookService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -13,11 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.context.MessageSource;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -36,6 +30,9 @@ public class CartServiceImplTest {
 
     @Mock
     private BookService bookService;
+
+    @Mock
+    private MessageSource messageSource;
 
     @Nested
     class AddBookToCart {
@@ -60,6 +57,8 @@ public class CartServiceImplTest {
             String bookName = "book";
             int quantity = 1;
             AddToCartDTO dto = new AddToCartDTO(bookName, quantity);
+
+            when(messageSource.getMessage(eq("error.cart.null"), any(), any(Locale.class))).thenReturn("Cart is null");
 
             assertThrows(IllegalArgumentException.class, () -> cartService.addBookToCart(cart, dto));
 
@@ -176,7 +175,7 @@ public class CartServiceImplTest {
 
         @Test
         void testCalculateTotalCost_WhenListEmpty_ShouldReturnZero() {
-            BigDecimal total = cartService.calculateTotalCost(Arrays.asList());
+            BigDecimal total = cartService.calculateTotalCost(List.of());
 
             assertEquals(BigDecimal.ZERO, total);
         }

@@ -1,6 +1,5 @@
 package com.epam.rd.autocode.spring.project.repo;
 
-import com.epam.rd.autocode.spring.project.model.Client;
 import com.epam.rd.autocode.spring.project.model.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +22,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         "(CAST(o.id AS string) LIKE %:keyword%)")
     Page<Order> searchByClient(@Param("email") String email, @Param("keyword") String keyword, Pageable pageable);
 
-    // Employee Assignment Search
     @Query("SELECT o FROM Order o WHERE o.employee.email = :email AND " +
         "(CAST(o.id AS string) LIKE %:keyword%)")
     Page<Order> searchByEmployee(@Param("email") String email, @Param("keyword") String keyword, Pageable pageable);

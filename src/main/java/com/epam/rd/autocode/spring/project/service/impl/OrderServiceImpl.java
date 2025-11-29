@@ -2,7 +2,6 @@ package com.epam.rd.autocode.spring.project.service.impl;
 
 import com.epam.rd.autocode.spring.project.dto.BookItemDTO;
 import com.epam.rd.autocode.spring.project.dto.CreateOrderRequestDTO;
-import com.epam.rd.autocode.spring.project.dto.OrderDTO;
 import com.epam.rd.autocode.spring.project.dto.OrderDisplayDTO;
 import com.epam.rd.autocode.spring.project.exception.InsufficientFundsException;
 import com.epam.rd.autocode.spring.project.exception.NotFoundException;
@@ -13,6 +12,8 @@ import com.epam.rd.autocode.spring.project.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderStatusRepository orderStatusRepository;
     private final ModelMapper mapper;
+    private final MessageSource messageSource;
 
     @Override
     public Page<OrderDisplayDTO> getOrdersByClient(String clientEmail, Pageable pageable, String keyword) {
@@ -67,10 +69,18 @@ public class OrderServiceImpl implements OrderService {
         log.info("Attempting to add new order for client: {}", dto.getClientEmail());
 
         Employee employee = employeeRepository.findByEmail(dto.getEmployeeEmail()).orElseThrow(
-                () -> new NotFoundException(String.format("Employee with email %s not found", dto.getEmployeeEmail()))
+                () -> {
+                    String message = messageSource.getMessage("error.user.not.found",
+                        new Object[]{dto.getEmployeeEmail()}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                }
         );
         Client client = clientRepository.findByEmail(dto.getClientEmail()).orElseThrow(
-                () -> new NotFoundException(String.format("Client with email %s not found", dto.getClientEmail())));
+                () -> {
+                    String message = messageSource.getMessage("error.user.not.found",
+                        new Object[]{dto.getClientEmail()}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
 
         BigDecimal totalCost = BigDecimal.ZERO;
         Order order = Order.builder()
@@ -82,7 +92,11 @@ public class OrderServiceImpl implements OrderService {
         List<BookItem> bookItems = new ArrayList<>();
         for (BookItemDTO itemDto : dto.getBookItems()) {
             Book book = bookRepository.findByName(itemDto.getBookName()).orElseThrow(
-                    () -> new NotFoundException(String.format("Book with name %s not found", itemDto.getBookName())));
+                    () -> {
+                        String message = messageSource.getMessage("error.book.not.found",
+                            new Object[]{itemDto.getBookName()}, LocaleContextHolder.getLocale());
+                        return new NotFoundException(message);
+                    });
             BookItem bookItem = new BookItem();
             bookItem.setBook(book);
             bookItem.setQuantity(itemDto.getQuantity());
@@ -111,19 +125,35 @@ public class OrderServiceImpl implements OrderService {
         log.info("Attempting to confirm order with id {}", orderId);
 
         Order order = orderRepository.findById(orderId).orElseThrow(
-                () -> new NotFoundException("Order with id " + orderId + " not found"));
+                () -> {
+                    String message = messageSource.getMessage("error.order.not.found",
+                        new Object[]{orderId}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
         Employee employee = employeeRepository.findByEmail(employeeEmail).orElseThrow(
-                () -> new NotFoundException(String.format("Employee with email %s not found", employeeEmail)));
+                () -> {
+                    String message = messageSource.getMessage("error.user.not.found",
+                        new Object[]{employeeEmail}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
         OrderStatusRecord orderStatusRecord = orderStatusRepository.findByOrderId(orderId).orElseThrow(
-                () -> new NotFoundException("Order status record for order with id " + orderId + " not found"));
+                () -> {
+                    String message = messageSource.getMessage("error.order.status.not.found",
+                        new Object[]{employeeEmail}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
 
         if (orderStatusRecord.getStatus() != OrderStatus.PENDING) {
-            throw new IllegalStateException("Order status is not PENDING");
+            String message = messageSource.getMessage("error.order.status.not.pending",
+                new Object[]{}, LocaleContextHolder.getLocale());
+            throw new IllegalStateException(message);
         }
 
         Client client = order.getClient();
         if (client.getBalance().compareTo(order.getPrice()) < 0) {
-            throw new InsufficientFundsException("Client does not have enough funds to confirm this order.");
+            String message = messageSource.getMessage("error.user.insufficient.funds",
+                new Object[]{client.getEmail()}, LocaleContextHolder.getLocale());
+            throw new InsufficientFundsException(message);
         }
 
         order.setEmployee(employee);
@@ -140,13 +170,27 @@ public class OrderServiceImpl implements OrderService {
     public void cancelOrder(Long orderId, String employeeEmail) {
         log.info("Attempting to cancel order with id {}", orderId);
         Order order = orderRepository.findById(orderId).orElseThrow(
-                () -> new NotFoundException("Order with id " + orderId + " not found"));
+                () -> {
+                    String message = messageSource.getMessage("error.order.not.found",
+                        new Object[]{orderId}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
         Employee employee = employeeRepository.findByEmail(employeeEmail).orElseThrow(
-                () -> new NotFoundException(String.format("Employee with email %s not found", employeeEmail)));
+                () -> {
+                    String message = messageSource.getMessage("error.user.not.found",
+                        new Object[]{employeeEmail}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
         OrderStatusRecord orderStatusRecord = orderStatusRepository.findByOrderId(orderId).orElseThrow(
-                () -> new NotFoundException("Order status record for order with id " + orderId + " not found"));
+                () -> {
+                    String message = messageSource.getMessage("error.order.status.not.found",
+                        new Object[]{orderId}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
         if (orderStatusRecord.getStatus() != OrderStatus.PENDING) {
-            throw new IllegalStateException("Order status is not PENDING");
+            String message = messageSource.getMessage("error.order.status.not.pending",
+                new Object[]{}, LocaleContextHolder.getLocale());
+            throw new IllegalStateException(message);
         }
         orderStatusRecord.setStatus(OrderStatus.CANCELED);
         orderStatusRepository.save(orderStatusRecord);
@@ -158,10 +202,9 @@ public class OrderServiceImpl implements OrderService {
 
     private OrderDisplayDTO mapToDisplayDTO(Order order) {
         OrderDisplayDTO dto = mapper.map(order, OrderDisplayDTO.class);
-        // Manually fetch status
         OrderStatus status = orderStatusRepository.findByOrderId(order.getId())
                 .map(OrderStatusRecord::getStatus)
-                .orElse(OrderStatus.PENDING); // Default if missing
+                .orElse(OrderStatus.PENDING);
         dto.setStatus(status);
         dto.setId(order.getId());
         return dto;

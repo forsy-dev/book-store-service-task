@@ -1,11 +1,8 @@
 package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.conf.jwt.JwtUtils;
-import com.epam.rd.autocode.spring.project.dto.ClientDisplayDTO;
-import com.epam.rd.autocode.spring.project.dto.ClientUpdateDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeDisplayDTO;
 import com.epam.rd.autocode.spring.project.dto.EmployeeUpdateDTO;
-import com.epam.rd.autocode.spring.project.service.ClientService;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

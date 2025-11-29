@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,12 +53,15 @@ public class EmployeeServiceImplTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private MessageSource messageSource;
+
     @Test
     void testGetAllEmployees_ShouldReturnPagedEmployees() {
         Employee employee = Employee.builder().build();
         EmployeeDisplayDTO expectedDto = new EmployeeDisplayDTO();
         Pageable pageable = PageRequest.of(0, 10);
-        Page<Employee> employeePage = new PageImpl<>(Arrays.asList(employee), pageable, 1);
+        Page<Employee> employeePage = new PageImpl<>(Collections.singletonList(employee), pageable, 1);
 
         when(employeeRepository.findAll(pageable)).thenReturn(employeePage);
         when(mapper.map(employee, EmployeeDisplayDTO.class)).thenReturn(expectedDto);
@@ -93,8 +99,10 @@ public class EmployeeServiceImplTest {
         @Test
         void testGetEmployeeByEmail_ShouldThrowExceptionWhenEmployeeNotFound() {
             String email = "test@test.com";
+            String message = "Employee with email: " + email + " not found";
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> employeeService.getEmployeeByEmail(email));
 
@@ -135,8 +143,10 @@ public class EmployeeServiceImplTest {
         void testUpdateEmployeeByEmail_ShouldThrowExceptionWhenEmployeeNotFound() {
             String email = "test@test.com";
             EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().build();
+            String message = "Employee with email: " + email + " not found";
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> employeeService.updateEmployeeByEmail(email, dto));
 
@@ -154,8 +164,10 @@ public class EmployeeServiceImplTest {
             LocalDate birthDate = LocalDate.now().minusYears(17);
             Employee employee = Employee.builder().email(email).name(oldName).build();
             EmployeeUpdateDTO dto = EmployeeUpdateDTO.builder().name(newName).birthDate(birthDate).build();
+            String message = "Employee must be at least 18 years old";
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
+            when(messageSource.getMessage(eq("error.user.underage"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(AgeRestrictionException.class, () -> employeeService.updateEmployeeByEmail(email, dto));
 
@@ -187,8 +199,10 @@ public class EmployeeServiceImplTest {
         void testDeleteEmployeeByEmail_ShouldReturnThrowExceptionWhenEmployeeNotFound() {
             String email = "test@test.com";
             Employee employee = Employee.builder().email(email).build();
+            String message = "Employee with email: " + email + " not found";
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> employeeService.deleteEmployeeByEmail(email));
 
@@ -231,9 +245,11 @@ public class EmployeeServiceImplTest {
         @Test
         void testAddEmployee_ShouldThrowExceptionWhenEmployeeEmailAlreadyExist() {
             String email = "test@test.com";
-            EmployeeDTO dto = EmployeeDTO.builder().email(email).build();;
+            EmployeeDTO dto = EmployeeDTO.builder().email(email).build();
+            String message = "Employee with email: " + email + " already exist";
 
             when(employeeRepository.existsByEmail(email)).thenReturn(true);
+            when(messageSource.getMessage(eq("error.user.already.exist"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(AlreadyExistException.class, () -> employeeService.addEmployee(dto));
 
@@ -249,9 +265,11 @@ public class EmployeeServiceImplTest {
         void testAddEmployee_ShouldThrowExceptionWhenClientEmailAlreadyExist() {
             String email = "test@test.com";
             EmployeeDTO dto = EmployeeDTO.builder().email(email).build();;
+            String message = "Client with email: " + email + " already exist";
 
             when(employeeRepository.existsByEmail(email)).thenReturn(false);
             when(clientRepository.existsByEmail(email)).thenReturn(true);
+            when(messageSource.getMessage(eq("error.user.already.exist"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(AlreadyExistException.class, () -> employeeService.addEmployee(dto));
 
@@ -268,8 +286,10 @@ public class EmployeeServiceImplTest {
             String email = "test@test.com";
             LocalDate birthDate = LocalDate.now().minusYears(17);
             EmployeeDTO dto = EmployeeDTO.builder().email(email).birthDate(birthDate).build();
+            String message = "Employee must be at least 18 years old";
 
             when(employeeRepository.existsByEmail(email)).thenReturn(false);
+            when(messageSource.getMessage(eq("error.user.underage"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(AgeRestrictionException.class, () -> employeeService.addEmployee(dto));
 
@@ -309,8 +329,10 @@ public class EmployeeServiceImplTest {
         void testChangePassword_ShouldThrowExceptionWhenEmailNotFound() {
             String email = "test@test.com";
             ChangePasswordDTO dto = ChangePasswordDTO.builder().build();
+            String message = "Employee with email: " + email + " not found";
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(NotFoundException.class, () -> employeeService.changePassword(email, dto));
 
@@ -327,9 +349,11 @@ public class EmployeeServiceImplTest {
             String dtoPassword = "b";
             ChangePasswordDTO dto = ChangePasswordDTO.builder().oldPassword(dtoPassword).build();
             Employee employee = Employee.builder().email(email).password(employeePassword).build();
+            String message = "Invalid password";
 
             when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
             when(passwordEncoder.matches(dtoPassword, employee.getPassword())).thenReturn(false);
+            when(messageSource.getMessage(eq("error.user.old.password.not.match"), any(), any(Locale.class))).thenReturn(message);
 
             assertThrows(InvalidPasswordException.class, () -> employeeService.changePassword(email, dto));
 

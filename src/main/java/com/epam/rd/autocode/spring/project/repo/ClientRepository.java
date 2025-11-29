@@ -1,6 +1,5 @@
 package com.epam.rd.autocode.spring.project.repo;
 
-import com.epam.rd.autocode.spring.project.model.Book;
 import com.epam.rd.autocode.spring.project.model.Client;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

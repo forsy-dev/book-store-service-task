@@ -1,9 +1,3 @@
--- ==========================================
--- MYSQL INITIALIZATION SCRIPT (Production)
--- Uses INSERT IGNORE and Lowercase tables
--- ==========================================
-
--- 1. Employees
 INSERT IGNORE INTO employees (BIRTH_DATE, EMAIL, NAME, PASSWORD, PHONE) VALUES
 ('1990-05-15', 'john.doe@email.com', 'John Doe', '$2a$12$d5ilWhrfWzrZZCdHe6UEVOkvoq3/AxubOzCmJEqGnVLg322GEQtBm', '555-123-4567'), -- pass123
 ('1985-09-20', 'jane.smith@email.com', 'Jane Smith', '$2a$12$ZLT4ASYvwWqFF5U7BITFd.xoeO7QXl6P1uQCZd8gx972bH2Jm4myu', '555-987-6543'), --abc456
@@ -16,7 +10,6 @@ INSERT IGNORE INTO employees (BIRTH_DATE, EMAIL, NAME, PASSWORD, PHONE) VALUES
 ('1992-08-22', 'david.wright@email.com', 'David Wright', '$2a$12$OGrknp3WqmV2t9kDqhwwF.pGgLhBnwisM0hWO4DOdhWhnfrr10P3S', '555-456-7890'), --access123
 ('1980-04-10', 'emily.harris@email.com', 'Emily Harris', '$2a$12$fvXRv8egCwUyKzjjLamu0Or.UtUgg8cDhTuMVr7/.D7YVfgyMqpye', '555-098-7654'); --1234abcd
 
--- 2. Clients
 INSERT IGNORE INTO clients (BALANCE, EMAIL, NAME, PASSWORD) VALUES
 (1000.00, 'client1@example.com', 'Medelyn Wright', '$2a$12$hvF0GlIlJklNhKg3rRjOW.IuEzNZZbnSmzWlW2MCDUF5lxC8Vb5bC'), --password123
 (1500.50, 'client2@example.com', 'Landon Phillips', '$2a$12$kHoxl.IcncNt/1xeV3XSAeOie.DQN6PKCRjwqIf0Q4Xt4D5mG2Yc2'), --securepass
@@ -29,7 +22,6 @@ INSERT IGNORE INTO clients (BALANCE, EMAIL, NAME, PASSWORD) VALUES
 (1050.90, 'client9@example.com', 'Amina Clarke', '$2a$12$kp.Wu35sSmCjcGyAna0zaOA1OdLbmObXZcTPCFrqs1Xb07jpEujVm'), --qwerty123
 (880.20, 'client10@example.com', 'Bryson Chavez', '$2a$12$2TjxAFGulUpdDoNE1SL0W.2Ue6BuMlw239fm13w.k56aHmesYOQGC'); --pass789
 
--- 3. Books
 INSERT IGNORE INTO books (name, genre, age_group, price, publication_date, author, number_of_pages, characteristics, description, language) VALUES
 ('The Hidden Treasure', 'Adventure', 'ADULT', 24.99, '2018-05-15', 'Emily White', 400, 'Mysterious journey', 'An enthralling adventure of discovery', 'ENGLISH'),
 ('Echoes of Eternity', 'Fantasy', 'TEEN', 16.50, '2011-01-15', 'Daniel Black', 350, 'Magical realms', 'A spellbinding tale of magic and destiny', 'ENGLISH'),
@@ -42,7 +34,6 @@ INSERT IGNORE INTO books (name, genre, age_group, price, publication_date, autho
 ('Silent Whispers', 'Mystery', 'ADULT', 27.50, '2021-05-15', 'Benjamin Hall', 420, 'Intricate detective work', 'A mystery that keeps you on the edge', 'ENGLISH'),
 ('Whirlwind Romance', 'Romance', 'OTHER', 23.25, '2022-05-15', 'Emma Turner', 360, 'Passionate love affair', 'A romance that sweeps you off your feet', 'ENGLISH');
 
--- 4. Client Block Status
 INSERT IGNORE INTO client_block_status (client_email, is_blocked) VALUES
 ('client1@example.com', false),
 ('client2@example.com', false),

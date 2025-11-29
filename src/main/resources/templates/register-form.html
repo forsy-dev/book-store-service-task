@@ -46,7 +46,6 @@
                            placeholder="John Doe" required
                     th:placeholder="#{register.placeholder.name}">
                 </div>
-                <!-- Validation Error -->
                 <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}"
                    class="mt-2 text-sm text-red-600"></p>
             </div>
@@ -61,7 +60,6 @@
                            placeholder="you@example.com" required
                            th:placeholder="#{register.placeholder.email}">
                 </div>
-                <!-- Validation Error -->
                 <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}"
                    class="mt-2 text-sm text-red-600"></p>
             </div>
@@ -76,7 +74,6 @@
                            placeholder="Min. 8 characters with 1 uppercase, 1 number, 1 special char" required
                            th:placeholder="#{register.placeholder.password}">
                 </div>
-                <!-- Validation Error -->
                 <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}"
                    class="mt-2 text-sm text-red-600"></p>
             </div>

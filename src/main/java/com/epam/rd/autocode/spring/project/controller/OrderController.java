@@ -1,15 +1,12 @@
 package com.epam.rd.autocode.spring.project.controller;
 
 import com.epam.rd.autocode.spring.project.dto.*;
-import com.epam.rd.autocode.spring.project.exception.NotFoundException;
 import com.epam.rd.autocode.spring.project.service.ClientService;
 import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import com.epam.rd.autocode.spring.project.service.OrderService;
 import com.epam.rd.autocode.spring.project.util.CartCookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,7 +19,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -71,7 +67,6 @@ public class OrderController {
                                    @PageableDefault(size = 10, sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable,
                                    @RequestParam(name = "keyword", required = false) String keyword) {
 
-        // Security Check for Clients
         if (!authentication.getName().equals(email)) {
             log.warn("User {} attempted to view orders for {}", authentication.getName(), email);
             throw new AccessDeniedException("You are not authorized to view these orders.");
@@ -83,11 +78,9 @@ public class OrderController {
         log.info("Fetching orders for user: {}", email);
         Page<OrderDisplayDTO> orders;
 
-        // Determine if the email belongs to a Client or an Employee to call the correct service method
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
             orders = orderService.getOrdersByClient(email, pageable, keyword);
         } else {
-            // Assuming ROLE_EMPLOYEE
             orders = orderService.getOrdersByEmployee(email, pageable, keyword);
         }
 
@@ -108,21 +101,17 @@ public class OrderController {
         String clientEmail = authentication.getName();
         log.info("Client {} is attempting to submit an order.", clientEmail);
 
-        // 1. Get Cart
         Map<String, Integer> cart = cartCookieUtil.getCartFromCookie(request);
         if (cart == null || cart.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Your cart is empty.");
             return "redirect:/cart";
         }
 
-        // 2. Build BookItems List
         List<BookItemDTO> bookItems = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : cart.entrySet()) {
             bookItems.add(new BookItemDTO(entry.getKey(), entry.getValue()));
         }
 
-        // 3. Auto-Assign an Employee (Workaround for DB constraint)
-        // We pick the first employee found to be the "handler" of this order.
         Page<EmployeeDisplayDTO> employees = employeeService.getAllEmployees(PageRequest.of(0, 1));
         if (employees.isEmpty()) {
             log.error("Order creation failed: No employees exist to assign the order to.");
@@ -131,7 +120,6 @@ public class OrderController {
         }
         String assigneeEmail = employees.getContent().get(0).getEmail();
 
-        // 4. Create the Request DTO
         CreateOrderRequestDTO req = CreateOrderRequestDTO.builder()
                 .clientEmail(clientEmail)
                 .employeeEmail(assigneeEmail)
@@ -139,12 +127,10 @@ public class OrderController {
                 .bookItems(bookItems)
                 .build();
 
-        // 5. Call Service
         try {
             OrderDisplayDTO createdOrder = orderService.addOrder(req);
             log.info("Order created successfully. ID/Details: {}", createdOrder);
 
-            // Clear the cart on success
             cartCookieUtil.deleteCartCookie(response);
 
             redirectAttributes.addFlashAttribute("successMessage", "Order placed successfully!");
@@ -164,7 +150,6 @@ public class OrderController {
         String employeeEmail = authentication.getName();
         log.info("Employee {} canceling order {}", employeeEmail, id);
         try {
-            // Pass the employee email to service to take ownership of the order
             orderService.cancelOrder(id, employeeEmail);
             redirectAttributes.addFlashAttribute("successMessage", "Order " + id + " canceled.");
         } catch (Exception e) {
@@ -182,7 +167,6 @@ public class OrderController {
         String employeeEmail = authentication.getName();
         log.info("Employee {} confirming order {}", employeeEmail, id);
         try {
-            // Pass the employee email to service to take ownership of the order
             orderService.confirmOrder(id, employeeEmail);
             redirectAttributes.addFlashAttribute("successMessage", "Order " + id + " confirmed.");
         } catch (Exception e) {

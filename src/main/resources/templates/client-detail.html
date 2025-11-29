@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,10 +42,6 @@
                     </p>
                 </div>
 
-                <!--
-                  These forms are secured by the controller endpoint's security.
-                  We show the correct button based on the client's current status.
-                -->
                 <div>
                     <!-- Show UNBLOCK button if client is blocked -->
                     <form th:if="*{isBlocked}" th:method="put" th:action="@{/clients/{email}/unblock(email=*{email})}" method="post" class="inline">
@@ -73,7 +69,6 @@
                 <input type="hidden" name="clientEmail" th:value="*{email}" />
                 <div>
                     <label for="amount" class="block text-sm font-medium text-gray-700" th:text="#{client.amountToAdd}">Amount to Add</label>
-                    <!-- Note: This requires an AddBalanceDTO with 'amount' field -->
                     <input type="number" id="amount" name="amount" value="10.00" min="0.01" step="0.01" class="mt-1 block w-40 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                 </div>
                 <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700"

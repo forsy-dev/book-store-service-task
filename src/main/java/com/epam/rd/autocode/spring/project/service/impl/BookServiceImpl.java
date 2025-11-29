@@ -9,11 +9,11 @@ import com.epam.rd.autocode.spring.project.service.BookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +22,7 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
     private final ModelMapper mapper;
+    private final MessageSource messageSource;
 
     @Override
     public Page<BookDTO> getAllBooks(Pageable pageable, String keyword) {
@@ -39,14 +40,20 @@ public class BookServiceImpl implements BookService {
     @Override
     public BookDTO getBookByName(String name) {
         return bookRepository.findByName(name).map(book -> mapper.map(book, BookDTO.class))
-                .orElseThrow(() -> new NotFoundException(String.format("Book with name %s not found", name)));
+            .orElseThrow(() -> {
+                String message = messageSource.getMessage("error.book.not.found", new Object[]{name}, LocaleContextHolder.getLocale());
+                return new NotFoundException(message);
+            });
     }
 
     @Override
     public BookDTO updateBookByName(String name, BookDTO dto) {
         log.info("Attempting to update book with name {}", name);
-        Book book = bookRepository.findByName(name).orElseThrow(
-                () -> new NotFoundException(String.format("Book with name %s not found", name)));
+        Book book = bookRepository.findByName(name)
+            .orElseThrow(() -> {
+                String message = messageSource.getMessage("error.book.not.found", new Object[]{name}, LocaleContextHolder.getLocale());
+                return new NotFoundException(message);
+            });
         mapper.map(dto, book);
         book = bookRepository.save(book);
         log.info("Book with name {} updated successfully", name);
@@ -61,7 +68,8 @@ public class BookServiceImpl implements BookService {
                     log.info("Book with name {} deleted successfully", name);
                 },
                 () -> {
-                    throw new NotFoundException(String.format("Book with name %s not found", name));
+                    String message = messageSource.getMessage("error.book.not.found", new Object[]{name}, LocaleContextHolder.getLocale());
+                    throw new NotFoundException(message);
                 });
     }
 
@@ -69,7 +77,9 @@ public class BookServiceImpl implements BookService {
     public BookDTO addBook(BookDTO dto) {
         log.info("Attempting to add book with name {}", dto.getName());
         if (bookRepository.existsByName(dto.getName())) {
-            throw new AlreadyExistException(String.format("Book with name %s already exists", dto.getName()));
+            String message = messageSource.getMessage("error.book.already.exist",
+                new Object[]{dto.getName()}, LocaleContextHolder.getLocale());
+            throw new AlreadyExistException(message);
         }
         Book book = bookRepository.save(mapper.map(dto, Book.class));
         log.info("Book with name {} added successfully", book.getName());

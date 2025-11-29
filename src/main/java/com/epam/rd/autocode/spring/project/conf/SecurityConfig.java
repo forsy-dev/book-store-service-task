@@ -1,6 +1,7 @@
 package com.epam.rd.autocode.spring.project.conf;
 
 import com.epam.rd.autocode.spring.project.conf.jwt.JwtAuthenticationFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,13 +13,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
 @EnableWebSecurity
@@ -43,17 +43,10 @@ public class SecurityConfig{
         http
             .csrf(AbstractHttpConfigurer::disable)
             .logout(AbstractHttpConfigurer::disable)
-            // *** STATELESS SESSION ***
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        // --- Public Endpoints ---
-                        // Allow anyone to see the home page, login/register
                         .requestMatchers("/register", "/login", "/logout", "/").permitAll()
-                        // Allow access to static resources
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-
-                        // --- Employee Endpoints ---
-                        // Only employees can add, edit, or delete books
                         .requestMatchers(HttpMethod.PUT, "/profile").hasAnyRole("EMPLOYEE", "CLIENT")
                         .requestMatchers(HttpMethod.PUT, "/clients/profile").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.DELETE, "/clients/profile").hasRole("CLIENT")
@@ -64,17 +57,25 @@ public class SecurityConfig{
                         .requestMatchers("/cart/**").hasRole("CLIENT")
                         .requestMatchers("/orders/submit").hasRole("CLIENT")
                         .requestMatchers("/orders/*/cancel", "/orders/*/confirm").hasRole("EMPLOYEE")
-                        // Only employees can manage clients
                         .requestMatchers("/clients", "/clients/**", "/employees/**").hasRole("EMPLOYEE")
-
-                        // --- Authenticated Users ---
-                        // Any other request must be authenticated.
-                        // This now correctly includes GET /books, GET /books/{name},
-                        // placing orders, and viewing profiles.
                         .anyRequest().authenticated()
                 )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Disabling CSRF for simplicity in this project
+            .exceptionHandling(e -> e
+                // Handle 401 Unauthenticated -> Redirect to Login
+                .authenticationEntryPoint(new LoginUrlAuthenticationEntryPoint("/login"))
+                // Handle 403 Forbidden -> Forward to /access-denied
+                .accessDeniedHandler(accessDeniedHandler())
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            request.getRequestDispatcher("/access-denied").forward(request, response);
+        };
     }
 }

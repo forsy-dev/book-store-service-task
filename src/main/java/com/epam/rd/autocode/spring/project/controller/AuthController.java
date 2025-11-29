@@ -9,7 +9,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,18 +29,15 @@ public class AuthController {
                         HttpServletResponse response,
                         RedirectAttributes redirectAttributes) {
         try {
-            // 1. Authenticate
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
             );
 
-            // 2. Generate Token
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String jwt = jwtUtils.generateToken(userDetails);
 
-            // 3. Set Cookie
             Cookie cookie = new Cookie("access_token", jwt);
-            cookie.setHttpOnly(true); // Secure
+            cookie.setHttpOnly(true);
             cookie.setPath("/");
             cookie.setMaxAge(24 * 60 * 60); // 1 day
             response.addCookie(cookie);
@@ -57,7 +53,6 @@ public class AuthController {
 
     @PostMapping("/logout")
     public String logout(HttpServletResponse response) {
-        // Clear the JWT cookie
         Cookie cookie = new Cookie("access_token", null);
         cookie.setHttpOnly(true);
         cookie.setPath("/");

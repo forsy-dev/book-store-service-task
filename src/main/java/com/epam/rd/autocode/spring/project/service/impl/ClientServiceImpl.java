@@ -14,6 +14,8 @@ import com.epam.rd.autocode.spring.project.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +35,7 @@ public class ClientServiceImpl implements ClientService {
     private final ModelMapper mapper;
     private final PasswordEncoder passwordEncoder;
     private final OrderRepository orderRepository;
+    private final MessageSource messageSource;
 
     @Override
     public Page<ClientDisplayDTO> getAllClients(Pageable pageable, String keyword) {
@@ -48,15 +51,22 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientDisplayDTO getClientByEmail(String email) {
         return clientRepository.findByEmail(email).map(this::mapToClientDisplayDTO)
-                .orElseThrow(() -> new NotFoundException(String.format("Client with email %s not found", email)));
+                .orElseThrow(() -> {
+                    String message = messageSource.getMessage("error.user.not.found",
+                        new Object[]{email}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
     }
 
     @Override
     public ClientDisplayDTO updateClientByEmail(String email, ClientUpdateDTO dto) {
         log.info("Attempting to update client with email {}", email);
 
-        Client client = clientRepository.findByEmail(email).orElseThrow(
-                () -> new NotFoundException(String.format("Client with email %s not found", email)));
+        Client client = clientRepository.findByEmail(email).orElseThrow(() -> {
+            String message = messageSource.getMessage("error.user.not.found",
+                new Object[]{email}, LocaleContextHolder.getLocale());
+            return new NotFoundException(message);
+        });
         mapper.map(dto, client);
         client = clientRepository.save(client);
 
@@ -71,13 +81,19 @@ public class ClientServiceImpl implements ClientService {
         clientRepository.findByEmail(email).ifPresentOrElse(client -> {
                     orderRepository.deleteAllByClientEmail(email);
                     ClientBlockStatus clientBlockStatus = clientBlockStatusRepository.findByClientEmail(email)
-                                    .orElseThrow(() -> new NotFoundException(String.format("Client with email %s not found", email)));
+                        .orElseThrow(() -> {
+                            String message = messageSource.getMessage("error.user.not.found",
+                                new Object[]{email}, LocaleContextHolder.getLocale());
+                            return new NotFoundException(message);
+                        });
                     clientRepository.delete(client);
                     clientBlockStatusRepository.delete(clientBlockStatus);
                     log.info("Client with email {} deleted successfully", email);
                 },
                 () -> {
-                    throw new NotFoundException(String.format("Client with email %s not found", email));
+                    String message = messageSource.getMessage("error.user.not.found",
+                        new Object[]{email}, LocaleContextHolder.getLocale());
+                    throw new NotFoundException(message);
                 });
     }
 
@@ -86,7 +102,9 @@ public class ClientServiceImpl implements ClientService {
         log.info("Attempting to add client with email {}", dto.getEmail());
         if (clientRepository.existsByEmail(dto.getEmail()) || employeeRepository.existsByEmail(dto.getEmail()) ||
         clientBlockStatusRepository.existsByClientEmail(dto.getEmail())) {
-            throw new AlreadyExistException(String.format("Client with email %s already exists", dto.getEmail()));
+            String message = messageSource.getMessage("error.user.already.exist",
+                new Object[]{dto.getEmail()}, LocaleContextHolder.getLocale());
+            throw new AlreadyExistException(message);
         }
         Client client = mapper.map(dto, Client.class);
         client.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -101,9 +119,15 @@ public class ClientServiceImpl implements ClientService {
     public void changePassword(String email, ChangePasswordDTO dto) {
         log.info("Attempting to change password for client with email {}", email);
         Client client = clientRepository.findByEmail(email).orElseThrow(
-                () -> new NotFoundException(String.format("Client with email %s not found", email)));
+                () ->  {
+                    String message = messageSource.getMessage("error.user.not.found",
+                        new Object[]{email}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
         if (!passwordEncoder.matches(dto.getOldPassword(), client.getPassword())) {
-            throw new InvalidPasswordException("Old password is incorrect");
+            String message = messageSource.getMessage("error.user.old.password.not.match",
+                new Object[]{email}, LocaleContextHolder.getLocale());
+            throw new InvalidPasswordException(message);
         }
         client.setPassword(passwordEncoder.encode(dto.getNewPassword()));
         clientRepository.save(client);
@@ -114,7 +138,11 @@ public class ClientServiceImpl implements ClientService {
     public ClientDisplayDTO addBalanceToClient(String email, AddBalanceDTO dto) {
         log.info("Attempting to add balance {} to client with email {}", dto.getAmount(), email);
         Client client = clientRepository.findByEmail(email).orElseThrow(
-                () -> new NotFoundException(String.format("Client with email %s not found", email)));
+                () -> {
+                    String message = messageSource.getMessage("error.user.not.found",
+                        new Object[]{email}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
         client.setBalance(client.getBalance().add(dto.getAmount()));
         client = clientRepository.save(client);
         log.info("Balance {} added to client with email {}", dto.getAmount(), email);
@@ -133,14 +161,22 @@ public class ClientServiceImpl implements ClientService {
 
     private void changeIsBlockStatus(String email, boolean isBlocked) {
         ClientBlockStatus clientBlockStatus = clientBlockStatusRepository.findByClientEmail(email)
-                .orElseThrow(() -> new NotFoundException(String.format("Client with email %s not found", email)));
+                .orElseThrow(() -> {
+                    String message = messageSource.getMessage("error.user.not.found",
+                        new Object[]{email}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
         clientBlockStatus.setBlocked(isBlocked);
         clientBlockStatusRepository.save(clientBlockStatus);
     }
 
     private ClientDisplayDTO mapToClientDisplayDTO(Client client) {
         ClientBlockStatus status = clientBlockStatusRepository.findByClientEmail(client.getEmail())
-                .orElseThrow(() -> new NotFoundException(String.format("Client with email %s not found", client.getEmail())));
+                .orElseThrow(() -> {
+                    String message = messageSource.getMessage("error.user.not.found",
+                        new Object[]{client.getEmail()}, LocaleContextHolder.getLocale());
+                    return new NotFoundException(message);
+                });
         ClientDisplayDTO dto = mapper.map(client, ClientDisplayDTO.class);
         dto.setIsBlocked(status.isBlocked());
 

@@ -70,9 +70,6 @@ public class JwtUtils {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    /**
-     * Helper to get the token from the cookie.
-     */
     public String getTokenFromRequest(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {

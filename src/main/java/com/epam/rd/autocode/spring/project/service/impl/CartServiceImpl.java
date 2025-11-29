@@ -8,6 +8,8 @@ import com.epam.rd.autocode.spring.project.service.BookService;
 import com.epam.rd.autocode.spring.project.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -21,20 +23,18 @@ import java.util.Map;
 public class CartServiceImpl implements CartService {
 
     private final BookService bookService;
+    private final MessageSource messageSource;
 
     @Override
     public void addBookToCart(Map<String, Integer> cart, AddToCartDTO dto) {
-        // 1. Validate Cart (Must not be null for a write operation)
         if (cart == null) {
             log.error("Attempted to add book to a null cart");
-            throw new IllegalArgumentException("Cart cannot be null");
+            String message = messageSource.getMessage("error.cart.null", new Object[]{}, LocaleContextHolder.getLocale());
+            throw new IllegalArgumentException(message);
         }
 
-        // 2. Validate Book Existence
-        // This will throw NotFoundException if the book doesn't exist
         bookService.getBookByName(dto.getBookName());
 
-        // 3. Add to map
         cart.put(dto.getBookName(), cart.getOrDefault(dto.getBookName(), 0) + dto.getQuantity());
         log.info("Added {} of {} to cart", dto.getBookName(), dto.getQuantity());
     }
@@ -64,7 +64,6 @@ public class CartServiceImpl implements CartService {
                 cartItems.add(new CartItemDisplayDTO(book, quantity, subtotal));
             } catch (NotFoundException e) {
                 log.warn("Book {} found in session cart but not in database. Skipping.", bookName);
-                // Optional: You could remove it from the map here to clean up the session
             }
         }
         return cartItems;

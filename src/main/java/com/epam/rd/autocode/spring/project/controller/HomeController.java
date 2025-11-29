@@ -62,6 +62,14 @@ public class HomeController {
         }
     }
 
+    @GetMapping("/access-denied")
+    public String accessDenied(Model model) {
+        model.addAttribute("statusCode", 403);
+        model.addAttribute("statusReason", "Forbidden");
+        model.addAttribute("errorMessage", "You do not have permission to access this resource.");
+        return "error"; // Uses your error.html template
+    }
+
     private boolean isAuthenticated(Authentication authentication) {
         return authentication != null
             && authentication.isAuthenticated()

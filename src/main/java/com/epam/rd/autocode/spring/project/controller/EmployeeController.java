@@ -31,8 +31,6 @@ public class EmployeeController {
 
         if (bindingResult.hasErrors()) {
             log.warn("Validation errors while updating employee profile: {}", bindingResult.getAllErrors());
-            // We must re-populate the model for the profile page to render
-            // This is a complex page, so we must add all required attributes back.
             redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.employeeUpdateDTO", bindingResult);
             redirectAttributes.addFlashAttribute("employeeUpdateDTO", dto);
             return "redirect:/profile?error=validation";

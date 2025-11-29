@@ -12,12 +12,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,6 +38,9 @@ public class BookServiceImplTest {
     @Mock
     private ModelMapper mapper;
 
+    @Mock
+    private MessageSource messageSource;
+
     @Nested
     class GetAllBooks {
 
@@ -43,7 +49,7 @@ public class BookServiceImplTest {
             Book book = Book.builder().build();
             BookDTO expectedDto = new BookDTO();
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Book> bookPage = new PageImpl<>(Arrays.asList(book), pageable, 1);
+            Page<Book> bookPage = new PageImpl<>(Collections.singletonList(book), pageable, 1);
             String keyword = "";
 
             when(bookRepository.findAll(pageable)).thenReturn(bookPage);
@@ -64,7 +70,7 @@ public class BookServiceImplTest {
             Book book = Book.builder().build();
             BookDTO expectedDto = new BookDTO();
             Pageable pageable = PageRequest.of(0, 10);
-            Page<Book> bookPage = new PageImpl<>(Arrays.asList(book), pageable, 1);
+            Page<Book> bookPage = new PageImpl<>(Collections.singletonList(book), pageable, 1);
             String keyword = "test";
 
             when(bookRepository.findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable))
@@ -106,8 +112,11 @@ public class BookServiceImplTest {
         @Test
         void testGetBookByName_ShouldThrowExceptionWhenBookNotFound() {
             String name = "name";
+            String errorMessage = "Book not found";
 
             when(bookRepository.findByName(name)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class)))
+                .thenReturn(errorMessage);
 
             assertThrows(NotFoundException.class, () -> bookService.getBookByName(name));
 
@@ -146,8 +155,10 @@ public class BookServiceImplTest {
         void testUpdateBookByName_ShouldThrowExceptionWhenBookNotFound() {
             String oldName = "oldName";
             BookDTO updateDto = BookDTO.builder().build();
+            String errorMessage = "Book not found";
 
             when(bookRepository.findByName(oldName)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(errorMessage);
 
             assertThrows(NotFoundException.class, () -> bookService.updateBookByName(oldName, updateDto));
 
@@ -178,8 +189,10 @@ public class BookServiceImplTest {
         @Test
         void testDeleteBookByName_ShouldThrowExceptionWhenBookNotFound() {
             String name = "name";
+            String errorMessage = "Book not found";
 
             when(bookRepository.findByName(name)).thenReturn(Optional.empty());
+            when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(errorMessage);
 
             assertThrows(NotFoundException.class, () -> bookService.deleteBookByName(name));
 
@@ -217,8 +230,10 @@ public class BookServiceImplTest {
         void testAddBook_ShouldThrowExceptionWhenBookAlreadyExists() {
             String name = "name";
             BookDTO createDto = BookDTO.builder().name(name).build();
+            String errorMessage = "Book not found";
 
             when(bookRepository.existsByName(name)).thenReturn(true);
+            when(messageSource.getMessage(eq("error.book.already.exist"), any(), any(Locale.class))).thenReturn(errorMessage);
 
             assertThrows(AlreadyExistException.class, () -> bookService.addBook(createDto));
 

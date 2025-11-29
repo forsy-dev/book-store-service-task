@@ -1,6 +1,5 @@
 package com.epam.rd.autocode.spring.project.controller;
 
-import com.epam.rd.autocode.spring.project.conf.jwt.JwtAuthenticationFilter;
 import com.epam.rd.autocode.spring.project.conf.jwt.JwtUtils;
 import com.epam.rd.autocode.spring.project.dto.BookDTO;
 import com.epam.rd.autocode.spring.project.exception.AlreadyExistException;
