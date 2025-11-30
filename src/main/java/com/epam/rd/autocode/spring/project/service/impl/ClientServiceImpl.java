@@ -98,6 +98,7 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    @Transactional
     public ClientDisplayDTO addClient(ClientCreateDTO dto) {
         log.info("Attempting to add client with email {}", dto.getEmail());
         if (clientRepository.existsByEmail(dto.getEmail()) || employeeRepository.existsByEmail(dto.getEmail()) ||
