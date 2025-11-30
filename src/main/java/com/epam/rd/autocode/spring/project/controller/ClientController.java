@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,12 +31,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ClientController {
 
     private final ClientService clientService;
-
     private final CartCookieUtil cartCookieUtil;
+    private final MessageSource messageSource;
 
     @GetMapping
     public String getAllClients(Model model,
-                                @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.DESC) Pageable pageable,
+                                @PageableDefault(sort = "name", direction = Sort.Direction.DESC) Pageable pageable,
                                 @RequestParam(name = "keyword", required = false) String keyword) {
         if (keyword != null && keyword.trim().isEmpty()) {
             keyword = null;
@@ -69,7 +71,8 @@ public class ClientController {
 
         String email = authentication.getName();
         clientService.updateClientByEmail(email, dto);
-        redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
+        String message = messageSource.getMessage("profile.update.success.message", new Object[]{}, LocaleContextHolder.getLocale());
+        redirectAttributes.addFlashAttribute("successMessage", message);
         log.info("Client profile updated for: {}", email);
         return "redirect:/profile";
     }

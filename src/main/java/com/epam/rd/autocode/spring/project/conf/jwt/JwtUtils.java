@@ -7,6 +7,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -19,9 +20,11 @@ import java.util.function.Function;
 @Component
 public class JwtUtils {
 
-    // In production, this should be in application.properties
-    private final String secret = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
-    private final long expiration = 86400000; // 24 hours
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiration}")
+    private long expiration;
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

@@ -5,6 +5,8 @@ import com.epam.rd.autocode.spring.project.service.EmployeeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -20,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final MessageSource messageSource;
 
     @PutMapping("/profile")
     public String updateEmployeeProfile(@Valid @ModelAttribute(name="employeeUpdateDTO") EmployeeUpdateDTO dto,
@@ -37,10 +40,17 @@ public class EmployeeController {
         }
 
         String email = authentication.getName();
-        employeeService.updateEmployeeByEmail(email, dto);
-        redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
+        try {
+            employeeService.updateEmployeeByEmail(email, dto);
+            String message = messageSource.getMessage("profile.update.success.message", new Object[]{}, LocaleContextHolder.getLocale());
+            redirectAttributes.addFlashAttribute("successMessage", message);
 
-        log.info("Client profile updated for: {}", email);
+            log.info("Client profile updated for: {}", email);
+        } catch (Exception ex) {
+            log.warn("Error updating employee: {}", ex.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+
         return "redirect:/profile";
     }
 }

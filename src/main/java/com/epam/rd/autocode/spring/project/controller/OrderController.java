@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -37,11 +39,12 @@ public class OrderController {
     private final EmployeeService employeeService;
     private final ClientService clientService;
     private final CartCookieUtil cartCookieUtil;
+    private final MessageSource messageSource;
 
     @GetMapping
     public String getAllOrders(Model model,
                                Authentication authentication,
-                               @PageableDefault(size = 10, sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable,
+                               @PageableDefault(sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable,
                                @RequestParam(name = "keyword", required = false) String keyword) {
 
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
@@ -64,7 +67,7 @@ public class OrderController {
     public String getOrdersForUser(Model model,
                                    @PathVariable String email,
                                    Authentication authentication,
-                                   @PageableDefault(size = 10, sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable,
+                                   @PageableDefault(sort = "orderDate", direction = Sort.Direction.DESC) Pageable pageable,
                                    @RequestParam(name = "keyword", required = false) String keyword) {
 
         if (!authentication.getName().equals(email)) {
@@ -133,7 +136,8 @@ public class OrderController {
 
             cartCookieUtil.deleteCartCookie(response);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Order placed successfully!");
+            String message = messageSource.getMessage("order.submit.success.message", new Object[]{}, LocaleContextHolder.getLocale());
+            redirectAttributes.addFlashAttribute("successMessage", message);
             return "redirect:/books";
 
         } catch (Exception e) {
@@ -151,7 +155,8 @@ public class OrderController {
         log.info("Employee {} canceling order {}", employeeEmail, id);
         try {
             orderService.cancelOrder(id, employeeEmail);
-            redirectAttributes.addFlashAttribute("successMessage", "Order " + id + " canceled.");
+            String message = messageSource.getMessage("order.cancel.success.message", new Object[]{id}, LocaleContextHolder.getLocale());
+            redirectAttributes.addFlashAttribute("successMessage", message);
         } catch (Exception e) {
             log.warn("Failed to cancel order {}: {}", id, e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -168,7 +173,8 @@ public class OrderController {
         log.info("Employee {} confirming order {}", employeeEmail, id);
         try {
             orderService.confirmOrder(id, employeeEmail);
-            redirectAttributes.addFlashAttribute("successMessage", "Order " + id + " confirmed.");
+            String message = messageSource.getMessage("order.confirm.success.message", new Object[]{id}, LocaleContextHolder.getLocale());
+            redirectAttributes.addFlashAttribute("successMessage", message);
         } catch (Exception e) {
             log.warn("Failed to confirm order {}: {}", id, e.getMessage());
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());

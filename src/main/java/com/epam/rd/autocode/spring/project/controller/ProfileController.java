@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
@@ -28,6 +30,7 @@ public class ProfileController {
     private final ClientService clientService;
     private final EmployeeService employeeService;
     private final ModelMapper mapper;
+    private final MessageSource messageSource;
 
     @GetMapping
     public String showProfilePage(Model model, Authentication auth) {
@@ -83,7 +86,8 @@ public class ProfileController {
             }
             log.info("Password for user with email {} changed successfully", auth.getName());
 
-            redirectAttributes.addFlashAttribute("successMessage", "Password updated successfully!");
+            String message = messageSource.getMessage("user.password.success.message", new Object[]{}, LocaleContextHolder.getLocale());
+            redirectAttributes.addFlashAttribute("successMessage", message);
             return "redirect:/profile";
         } catch (InvalidPasswordException ex) {
             log.warn("Invalid old password for user {}: {}", auth.getName(), ex.getMessage());
