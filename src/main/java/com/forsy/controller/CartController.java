@@ -3,6 +3,7 @@ package com.forsy.controller;
 import com.forsy.dto.AddToCartDTO;
 import com.forsy.dto.CartItemDisplayDTO;
 import com.forsy.service.CartService;
+import com.forsy.service.impl.CurrencyService;
 import com.forsy.util.CartCookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,6 +28,7 @@ public class CartController {
 
     private final CartService cartService;
     private final CartCookieUtil cartCookieUtil;
+    private final CurrencyService currencyService;
 
     @PostMapping("/add")
     public String addBookToCart(@Valid @ModelAttribute("addToCartDTO") AddToCartDTO dto,
@@ -61,10 +63,13 @@ public class CartController {
         Map<String, Integer> cart = cartCookieUtil.getCartFromCookie(request);
 
         List<CartItemDisplayDTO> cartItems = cartService.getCartItems(cart);
-        BigDecimal totalCost = cartService.calculateTotalCost(cartItems);
+        BigDecimal totalPriceUsd = cartService.calculateTotalCost(cartItems);
+
+        BigDecimal totalPriceUah = currencyService.convertUsdToUah(totalPriceUsd);
 
         model.addAttribute("cartItems", cartItems);
-        model.addAttribute("totalCost", totalCost);
+        model.addAttribute("totalPriceUsd", totalPriceUsd);
+        model.addAttribute("totalPriceUah", totalPriceUah);
 
         return "cart";
     }

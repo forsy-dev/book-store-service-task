@@ -22,6 +22,11 @@ public class HomeController {
 
     private final ClientService clientService;
 
+    @GetMapping("/")
+    public String home() {
+        return "redirect:/books";
+    }
+
     @GetMapping("/login")
     public String showLoginPage(Authentication authentication) {
         if (isAuthenticated(authentication)) {

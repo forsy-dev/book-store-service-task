@@ -5,6 +5,7 @@ import com.forsy.dto.AddToCartDTO;
 import com.forsy.dto.CartItemDisplayDTO;
 import com.forsy.exception.NotFoundException;
 import com.forsy.service.CartService;
+import com.forsy.service.impl.CurrencyService;
 import com.forsy.util.CartCookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,6 +45,9 @@ public class CartControllerTest {
 
     @MockBean
     private UserDetailsService userDetailsService;
+
+    @MockBean
+    private CurrencyService currencyService;
 
     @MockBean
     private CartCookieUtil cartCookieUtil;
