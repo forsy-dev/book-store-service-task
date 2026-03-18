@@ -13,87 +13,145 @@
 </head>
 <body class="bg-gray-100 text-gray-900" th:replace="fragments/layout :: layout (~{::main})">
 
-<!-- Main Content -->
 <main class="container mx-auto px-6 py-12">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold mb-8" th:text="#{book.header}">Available Books</h1>
 
-        <!-- Search Form -->
-        <div th:replace="~{fragments/search :: searchForm(@{/books}, 'book.search.placeholder')}"></div>
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+
+        <h1 class="text-3xl font-bold text-gray-800" th:text="#{book.header}">Available Books</h1>
+
+        <div class="w-full md:w-auto">
+            <div th:replace="~{fragments/search :: searchForm(@{${Routes.URL_BOOKS}}, 'book.search.placeholder')}"></div>
+        </div>
     </div>
 
-    <!-- Book Table -->
-    <div class="bg-white shadow-xl rounded-lg overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-            <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <a th:href="@{/books(page=${bookPage.number}, size=${bookPage.size}, sort='name,' + (${param.sort != null && param.sort[0] == 'name,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
-                       class="flex items-center hover:text-gray-700">
-                        <span th:text="#{book.name}">Name</span>
-                    </a>
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <a th:href="@{/books(page=${bookPage.number}, size=${bookPage.size}, sort='author,' + (${param.sort != null && param.sort[0] == 'author,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
-                       class="flex items-center hover:text-gray-700">
-                        <span th:text="#{book.author}">Author</span>
-                    </a>
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" th:text="#{book.genre}">
-                    Genre
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <a th:href="@{/books(page=${bookPage.number}, size=${bookPage.size}, sort='price,' + (${param.sort != null && param.sort[0] == 'price,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
-                       class="flex items-center hover:text-gray-700">
-                        <span th:text="#{book.price}">Price</span>
-                    </a>
-                </th>
-                <th scope="col" class="relative px-6 py-3">
-                    <span class="sr-only" th:text="#{actions}">Actions</span>
-                </th>
-            </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-            <tr th:each="book : ${bookPage.content}">
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-gray-900" th:text="${book.name}">
-                        Book Name
-                    </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-700" th:text="${book.author}">
-                        Book Author
-                    </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800" th:text="${book.genre}">
-                                Genre
-                            </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+    <div class="flex flex-wrap gap-2 items-center mb-4">
+        <span class="text-xs font-bold text-gray-500 uppercase tracking-wide" th:text="#{sort.label}">Sort by:</span>
+
+        <a th:href="@{${Routes.URL_BOOKS}(page=${bookPage.number}, size=${bookPage.size}, sort='name,' + (${param.sort != null && param.sort[0] == 'name,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
+           th:classappend="${param.sort != null && param.sort[0].startsWith('name')} ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-white text-gray-600 border-gray-300'"
+           class="px-3 py-1 rounded-full text-xs font-medium border shadow-sm transition-colors duration-150 flex items-center gap-1">
+            <span th:text="#{book.name}">Name</span>
+            <span th:if="${param.sort != null && param.sort[0] == 'name,asc'}">↑</span>
+            <span th:if="${param.sort != null && param.sort[0] == 'name,desc'}">↓</span>
+        </a>
+
+        <a th:href="@{${Routes.URL_BOOKS}(page=${bookPage.number}, size=${bookPage.size}, sort='author,' + (${param.sort != null && param.sort[0] == 'author,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
+           th:classappend="${param.sort != null && param.sort[0].startsWith('author')} ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-white text-gray-600 border-gray-300'"
+           class="px-3 py-1 rounded-full text-xs font-medium border shadow-sm transition-colors duration-150 flex items-center gap-1">
+            <span th:text="#{book.author}">Author</span>
+            <span th:if="${param.sort != null && param.sort[0] == 'author,asc'}">↑</span>
+            <span th:if="${param.sort != null && param.sort[0] == 'author,desc'}">↓</span>
+        </a>
+
+        <a th:href="@{${Routes.URL_BOOKS}(page=${bookPage.number}, size=${bookPage.size}, sort='price,' + (${param.sort != null && param.sort[0] == 'price,asc'} ? 'desc' : 'asc'), keyword=${keyword})}"
+           th:classappend="${param.sort != null && param.sort[0].startsWith('price')} ? 'bg-blue-100 text-blue-800 border-blue-300' : 'bg-white text-gray-600 border-gray-300'"
+           class="px-3 py-1 rounded-full text-xs font-medium border shadow-sm transition-colors duration-150 flex items-center gap-1">
+            <span th:text="#{book.price}">Price</span>
+            <span th:if="${param.sort != null && param.sort[0] == 'price,asc'}">↑</span>
+            <span th:if="${param.sort != null && param.sort[0] == 'price,desc'}">↓</span>
+        </a>
+    </div>
+
+    <div class="space-y-6">
+
+        <div class="lg:hidden space-y-4">
+
+            <div th:each="book : ${bookPage.content}" class="bg-white shadow rounded-lg p-4 border border-gray-200">
+
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="text-lg font-bold text-gray-900" th:text="${book.name}">Book Name</h3>
+                    <span class="text-lg font-semibold text-green-600">
                     $<span th:text="${#numbers.formatDecimal(book.price, 1, 2)}">19.99</span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                    <!-- View Button (All Authenticated) -->
-                    <a th:href="@{/books/{name}(name=${book.name})}" class="text-blue-600 hover:text-blue-900" th:text="#{book.view}">View</a>
+                </span>
+                </div>
 
-                </td>
-            </tr>
+                <div class="text-sm text-gray-600 mb-3">
+                    <span th:text="#{book.author}">By</span> <span th:text="${book.author}" class="font-medium text-gray-800">Author</span>
+                </div>
 
-            <!-- Row for when no books are found -->
-            <tr th:if="${bookPage.empty}">
-                <td colspan="5" class="px-6 py-12 text-center text-gray-500" th:text="#{book.noFound}">
-                    No books found.
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                <div class="flex justify-between items-center mt-4 border-t pt-3">
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
+                      th:text="${book.genre}">
+                    Genre
+                </span>
+
+                    <a th:href="@{${Routes.URL_BOOK_DETAIL}(name=${book.name})}"
+                       class="text-blue-600 hover:text-blue-800 font-medium text-sm uppercase tracking-wide">
+                        <span th:text="#{book.view}">View Details</span> &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <div th:if="${bookPage.empty}" class="bg-white p-6 rounded-lg shadow text-center text-gray-500">
+                <p th:text="#{book.noFound}">No books found.</p>
+            </div>
+        </div>
+
+        <div class="hidden lg:block bg-white shadow-xl rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            <span th:text="#{book.name}">Name</span>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            <span th:text="#{book.author}">Author</span>
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap" th:text="#{book.genre}">
+                            Genre
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                            <span th:text="#{book.price}">Price</span>
+                        </th>
+                        <th scope="col" class="relative px-6 py-3">
+                            <span class="sr-only" th:text="#{actions}">Actions</span>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tr th:each="book : ${bookPage.content}">
+
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900" th:text="${book.name}">
+                                Book Name
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-700" th:text="${book.author}">
+                                Book Author
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800" th:text="${book.genre}">
+                        Genre
+                    </span>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            $<span th:text="${#numbers.formatDecimal(book.price, 1, 2)}">19.99</span>
+                        </td>
+
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                            <a th:href="@{${Routes.URL_BOOK_DETAIL}(name=${book.name})}" class="text-blue-600 hover:text-blue-900" th:text="#{book.view}">View</a>
+                        </td>
+                    </tr>
+
+                    <tr th:if="${bookPage.empty}">
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-500" th:text="#{book.noFound}">
+                            No books found.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- Pagination Controls -->
-    <div th:replace="~{fragments/pagination :: paginationControls(page=${bookPage}, url=@{/books})}"></div>
+    <div th:replace="~{fragments/pagination :: paginationControls(page=${bookPage}, url=@{${Routes.URL_BOOKS}})}"></div>
 
 </main>
 </body>
 </html>
-

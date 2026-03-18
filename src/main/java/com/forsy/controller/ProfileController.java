@@ -1,0 +1,100 @@
+package com.forsy.controller;
+
+import com.forsy.dto.*;
+import com.forsy.exception.InvalidPasswordException;
+import com.forsy.service.ClientService;
+import com.forsy.service.EmployeeService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+@Controller
+@RequestMapping("/profile")
+@RequiredArgsConstructor
+@Slf4j
+public class ProfileController {
+
+    private final ClientService clientService;
+    private final EmployeeService employeeService;
+    private final ModelMapper mapper;
+    private final MessageSource messageSource;
+
+    @GetMapping
+    public String showProfilePage(Model model, Authentication auth) {
+        String email = auth.getName();
+
+        if (!model.containsAttribute("changePasswordDTO")) {
+            model.addAttribute("changePasswordDTO", new ChangePasswordDTO());
+        }
+
+        if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
+            ClientDisplayDTO client = clientService.getClientByEmail(email);
+            model.addAttribute("userProfile", client);
+
+            if (!model.containsAttribute("clientUpdateDTO")) {
+                model.addAttribute("clientUpdateDTO", mapper.map(client, ClientUpdateDTO.class));
+            }
+            model.addAttribute("employeeUpdateDTO", new EmployeeUpdateDTO());
+
+        } else if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_EMPLOYEE"))) {
+            EmployeeDisplayDTO employee = employeeService.getEmployeeByEmail(email);
+            model.addAttribute("userProfile", employee); // For the details box
+
+            if (!model.containsAttribute("employeeUpdateDTO")) {
+                model.addAttribute("employeeUpdateDTO", mapper.map(employee, EmployeeUpdateDTO.class));
+            }
+
+            model.addAttribute("clientUpdateDTO", new ClientUpdateDTO());
+        }
+
+        return "profile";
+    }
+
+    @PutMapping("/password")
+    String updatePassword(Authentication auth,
+                          @Valid @ModelAttribute("changePasswordDTO") ChangePasswordDTO changePasswordDTO,
+                          BindingResult bindingResult,
+                          RedirectAttributes redirectAttributes) {
+        log.info("Attempting to update password for user: {}", auth.getName());
+
+        if (bindingResult.hasErrors()) {
+            log.warn("Validation errors while updating password: {}", bindingResult.getAllErrors());
+
+            redirectAttributes.addFlashAttribute("org.springframework.validation.BindingResult.changePasswordDTO", bindingResult);
+            redirectAttributes.addFlashAttribute("changePasswordDTO", changePasswordDTO);
+            return "redirect:/profile?error=validation";
+        }
+
+        try {
+            if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
+                clientService.changePassword(auth.getName(), changePasswordDTO);
+            } else if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_EMPLOYEE"))) {
+                employeeService.changePassword(auth.getName(), changePasswordDTO);
+            }
+            log.info("Password for user with email {} changed successfully", auth.getName());
+
+            String message = messageSource.getMessage("user.password.success.message", new Object[]{}, LocaleContextHolder.getLocale());
+            redirectAttributes.addFlashAttribute("successMessage", message);
+            return "redirect:/profile";
+        } catch (InvalidPasswordException ex) {
+            log.warn("Invalid old password for user {}: {}", auth.getName(), ex.getMessage());
+
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            redirectAttributes.addFlashAttribute("changePasswordDTO", new ChangePasswordDTO());
+            return "redirect:/profile?error=service";
+        }
+    }
+}

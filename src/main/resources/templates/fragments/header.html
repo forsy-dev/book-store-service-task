@@ -1,51 +1,63 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
-<!-- Header -->
 <header class="bg-white shadow-md" th:fragment="header">
-    <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-        <!-- Main logo/link -->
-        <a th:href="@{/books}" class="text-2xl font-bold text-gray-800" th:text="#{nav.brand}">BookStore</a>
+    <nav class="container mx-auto px-6 py-4 lg:flex lg:justify-between lg:items-center">
 
-        <!-- Navigation Links -->
-        <div class="flex items-center space-x-4">
-            <!-- Language Switcher -->
-            <div class="border-r pr-4 mr-4 border-gray-300">
+        <div class="flex justify-between items-center">
+            <a th:href="@{/books}" class="text-2xl font-bold text-gray-800" th:text="#{nav.brand}">BookStore</a>
+
+            <button id="mobile-menu-btn" class="lg:hidden text-gray-600 hover:text-gray-800 focus:outline-none">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/>
+                </svg>
+            </button>
+        </div>
+
+        <div id="nav-links" class="hidden lg:flex flex-col lg:flex-row lg:items-center lg:space-x-4 mt-4 lg:mt-0">
+
+            <div class="py-2 lg:py-0 border-b lg:border-b-0 lg:border-r border-gray-200 lg:border-gray-300 lg:pr-4 lg:mr-4">
                 <div th:replace="~{fragments/language :: switcher}"></div>
             </div>
 
-            <!-- All Authenticated Users -->
-            <a sec:authorize="isAuthenticated()" th:href="@{/books}" class="px-2 py-2 text-gray-700 hover:text-blue-600 font-medium" th:text="#{nav.books}">Books</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/books}"
+               class="block py-2 text-gray-700 hover:text-blue-600 font-medium lg:inline-block" th:text="#{nav.books}">Books</a>
 
-            <!-- Employees Only -->
-            <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/clients}" class="px-2 py-2 text-gray-700 hover:text-blue-600 font-medium" th:text="#{nav.clients}">Clients</a>
-            <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/orders}" class="px-2 py-2 text-gray-700 hover:text-blue-600 font-medium" th:text="#{nav.all_orders}">All Orders</a>
+            <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/clients}"
+               class="block py-2 text-gray-700 hover:text-blue-600 font-medium lg:inline-block" th:text="#{nav.clients}">Clients</a>
 
-            <!-- My Orders (Dynamic link for current user) -->
+            <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/orders}"
+               class="block py-2 text-gray-700 hover:text-blue-600 font-medium lg:inline-block" th:text="#{nav.all_orders}">All Orders</a>
+
             <a sec:authorize="isAuthenticated()"
                th:href="@{/orders/{email}(email=${#authentication.name})}"
-               class="px-2 py-2 text-gray-700 hover:text-blue-600 font-medium" th:text="#{nav.my_orders}">
-                My Orders
-            </a>
+               class="block py-2 text-gray-700 hover:text-blue-600 font-medium lg:inline-block" th:text="#{nav.my_orders}">My Orders</a>
 
-            <!-- Employees Only: Add Book Button -->
-            <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/books/new}" class="ml-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 text-sm" th:text="#{nav.add_book}">
-                + Add New Book
-            </a>
+            <a sec:authorize="hasRole('CLIENT')" th:href="@{/cart}"
+               class="block py-2 text-gray-700 hover:text-blue-600 font-medium lg:inline-block" th:text="#{nav.cart}">Cart</a>
 
-            <!-- Clients Only -->
-            <a sec:authorize="hasRole('CLIENT')" th:href="@{/cart}" class="px-2 py-2 text-gray-700 hover:text-blue-600 font-medium" th:text="#{nav.cart}">Cart</a>
+            <a sec:authorize="isAuthenticated()" th:href="@{/profile}"
+               class="block py-2 text-gray-700 hover:text-blue-600 font-medium lg:inline-block" th:text="#{nav.profile}">My Profile</a>
 
-            <a sec:authorize="isAuthenticated()" th:href="@{/profile}" class="px-2 py-2 text-gray-700 hover:text-blue-600 font-medium" th:text="#{nav.profile}">My Profile</a>
+            <div class="flex flex-col lg:flex-row lg:items-center space-y-2 lg:space-y-0 lg:ml-2 mt-4 lg:mt-0">
+                <a sec:authorize="hasRole('EMPLOYEE')" th:href="@{/books/new}"
+                   class="block text-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 text-sm whitespace-nowrap"
+                   th:text="#{nav.add_book}">+ Add New Book</a>
 
-            <!-- Login / Logout Buttons -->
-            <form th:action="@{/logout}" method="post" class="inline" sec:authorize="isAuthenticated()">
-                <button type="submit" class="ml-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 text-sm" th:text="#{nav.logout}">
-                    Logout
-                </button>
-            </form>
+                <form th:action="@{/logout}" method="post" class="block w-full lg:w-auto" sec:authorize="isAuthenticated()">
+                    <button type="submit" class="w-full lg:w-auto ml-0 lg:ml-2 px-4 py-2 bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 text-sm"
+                            th:text="#{nav.logout}">Logout</button>
+                </form>
+            </div>
         </div>
     </nav>
+
+    <script>
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            var menu = document.getElementById('nav-links');
+            menu.classList.toggle('hidden');
+        });
+    </script>
 </header>
 </body>
 </html>

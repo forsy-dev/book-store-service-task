@@ -95,7 +95,7 @@
             <label for="language" class="block text-sm font-medium text-gray-700" th:text="#{book.language}">Language</label>
             <select id="language" th:field="*{language}"
                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                <option th:each="lang : ${T(com.epam.rd.autocode.spring.project.model.enums.Language).values()}"
+                <option th:each="lang : ${T(com.forsy.model.enums.Language).values()}"
                         th:value="${lang}" th:text="#{${'lang.' + lang}}">ENGLISH</option>
             </select>
             <p th:if="${#fields.hasErrors('language')}" th:errors="*{language}"
@@ -107,7 +107,7 @@
             <label for="ageGroup" class="block text-sm font-medium text-gray-700" th:text="#{book.ageGroup}">Age Group</label>
             <select id="ageGroup" th:field="*{ageGroup}"
                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                <option th:each="group : ${T(com.epam.rd.autocode.spring.project.model.enums.AgeGroup).values()}"
+                <option th:each="group : ${T(com.forsy.model.enums.AgeGroup).values()}"
                         th:value="${group}" th:text="#{${'age.' + group}}">ADULT</option>
             </select>
             <p th:if="${#fields.hasErrors('ageGroup')}" th:errors="*{ageGroup}"
