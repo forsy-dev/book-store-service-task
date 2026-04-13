@@ -1,8 +1,8 @@
 package com.forsy.controller;
 
 import com.forsy.conf.jwt.JwtUtils;
-import com.forsy.dto.AddToCartDTO;
-import com.forsy.dto.CartItemDisplayDTO;
+import com.forsy.dto.AddToCartDto;
+import com.forsy.dto.CartItemDisplayDto;
 import com.forsy.exception.NotFoundException;
 import com.forsy.service.CartService;
 import com.forsy.service.impl.CurrencyService;
@@ -59,9 +59,9 @@ public class CartControllerTest {
         void testAddBookToCart_ShouldRedirect() throws Exception {
             String bookName = "book";
             int quantity = 10;
-            AddToCartDTO dto = new AddToCartDTO(bookName, quantity);
+            AddToCartDto dto = new AddToCartDto(bookName, quantity);
 
-            doNothing().when(cartService).addBookToCart(anyMap(), any(AddToCartDTO.class));
+            doNothing().when(cartService).addBookToCart(anyMap(), any(AddToCartDto.class));
 
             mockMvc.perform(post("/cart/add")
                             .flashAttr("addToCartDTO", dto)
@@ -75,7 +75,7 @@ public class CartControllerTest {
         void testAddBookToCart_ShouldRedirectWhenValidationFails() throws Exception {
             String bookName = "book";
             int quantity = 0;
-            AddToCartDTO dto = new AddToCartDTO(bookName, quantity);
+          AddToCartDto dto = new AddToCartDto(bookName, quantity);
 
             mockMvc.perform(post("/cart/add")
                             .flashAttr("addToCartDTO", dto)
@@ -89,9 +89,9 @@ public class CartControllerTest {
         void testAddBookToCart_ShouldReturnErrorPageWhenBookNotFound() throws Exception {
             String bookName = "book";
             int quantity = 1;
-            AddToCartDTO dto = new AddToCartDTO(bookName, quantity);
+          AddToCartDto dto = new AddToCartDto(bookName, quantity);
 
-            doThrow(NotFoundException.class).when(cartService).addBookToCart(anyMap(), any(AddToCartDTO.class));
+            doThrow(NotFoundException.class).when(cartService).addBookToCart(anyMap(), any(AddToCartDto.class));
 
             mockMvc.perform(post("/cart/add")
                             .flashAttr("addToCartDTO", dto)
@@ -106,7 +106,7 @@ public class CartControllerTest {
 
         @Test
         void testShowCart_ShouldReturnPage() throws Exception {
-            List<CartItemDisplayDTO> items = Collections.emptyList();
+            List<CartItemDisplayDto> items = Collections.emptyList();
             BigDecimal totalCost = BigDecimal.ZERO;
 
             when(cartService.getCartItems(anyMap())).thenReturn(items);

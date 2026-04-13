@@ -1,11 +1,27 @@
 package com.forsy.controller;
 
-import com.forsy.dto.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
+
+import com.forsy.dto.ClientDisplayDto;
+import com.forsy.dto.CreateOrderRequestDto;
+import com.forsy.dto.EmployeeDisplayDto;
+import com.forsy.dto.OrderDisplayDto;
 import com.forsy.service.ClientService;
 import com.forsy.service.EmployeeService;
 import com.forsy.service.OrderService;
 import com.forsy.util.CartCookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,177 +34,167 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 public class OrderSecurityIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @MockBean
-    private OrderService orderService;
+  @MockBean
+  private OrderService orderService;
 
-    @MockBean
-    private EmployeeService employeeService;
+  @MockBean
+  private EmployeeService employeeService;
 
-    @MockBean
-    private ClientService clientService;
+  @MockBean
+  private ClientService clientService;
 
-    @MockBean
-    private CartCookieUtil cartCookieUtil;
+  @MockBean
+  private CartCookieUtil cartCookieUtil;
 
-    @Nested
-    class GetAllOrders {
+  @Nested
+  class GetAllOrders {
 
-        @Test
-        @WithMockUser(roles = "CLIENT", username = "test@test.com")
-        void testGetAllOrders_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
-            String email = "test@test.com";
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "test@test.com")
+    void testGetAllOrders_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+      String email = "test@test.com";
 
-            mockMvc.perform(get("/orders"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/orders/" + email));
-        }
-
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testGetAllOrders_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-
-            when(orderService.getAllOrders(any(Pageable.class), nullable((String.class)))).thenReturn(Page.empty());
-
-            mockMvc.perform(get("/orders"))
-                    .andExpect(status().isOk())
-                    .andExpect(view().name("orders"));
-        }
+      mockMvc.perform(get("/orders"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/orders/" + email));
     }
 
-    @Nested
-    class GetOrdersForUser {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testGetAllOrders_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
 
-        @Test
-        @WithMockUser(roles = "CLIENT", username = "test@test.com")
-        void testGetOrderForUser_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+      when(orderService.getAllOrders(any(Pageable.class), nullable((String.class)))).thenReturn(Page.empty());
 
-            String email = "test@test.com";
-            ClientDisplayDTO clientDisplayDTO = ClientDisplayDTO.builder().email(email).build();
-            Page<OrderDisplayDTO> orders = Page.empty();
+      mockMvc.perform(get("/orders"))
+          .andExpect(status().isOk())
+          .andExpect(view().name("orders"));
+    }
+  }
 
-            when(clientService.getClientByEmail(email)).thenReturn(clientDisplayDTO);
-            when(orderService.getOrdersByClient(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
+  @Nested
+  class GetOrdersForUser {
 
-            mockMvc.perform(get("/orders/{email}", email))
-                    .andExpect(status().isOk());
-        }
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "test@test.com")
+    void testGetOrderForUser_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
 
-        @Test
-        @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
-        void testGetOrderForUser_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+      String email = "test@test.com";
+      ClientDisplayDto clientDisplayDTO = ClientDisplayDto.builder().email(email).build();
+      Page<OrderDisplayDto> orders = Page.empty();
 
-            String email = "test@test.com";
-            Page<OrderDisplayDTO> orders = Page.empty();
+      when(clientService.getClientByEmail(email)).thenReturn(clientDisplayDTO);
+      when(orderService.getOrdersByClient(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
 
-            when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
-
-            mockMvc.perform(get("/orders/{email}", email))
-                .andExpect(status().isOk());
-        }
+      mockMvc.perform(get("/orders/{email}", email))
+          .andExpect(status().isOk());
     }
 
-    @Nested
-    class SubmitOrder {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
+    void testGetOrderForUser_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
 
-        @Test
-        @WithMockUser(roles = "CLIENT", username = "test@test.com")
-        void testSubmitOrder_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+      String email = "test@test.com";
+      Page<OrderDisplayDto> orders = Page.empty();
 
-            Map<String, Integer> cart = new HashMap<>();
-            cart.put("book", 1);
+      when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
 
-            String employeeEmail = "emp@emp.com";
-            EmployeeDisplayDTO employeeDisplayDTO = EmployeeDisplayDTO.builder().email(employeeEmail).build();
-            Page<EmployeeDisplayDTO> page = new PageImpl<>(java.util.List.of(employeeDisplayDTO));
+      mockMvc.perform(get("/orders/{email}", email))
+          .andExpect(status().isOk());
+    }
+  }
 
-            when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
-            when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(page);
-            when(orderService.addOrder(any(CreateOrderRequestDTO.class))).thenReturn(OrderDisplayDTO.builder().build());
+  @Nested
+  class SubmitOrder {
 
-            mockMvc.perform(post("/orders/submit"))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/books"));
-        }
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "test@test.com")
+    void testSubmitOrder_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
 
-        @Test
-        @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
-        void testSubmitOrder_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
+      Map<String, Integer> cart = new HashMap<>();
+      cart.put("book", 1);
 
-            mockMvc.perform(post("/orders/submit"))
-                    .andExpect(status().isForbidden());
-        }
+      String employeeEmail = "emp@emp.com";
+      EmployeeDisplayDto employeeDisplayDTO = EmployeeDisplayDto.builder().email(employeeEmail).build();
+      Page<EmployeeDisplayDto> page = new PageImpl<>(java.util.List.of(employeeDisplayDTO));
+
+      when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
+      when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(page);
+      when(orderService.addOrder(any(CreateOrderRequestDto.class))).thenReturn(OrderDisplayDto.builder().build());
+
+      mockMvc.perform(post("/orders/submit"))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/books"));
     }
 
-    @Nested
-    class CancelOrder {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
+    void testSubmitOrder_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testCancelOrder_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+      mockMvc.perform(post("/orders/submit"))
+          .andExpect(status().isForbidden());
+    }
+  }
 
-            long orderId = 1L;
+  @Nested
+  class CancelOrder {
 
-            mockMvc.perform(post("/orders/{id}/cancel", orderId))
-                    .andExpect(status().isForbidden());
-        }
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testCancelOrder_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
 
-        @Test
-        @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
-        void testCancelOrder_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+      long orderId = 1L;
 
-            long orderId = 1L;
-            String email = "test@test.com";
-
-            doNothing().when(orderService).cancelOrder(orderId, email);
-
-            mockMvc.perform(post("/orders/{id}/cancel", orderId))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/orders"));
-        }
+      mockMvc.perform(post("/orders/{id}/cancel", orderId))
+          .andExpect(status().isForbidden());
     }
 
-    @Nested
-    class ConfirmOrder {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
+    void testCancelOrder_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testConfirmOrder_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+      long orderId = 1L;
+      String email = "test@test.com";
 
-            long orderId = 1L;
+      doNothing().when(orderService).cancelOrder(orderId, email);
 
-            mockMvc.perform(post("/orders/{id}/confirm", orderId))
-                    .andExpect(status().isForbidden());
-        }
-
-        @Test
-        @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
-        void testConfirmOrder_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-
-            long orderId = 1L;
-            String email = "test@test.com";
-
-            doNothing().when(orderService).confirmOrder(orderId, email);
-
-            mockMvc.perform(post("/orders/{id}/confirm", orderId))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/orders"));
-        }
+      mockMvc.perform(post("/orders/{id}/cancel", orderId))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/orders"));
     }
+  }
+
+  @Nested
+  class ConfirmOrder {
+
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testConfirmOrder_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+
+      long orderId = 1L;
+
+      mockMvc.perform(post("/orders/{id}/confirm", orderId))
+          .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
+    void testConfirmOrder_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+
+      long orderId = 1L;
+      String email = "test@test.com";
+
+      doNothing().when(orderService).confirmOrder(orderId, email);
+
+      mockMvc.perform(post("/orders/{id}/confirm", orderId))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/orders"));
+    }
+  }
 }

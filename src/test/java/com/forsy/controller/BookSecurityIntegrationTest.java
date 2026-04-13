@@ -1,9 +1,23 @@
 package com.forsy.controller;
 
-import com.forsy.dto.BookDTO;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.forsy.dto.BookDto;
 import com.forsy.model.enums.AgeGroup;
 import com.forsy.model.enums.Language;
 import com.forsy.service.BookService;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Collections;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,221 +30,211 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Collections;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 public class BookSecurityIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @MockBean
-    private BookService bookService;
+  @MockBean
+  private BookService bookService;
 
-    @Nested
-    class GetBooks {
+  @Nested
+  class GetBooks {
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testGetBooks_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
-            Page<BookDTO> bookPage = new PageImpl<>(Collections.singletonList(new BookDTO()));
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testGetBooks_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+      Page<BookDto> bookPage = new PageImpl<>(Collections.singletonList(new BookDto()));
 
-            when(bookService.getAllBooks(any(Pageable.class), nullable(String.class))).thenReturn(bookPage);
+      when(bookService.getAllBooks(any(Pageable.class), nullable(String.class))).thenReturn(bookPage);
 
-            mockMvc.perform(get("/books"))
-                    .andExpect(status().isOk());
-        }
-
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testGetBooks_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-            Page<BookDTO> bookPage = new PageImpl<>(Collections.singletonList(new BookDTO()));
-
-            when(bookService.getAllBooks(any(Pageable.class), nullable(String.class))).thenReturn(bookPage);
-
-            mockMvc.perform(get("/books"))
-                    .andExpect(status().isOk());
-        }
+      mockMvc.perform(get("/books"))
+          .andExpect(status().isOk());
     }
 
-    @Nested
-    class GetBookByName {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testGetBooks_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+      Page<BookDto> bookPage = new PageImpl<>(Collections.singletonList(new BookDto()));
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testGetBookByName_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
-            String bookName = "testbook";
-            BookDTO bookDto = BookDTO.builder().name(bookName).build();
+      when(bookService.getAllBooks(any(Pageable.class), nullable(String.class))).thenReturn(bookPage);
 
-            when(bookService.getBookByName("testbook")).thenReturn(bookDto);
+      mockMvc.perform(get("/books"))
+          .andExpect(status().isOk());
+    }
+  }
 
-            mockMvc.perform(get("/books/{name}", bookName))
-                    .andExpect(status().isOk());
-        }
+  @Nested
+  class GetBookByName {
 
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testGetBookByName_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-            String bookName = "testbook";
-            BookDTO bookDto = BookDTO.builder().name(bookName).build();
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testGetBookByName_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+      String bookName = "testbook";
+      BookDto bookDto = BookDto.builder().name(bookName).build();
 
-            when(bookService.getBookByName("testbook")).thenReturn(bookDto);
+      when(bookService.getBookByName("testbook")).thenReturn(bookDto);
 
-            mockMvc.perform(get("/books/{name}", bookName))
-                    .andExpect(status().isOk());
-        }
+      mockMvc.perform(get("/books/{name}", bookName))
+          .andExpect(status().isOk());
     }
 
-    @Nested
-    class GetBookForm {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testGetBookByName_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+      String bookName = "testbook";
+      BookDto bookDto = BookDto.builder().name(bookName).build();
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testGetBookForm_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
-            mockMvc.perform(get("/books/new"))
-                    .andExpect(status().isForbidden());
-        }
+      when(bookService.getBookByName("testbook")).thenReturn(bookDto);
 
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testGetBookForm_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-            mockMvc.perform(get("/books/new"))
-                    .andExpect(status().isOk());
-        }
+      mockMvc.perform(get("/books/{name}", bookName))
+          .andExpect(status().isOk());
+    }
+  }
+
+  @Nested
+  class GetBookForm {
+
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testGetBookForm_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+      mockMvc.perform(get("/books/new"))
+          .andExpect(status().isForbidden());
     }
 
-    @Nested
-    class AddBook {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testGetBookForm_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+      mockMvc.perform(get("/books/new"))
+          .andExpect(status().isOk());
+    }
+  }
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testAddBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
-            mockMvc.perform(post("/books"))
-                    .andExpect(status().isForbidden());
-        }
+  @Nested
+  class AddBook {
 
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testAddBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-            BookDTO bookDto = BookDTO.builder()
-                    .name("book")
-                    .genre("genre")
-                    .ageGroup(AgeGroup.ADULT)
-                    .price(BigDecimal.TEN)
-                    .publicationDate(LocalDate.now().minusYears(1))
-                    .author("author")
-                    .pages(100)
-                    .characteristics("characteristics")
-                    .description("description")
-                    .language(Language.ENGLISH)
-                    .build();
-
-            mockMvc.perform(post("/books")
-                            .flashAttr("book", bookDto))
-                    .andExpect(status().is3xxRedirection());
-        }
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testAddBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+      mockMvc.perform(post("/books"))
+          .andExpect(status().isForbidden());
     }
 
-    @Nested
-    class GetEditBookForm {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testAddBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+      BookDto bookDto = BookDto.builder()
+          .name("book")
+          .genre("genre")
+          .ageGroup(AgeGroup.ADULT)
+          .price(BigDecimal.TEN)
+          .publicationDate(LocalDate.now().minusYears(1))
+          .author("author")
+          .pages(100)
+          .characteristics("characteristics")
+          .description("description")
+          .language(Language.ENGLISH)
+          .build();
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testGetEditBookForm_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
-            String name = "testbook";
-            mockMvc.perform(get("/books/{name}/edit", name))
-                    .andExpect(status().isForbidden());
-        }
+      mockMvc.perform(post("/books")
+                          .flashAttr("book", bookDto))
+          .andExpect(status().is3xxRedirection());
+    }
+  }
 
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testGetEditBookForm_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-            BookDTO bookDto = BookDTO.builder()
-                    .name("book")
-                    .genre("genre")
-                    .ageGroup(AgeGroup.ADULT)
-                    .price(BigDecimal.TEN)
-                    .publicationDate(LocalDate.now().minusYears(1))
-                    .author("author")
-                    .pages(100)
-                    .characteristics("characteristics")
-                    .description("description")
-                    .language(Language.ENGLISH)
-                    .build();
+  @Nested
+  class GetEditBookForm {
 
-            when(bookService.getBookByName(bookDto.getName())).thenReturn(bookDto);
-
-            mockMvc.perform(get("/books/{name}/edit", bookDto.getName()))
-                    .andExpect(status().isOk());
-        }
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testGetEditBookForm_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+      String name = "testbook";
+      mockMvc.perform(get("/books/{name}/edit", name))
+          .andExpect(status().isForbidden());
     }
 
-    @Nested
-    class EditBook {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testGetEditBookForm_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+      BookDto bookDto = BookDto.builder()
+          .name("book")
+          .genre("genre")
+          .ageGroup(AgeGroup.ADULT)
+          .price(BigDecimal.TEN)
+          .publicationDate(LocalDate.now().minusYears(1))
+          .author("author")
+          .pages(100)
+          .characteristics("characteristics")
+          .description("description")
+          .language(Language.ENGLISH)
+          .build();
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testEditBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
-            String name = "testbook";
-            mockMvc.perform(put("/books/{name}", name))
-                    .andExpect(status().isForbidden());
-        }
+      when(bookService.getBookByName(bookDto.getName())).thenReturn(bookDto);
 
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testEditBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-            BookDTO bookDto = BookDTO.builder()
-                    .name("book")
-                    .genre("genre")
-                    .ageGroup(AgeGroup.ADULT)
-                    .price(BigDecimal.TEN)
-                    .publicationDate(LocalDate.now().minusYears(1))
-                    .author("author")
-                    .pages(100)
-                    .characteristics("characteristics")
-                    .description("description")
-                    .language(Language.ENGLISH)
-                    .build();
+      mockMvc.perform(get("/books/{name}/edit", bookDto.getName()))
+          .andExpect(status().isOk());
+    }
+  }
 
-            when(bookService.updateBookByName(bookDto.getName(), bookDto)).thenReturn(bookDto);
+  @Nested
+  class EditBook {
 
-            mockMvc.perform(put("/books/{name}", bookDto.getName())
-                            .flashAttr("book", bookDto))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/books"));
-        }
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testEditBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+      String name = "testbook";
+      mockMvc.perform(put("/books/{name}", name))
+          .andExpect(status().isForbidden());
     }
 
-    @Nested
-    class DeleteBook {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testEditBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+      BookDto bookDto = BookDto.builder()
+          .name("book")
+          .genre("genre")
+          .ageGroup(AgeGroup.ADULT)
+          .price(BigDecimal.TEN)
+          .publicationDate(LocalDate.now().minusYears(1))
+          .author("author")
+          .pages(100)
+          .characteristics("characteristics")
+          .description("description")
+          .language(Language.ENGLISH)
+          .build();
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testDeleteBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
-            String name = "testbook";
+      when(bookService.updateBookByName(bookDto.getName(), bookDto)).thenReturn(bookDto);
 
-            mockMvc.perform(delete("/books/{name}", name))
-                    .andExpect(status().isForbidden());
-        }
-
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testDeleteBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-            String name = "testbook";
-
-            doNothing().when(bookService).deleteBookByName(name);
-
-            mockMvc.perform(delete("/books/{name}", name))
-                    .andExpect(status().is3xxRedirection());
-        }
+      mockMvc.perform(put("/books/{name}", bookDto.getName())
+                          .flashAttr("book", bookDto))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/books"));
     }
+  }
+
+  @Nested
+  class DeleteBook {
+
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testDeleteBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+      String name = "testbook";
+
+      mockMvc.perform(delete("/books/{name}", name))
+          .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testDeleteBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+      String name = "testbook";
+
+      doNothing().when(bookService).deleteBookByName(name);
+
+      mockMvc.perform(delete("/books/{name}", name))
+          .andExpect(status().is3xxRedirection());
+    }
+  }
 }

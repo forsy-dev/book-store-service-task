@@ -1,6 +1,17 @@
 package com.forsy.controller;
 
-import com.forsy.dto.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.forsy.dto.ChangePasswordDto;
+import com.forsy.dto.ClientDisplayDto;
+import com.forsy.dto.ClientUpdateDto;
+import com.forsy.dto.EmployeeDisplayDto;
+import com.forsy.dto.EmployeeUpdateDto;
 import com.forsy.service.ClientService;
 import com.forsy.service.EmployeeService;
 import org.junit.jupiter.api.Nested;
@@ -13,99 +24,93 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ProfileSecurityIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @MockBean
-    private ClientService clientService;
+  @MockBean
+  private ClientService clientService;
 
-    @MockBean
-    private EmployeeService employeeService;
+  @MockBean
+  private EmployeeService employeeService;
 
-    @MockBean
-    private ModelMapper mapper;
+  @MockBean
+  private ModelMapper mapper;
 
-    @Nested
-    class GetProfilePage {
+  @Nested
+  class GetProfilePage {
 
-        @Test
-        @WithMockUser(roles = "CLIENT", username = "email")
-        void testGetProfile_WhenAuthenticatedAsClient_ShouldReturnProfile() throws Exception {
-            String email = "email";
-            ClientDisplayDTO client = ClientDisplayDTO.builder().email(email).build();
-            ClientUpdateDTO clientUpdateDTO = ClientUpdateDTO.builder().build();
+    @Test
+    @WithMockUser(roles = "CLIENT", username = "email")
+    void testGetProfile_WhenAuthenticatedAsClient_ShouldReturnProfile() throws Exception {
+      String email = "email";
+      ClientDisplayDto client = ClientDisplayDto.builder().email(email).build();
+      ClientUpdateDto clientUpdateDTO = ClientUpdateDto.builder().build();
 
-            when(clientService.getClientByEmail(email)).thenReturn(client);
-            when(mapper.map(client, ClientUpdateDTO.class)).thenReturn(clientUpdateDTO);
+      when(clientService.getClientByEmail(email)).thenReturn(client);
+      when(mapper.map(client, ClientUpdateDto.class)).thenReturn(clientUpdateDTO);
 
-            mockMvc.perform(get("/profile"))
-                    .andExpect(status().isOk());
-        }
-
-        @Test
-        @WithMockUser(roles = "EMPLOYEE", username = "email")
-        void testGetProfile_WhenAuthenticatedAsEmployee_ShouldReturnProfile() throws Exception {
-            String email = "email";
-            EmployeeDisplayDTO employee = EmployeeDisplayDTO.builder().email(email).build();
-            EmployeeUpdateDTO employeeUpdateDTO = EmployeeUpdateDTO.builder().build();
-
-            when(employeeService.getEmployeeByEmail(email)).thenReturn(employee);
-            when(mapper.map(employee, EmployeeUpdateDTO.class)).thenReturn(employeeUpdateDTO);
-
-            mockMvc.perform(get("/profile"))
-                    .andExpect(status().isOk());
-        }
+      mockMvc.perform(get("/profile"))
+          .andExpect(status().isOk());
     }
 
-    @Nested
-    class ChangePassword {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE", username = "email")
+    void testGetProfile_WhenAuthenticatedAsEmployee_ShouldReturnProfile() throws Exception {
+      String email = "email";
+      EmployeeDisplayDto employee = EmployeeDisplayDto.builder().email(email).build();
+      EmployeeUpdateDto employeeUpdateDTO = EmployeeUpdateDto.builder().build();
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testChangePassword_WhenAuthenticatedAsClient_ShouldRedirectToProfile() throws Exception {
-            String email = "email";
-            String oldPassword = "oldPassword";
-            String newPassword = "Te$t1234";
-            ChangePasswordDTO changePasswordDTO = ChangePasswordDTO.builder()
-                    .oldPassword(oldPassword)
-                    .newPassword(newPassword)
-                    .build();
+      when(employeeService.getEmployeeByEmail(email)).thenReturn(employee);
+      when(mapper.map(employee, EmployeeUpdateDto.class)).thenReturn(employeeUpdateDTO);
 
-            doNothing().when(clientService).changePassword(email, changePasswordDTO);
-
-            mockMvc.perform(put("/profile/password")
-                            .flashAttr("changePasswordDTO", changePasswordDTO))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/profile"));
-        }
-
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testChangePassword_WhenAuthenticatedAsEmployee_ShouldRedirectToProfile() throws Exception {
-            String email = "email";
-            String oldPassword = "oldPassword";
-            String newPassword = "Te$t1234";
-            ChangePasswordDTO changePasswordDTO = ChangePasswordDTO.builder()
-                    .oldPassword(oldPassword)
-                    .newPassword(newPassword)
-                    .build();
-
-            doNothing().when(employeeService).changePassword(email, changePasswordDTO);
-
-            mockMvc.perform(put("/profile/password")
-                            .flashAttr("changePasswordDTO", changePasswordDTO))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/profile"));
-        }
+      mockMvc.perform(get("/profile"))
+          .andExpect(status().isOk());
     }
+  }
+
+  @Nested
+  class ChangePassword {
+
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testChangePassword_WhenAuthenticatedAsClient_ShouldRedirectToProfile() throws Exception {
+      String email = "email";
+      String oldPassword = "oldPassword";
+      String newPassword = "Te$t1234";
+      ChangePasswordDto changePasswordDTO = ChangePasswordDto.builder()
+          .oldPassword(oldPassword)
+          .newPassword(newPassword)
+          .build();
+
+      doNothing().when(clientService).changePassword(email, changePasswordDTO);
+
+      mockMvc.perform(put("/profile/password")
+                          .flashAttr("changePasswordDTO", changePasswordDTO))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/profile"));
+    }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testChangePassword_WhenAuthenticatedAsEmployee_ShouldRedirectToProfile() throws Exception {
+      String email = "email";
+      String oldPassword = "oldPassword";
+      String newPassword = "Te$t1234";
+      ChangePasswordDto changePasswordDTO = ChangePasswordDto.builder()
+          .oldPassword(oldPassword)
+          .newPassword(newPassword)
+          .build();
+
+      doNothing().when(employeeService).changePassword(email, changePasswordDTO);
+
+      mockMvc.perform(put("/profile/password")
+                          .flashAttr("changePasswordDTO", changePasswordDTO))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/profile"));
+    }
+  }
 }

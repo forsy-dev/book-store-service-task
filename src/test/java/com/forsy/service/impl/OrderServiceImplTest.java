@@ -1,11 +1,37 @@
 package com.forsy.service.impl;
 
-import com.forsy.dto.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.forsy.dto.BookItemDto;
+import com.forsy.dto.CreateOrderRequestDto;
+import com.forsy.dto.OrderDisplayDto;
 import com.forsy.exception.InsufficientFundsException;
 import com.forsy.exception.NotFoundException;
-import com.forsy.model.*;
+import com.forsy.model.Book;
+import com.forsy.model.Client;
+import com.forsy.model.Employee;
+import com.forsy.model.Order;
+import com.forsy.model.OrderStatusRecord;
 import com.forsy.model.enums.OrderStatus;
-import com.forsy.repo.*;
+import com.forsy.repo.BookRepository;
+import com.forsy.repo.ClientRepository;
+import com.forsy.repo.EmployeeRepository;
+import com.forsy.repo.OrderRepository;
+import com.forsy.repo.OrderStatusRepository;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,622 +47,607 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.math.BigDecimal;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceImplTest {
 
-    @InjectMocks
-    private OrderServiceImpl orderService;
+  @InjectMocks
+  private OrderServiceImpl orderService;
 
-    @Mock
-    private OrderRepository orderRepository;
+  @Mock
+  private OrderRepository orderRepository;
 
-    @Mock
-    private ModelMapper mapper;
+  @Mock
+  private ModelMapper mapper;
 
-    @Mock
-    private ClientRepository clientRepository;
+  @Mock
+  private ClientRepository clientRepository;
 
-    @Mock
-    private EmployeeRepository employeeRepository;
+  @Mock
+  private EmployeeRepository employeeRepository;
 
-    @Mock
-    OrderStatusRepository orderStatusRepository;
+  @Mock
+  OrderStatusRepository orderStatusRepository;
 
-    @Mock
-    private BookRepository bookRepository;
+  @Mock
+  private BookRepository bookRepository;
 
-    @Mock
-    private MessageSource messageSource;
+  @Mock
+  private MessageSource messageSource;
 
-    @Nested
-    class GetAllOrdersByClient {
+  @Nested
+  class GetAllOrdersByClient {
 
-        @Test
-        void testGetAllOrdersByClient_WhenKeywordNotGiven_ShouldReturnAllOrders() {
-            String clientEmail = "test@test.com";
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
-            OrderDisplayDTO expectedDto = new OrderDisplayDTO();
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
+    @Test
+    void testGetAllOrdersByClient_WhenKeywordNotGiven_ShouldReturnAllOrders() {
+      String clientEmail = "test@test.com";
+      Long orderId = 1L;
+      Order order = Order.builder().id(orderId).build();
+      OrderDisplayDto expectedDto = new OrderDisplayDto();
+      Pageable pageable = PageRequest.of(0, 10);
+      Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
 
-            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
-            when(orderRepository.findAllByClientEmail(clientEmail, pageable)).thenReturn(orderPage);
-            when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      when(orderRepository.findAllByClientEmail(clientEmail, pageable)).thenReturn(orderPage);
+      when(mapper.map(order, OrderDisplayDto.class)).thenReturn(expectedDto);
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
 
-            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable, null);
+      Page<OrderDisplayDto> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable, null);
 
-            verify(orderRepository, times(1)).findAllByClientEmail(clientEmail, pageable);
-            verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
-            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+      verify(orderRepository, times(1)).findAllByClientEmail(clientEmail, pageable);
+      verify(mapper, times(1)).map(order, OrderDisplayDto.class);
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
 
-            assertEquals(1, actualOrderDto.getTotalElements());
-            assertEquals(1, actualOrderDto.getContent().size());
-            assertEquals(expectedDto, actualOrderDto.getContent().get(0));
-            assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
-        }
-
-        @Test
-        void testGetAllOrdersByClient_WhenKeywordGiven_ShouldReturnSelectedOrders() {
-            String clientEmail = "test@test.com";
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
-            OrderDisplayDTO expectedDto = new OrderDisplayDTO();
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
-            String keyword = "a";
-
-            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
-
-            when(orderRepository.searchByClient(clientEmail, keyword, pageable)).thenReturn(orderPage);
-            when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
-
-            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable, keyword);
-
-            verify(orderRepository, times(1)).searchByClient(clientEmail, keyword, pageable);
-            verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
-            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
-
-            assertEquals(1, actualOrderDto.getTotalElements());
-            assertEquals(1, actualOrderDto.getContent().size());
-            assertEquals(expectedDto, actualOrderDto.getContent().get(0));
-            assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
-        }
+      assertEquals(1, actualOrderDto.getTotalElements());
+      assertEquals(1, actualOrderDto.getContent().size());
+      assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+      assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
     }
 
-    @Nested
-    class GetAllOrdersByEmployee {
+    @Test
+    void testGetAllOrdersByClient_WhenKeywordGiven_ShouldReturnSelectedOrders() {
+      String clientEmail = "test@test.com";
+      Long orderId = 1L;
+      Order order = Order.builder().id(orderId).build();
+      OrderDisplayDto expectedDto = new OrderDisplayDto();
+      Pageable pageable = PageRequest.of(0, 10);
+      Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
+      String keyword = "a";
 
-        @Test
-        void testGetAllOrdersByEmployee_WhenKeywordNotGiven_ShouldReturnAllOrders() {
-            String employeeEmail = "test@test.com";
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
-            OrderDisplayDTO expectedDto = new OrderDisplayDTO();
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
-            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+      when(orderRepository.searchByClient(clientEmail, keyword, pageable)).thenReturn(orderPage);
+      when(mapper.map(order, OrderDisplayDto.class)).thenReturn(expectedDto);
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
 
-            when(orderRepository.findAllByEmployeeEmail(employeeEmail, pageable)).thenReturn(orderPage);
-            when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      Page<OrderDisplayDto> actualOrderDto = orderService.getOrdersByClient(clientEmail, pageable, keyword);
 
-            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable, null);
+      verify(orderRepository, times(1)).searchByClient(clientEmail, keyword, pageable);
+      verify(mapper, times(1)).map(order, OrderDisplayDto.class);
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
 
-            verify(orderRepository, times(1)).findAllByEmployeeEmail(employeeEmail, pageable);
-            verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
-            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+      assertEquals(1, actualOrderDto.getTotalElements());
+      assertEquals(1, actualOrderDto.getContent().size());
+      assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+      assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
+    }
+  }
 
-            assertEquals(1, actualOrderDto.getTotalElements());
-            assertEquals(1, actualOrderDto.getContent().size());
-            assertEquals(expectedDto, actualOrderDto.getContent().get(0));
-            assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
-        }
+  @Nested
+  class GetAllOrdersByEmployee {
 
-        @Test
-        void testGetAllOrdersByEmployee_WhenKeywordGiven_ShouldReturnSelectedOrders() {
-            String employeeEmail = "test@test.com";
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
-            OrderDisplayDTO expectedDto = new OrderDisplayDTO();
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
-            String keyword = "a";
+    @Test
+    void testGetAllOrdersByEmployee_WhenKeywordNotGiven_ShouldReturnAllOrders() {
+      String employeeEmail = "test@test.com";
+      Long orderId = 1L;
+      Order order = Order.builder().id(orderId).build();
+      OrderDisplayDto expectedDto = new OrderDisplayDto();
+      Pageable pageable = PageRequest.of(0, 10);
+      Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
 
-            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
-            when(orderRepository.searchByEmployee(employeeEmail, keyword, pageable)).thenReturn(orderPage);
-            when(mapper.map(order, OrderDisplayDTO.class)).thenReturn(expectedDto);
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      when(orderRepository.findAllByEmployeeEmail(employeeEmail, pageable)).thenReturn(orderPage);
+      when(mapper.map(order, OrderDisplayDto.class)).thenReturn(expectedDto);
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
 
-            Page<OrderDisplayDTO> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable, keyword);
+      Page<OrderDisplayDto> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable, null);
 
-            verify(orderRepository, times(1)).searchByEmployee(employeeEmail, keyword, pageable);
-            verify(mapper, times(1)).map(order, OrderDisplayDTO.class);
-            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+      verify(orderRepository, times(1)).findAllByEmployeeEmail(employeeEmail, pageable);
+      verify(mapper, times(1)).map(order, OrderDisplayDto.class);
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
 
-            assertEquals(1, actualOrderDto.getTotalElements());
-            assertEquals(1, actualOrderDto.getContent().size());
-            assertEquals(expectedDto, actualOrderDto.getContent().get(0));
-            assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
-        }
+      assertEquals(1, actualOrderDto.getTotalElements());
+      assertEquals(1, actualOrderDto.getContent().size());
+      assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+      assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
     }
 
-    @Nested
-    class AddOrder {
+    @Test
+    void testGetAllOrdersByEmployee_WhenKeywordGiven_ShouldReturnSelectedOrders() {
+      String employeeEmail = "test@test.com";
+      Long orderId = 1L;
+      Order order = Order.builder().id(orderId).build();
+      OrderDisplayDto expectedDto = new OrderDisplayDto();
+      Pageable pageable = PageRequest.of(0, 10);
+      Page<Order> orderPage = new PageImpl<>(Collections.singletonList(order), pageable, 1);
+      String keyword = "a";
 
-        @Test
-        void testAddOrder_ShouldReturnOrder() {
-            String employeeEmail = "employee@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
-            String clientEmail = "client@test.com)";
-            Client client = Client.builder().email(clientEmail).build();
+      when(orderRepository.searchByEmployee(employeeEmail, keyword, pageable)).thenReturn(orderPage);
+      when(mapper.map(order, OrderDisplayDto.class)).thenReturn(expectedDto);
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
 
-            String bookName = "bookName";
-            BigDecimal bookPrice = BigDecimal.TEN;
-            Book book = Book.builder().name(bookName).price(bookPrice).build();
+      Page<OrderDisplayDto> actualOrderDto = orderService.getOrdersByEmployee(employeeEmail, pageable, keyword);
 
-            BookItemDTO bookItemDto = BookItemDTO.builder().bookName(bookName).quantity(1).build();
-            List<BookItemDTO> bookItems = Collections.singletonList(bookItemDto);
+      verify(orderRepository, times(1)).searchByEmployee(employeeEmail, keyword, pageable);
+      verify(mapper, times(1)).map(order, OrderDisplayDto.class);
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
 
-            CreateOrderRequestDTO orderDTO = CreateOrderRequestDTO.builder()
-                    .employeeEmail(employeeEmail)
-                    .clientEmail(clientEmail)
-                    .bookItems(bookItems)
-                    .build();
+      assertEquals(1, actualOrderDto.getTotalElements());
+      assertEquals(1, actualOrderDto.getContent().size());
+      assertEquals(expectedDto, actualOrderDto.getContent().get(0));
+      assertEquals(OrderStatus.PENDING, actualOrderDto.getContent().get(0).getStatus());
+    }
+  }
 
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).client(client).employee(employee).price(bookPrice).build();
-            OrderDisplayDTO expectedDto = OrderDisplayDTO.builder()
-                    .clientEmail(clientEmail)
-                    .employeeEmail(employeeEmail)
-                    .build();
+  @Nested
+  class AddOrder {
 
-            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+    @Test
+    void testAddOrder_ShouldReturnOrder() {
+      String employeeEmail = "employee@test.com";
+      Employee employee = Employee.builder().email(employeeEmail).build();
 
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.of(client));
-            when(bookRepository.findByName(bookName)).thenReturn(Optional.of(book));
-            when(orderRepository.save(any(Order.class))).thenReturn(order);
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
-            when(mapper.map(any(Order.class), eq(OrderDisplayDTO.class))).thenReturn(expectedDto);
+      String clientEmail = "client@test.com)";
+      Client client = Client.builder().email(clientEmail).build();
 
-            OrderDisplayDTO actualDTO = orderService.addOrder(orderDTO);
+      String bookName = "bookName";
+      BigDecimal bookPrice = BigDecimal.TEN;
+      Book book = Book.builder().name(bookName).price(bookPrice).build();
 
-            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
-            verify(clientRepository, times(1)).findByEmail(clientEmail);
-            verify(bookRepository, times(1)).findByName(bookName);
-            verify(orderRepository, times(1)).save(any(Order.class));
-            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
-            verify(mapper, times(1)).map(any(Order.class), eq(OrderDisplayDTO.class));
+      BookItemDto bookItemDto = BookItemDto.builder().bookName(bookName).quantity(1).build();
+      List<BookItemDto> bookItems = Collections.singletonList(bookItemDto);
 
-            assertEquals(expectedDto, actualDTO);
-        }
+      CreateOrderRequestDto orderDTO = CreateOrderRequestDto.builder()
+          .employeeEmail(employeeEmail)
+          .clientEmail(clientEmail)
+          .bookItems(bookItems)
+          .build();
 
-        @Test
-        void testAddOrder_ShouldThrowExceptionWhenEmployeeNotFound() {
-            String employeeEmail = "employee@test.com";
+      Long orderId = 1L;
+      Order order = Order.builder().id(orderId).client(client).employee(employee).price(bookPrice).build();
+      OrderDisplayDto expectedDto = OrderDisplayDto.builder()
+          .clientEmail(clientEmail)
+          .employeeEmail(employeeEmail)
+          .build();
 
-            CreateOrderRequestDTO orderDTO = CreateOrderRequestDTO.builder()
-                    .employeeEmail(employeeEmail)
-                    .build();
-            String message = String.format("Employee with email %s not found", employeeEmail);
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
 
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+      when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.of(client));
+      when(bookRepository.findByName(bookName)).thenReturn(Optional.of(book));
+      when(orderRepository.save(any(Order.class))).thenReturn(order);
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      when(mapper.map(any(Order.class), eq(OrderDisplayDto.class))).thenReturn(expectedDto);
 
-            assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDTO));
+      OrderDisplayDto actualDTO = orderService.addOrder(orderDTO);
 
-            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
-            verify(clientRepository, never()).findByEmail(anyString());
-            verify(bookRepository, never()).findByName(anyString());
-            verify(clientRepository, never()).save(any(Client.class));
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(mapper, never()).map(any(Order.class), any());
-        }
+      verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+      verify(clientRepository, times(1)).findByEmail(clientEmail);
+      verify(bookRepository, times(1)).findByName(bookName);
+      verify(orderRepository, times(1)).save(any(Order.class));
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+      verify(mapper, times(1)).map(any(Order.class), eq(OrderDisplayDto.class));
 
-        @Test
-        void testAddOrder_ShouldThrowExceptionWhenClientNotFound() {
-            String employeeEmail = "employee@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
-
-            String clientEmail = "client@test.com)";
-
-            CreateOrderRequestDTO orderDTO = CreateOrderRequestDTO.builder()
-                    .employeeEmail(employeeEmail)
-                    .clientEmail(clientEmail)
-                    .build();
-            String message =  String.format("Client with email %s not found", employeeEmail);
-
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDTO));
-
-            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
-            verify(clientRepository, times(1)).findByEmail(clientEmail);
-            verify(bookRepository, never()).findByName(anyString());
-            verify(clientRepository, never()).save(any(Client.class));
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(mapper, never()).map(any(Order.class), any());
-        }
-
-        @Test
-        void testAddOrder_ShouldThrowExceptionWhenBookNotFound() {
-            String employeeEmail = "employee@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
-
-            String clientEmail = "client@test.com)";
-            Client client = Client.builder().email(clientEmail).build();
-
-            String bookName = "bookName";
-
-            BookItemDTO bookItemDto = BookItemDTO.builder().bookName(bookName).build();
-            List<BookItemDTO> bookItems = Collections.singletonList(bookItemDto);
-
-            CreateOrderRequestDTO orderDTO = CreateOrderRequestDTO.builder()
-                    .employeeEmail(employeeEmail)
-                    .clientEmail(clientEmail)
-                    .bookItems(bookItems)
-                    .build();
-            String message =  String.format("Book with name %s not found", bookName);
-
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.of(client));
-            when(bookRepository.findByName(bookName)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDTO));
-
-            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
-            verify(clientRepository, times(1)).findByEmail(clientEmail);
-            verify(bookRepository, times(1)).findByName(bookName);
-            verify(clientRepository, never()).save(any(Client.class));
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(mapper, never()).map(any(Order.class), any());
-        }
+      assertEquals(expectedDto, actualDTO);
     }
 
-    @Nested
-    class GetAllOrders {
+    @Test
+    void testAddOrder_ShouldThrowExceptionWhenEmployeeNotFound() {
+      String employeeEmail = "employee@test.com";
 
-        @Test
-        void testGetAllOrders_WhenKeywordNotGiven_ShouldReturnAllOrders() {
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orders = new PageImpl<>(List.of(new Order()));
+      CreateOrderRequestDto orderDTO = CreateOrderRequestDto.builder()
+          .employeeEmail(employeeEmail)
+          .build();
+      String message = String.format("Employee with email %s not found", employeeEmail);
 
-            when(orderRepository.findAll(pageable)).thenReturn(orders);
-            when(mapper.map(any(Order.class), eq(OrderDisplayDTO.class))).thenReturn(new OrderDisplayDTO());
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
 
-            orderService.getAllOrders(pageable, null);
+      assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDTO));
 
-            verify(orderRepository, times(1)).findAll(pageable);
-            verify(mapper, times(1)).map(any(Order.class), eq(OrderDisplayDTO.class));
-        }
-
-        @Test
-        void testGetAllOrders_WhenKeywordGiven_ShouldReturnSelectedOrders() {
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orders = new PageImpl<>(List.of(new Order()));
-            String keyword = "keyword";
-
-            when(orderRepository.searchOrders(keyword, pageable)).thenReturn(orders);
-            when(mapper.map(any(Order.class), eq(OrderDisplayDTO.class))).thenReturn(new OrderDisplayDTO());
-
-            orderService.getAllOrders(pageable, keyword);
-
-            verify(orderRepository, times(1)).searchOrders(keyword, pageable);
-            verify(mapper, times(1)).map(any(Order.class), eq(OrderDisplayDTO.class));
-        }
-
-        @Test
-        void testGetAllOrders_ShouldReturnEmptyList_WhenOrdersNotFound() {
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Order> orders = new PageImpl<>(List.of());
-
-            when(orderRepository.findAll(pageable)).thenReturn(orders);
-
-            orderService.getAllOrders(pageable, null);
-
-            verify(orderRepository, times(1)).findAll(pageable);
-            verify(mapper, never()).map(any(Order.class), eq(OrderDisplayDTO.class));
-        }
+      verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+      verify(clientRepository, never()).findByEmail(anyString());
+      verify(bookRepository, never()).findByName(anyString());
+      verify(clientRepository, never()).save(any(Client.class));
+      verify(orderRepository, never()).save(any(Order.class));
+      verify(mapper, never()).map(any(Order.class), any());
     }
 
-    @Nested
-    class CancelOrder {
+    @Test
+    void testAddOrder_ShouldThrowExceptionWhenClientNotFound() {
+      String employeeEmail = "employee@test.com";
+      Employee employee = Employee.builder().email(employeeEmail).build();
 
-        @Test
-        void testCancelOrder_ShouldReturnNothing() {
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
+      String clientEmail = "client@test.com)";
 
-            String employeeEmail = "test@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
+      CreateOrderRequestDto orderDTO = CreateOrderRequestDto.builder()
+          .employeeEmail(employeeEmail)
+          .clientEmail(clientEmail)
+          .build();
+      String message = String.format("Client with email %s not found", employeeEmail);
 
-            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+      when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
 
-            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
-            when(orderRepository.save(order)).thenReturn(order);
-            when(orderStatusRepository.save(statusRecord)).thenReturn(statusRecord);
+      assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDTO));
 
-            orderService.cancelOrder(orderId, employeeEmail);
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
-            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
-            verify(orderRepository, times(1)).save(order);
-            verify(orderStatusRepository, times(1)).save(statusRecord);
-        }
-
-        @Test
-        void testCancelOrder_WhenOrderNotFound_ShouldThrowException() {
-            Long orderId = 1L;
-
-            String employeeEmail = "test@test.com";
-            String message = String.format("Order with id %s not found", orderId);
-
-            when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.order.not.found"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, never()).findByEmail(anyString());
-            verify(orderStatusRepository, never()).findByOrderId(anyLong());
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
-        }
-
-        @Test
-        void testCancelOrder_WhenEmployeeNotFound_ShouldThrowException() {
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
-
-            String employeeEmail = "test@test.com";
-            String message = String.format("Employee with email %s not found", employeeEmail);
-
-            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
-            verify(orderStatusRepository, never()).findByOrderId(anyLong());
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
-        }
-
-        @Test
-        void testCancelOrder_WhenOrderStatusRecordNotFound_ShouldThrowException() {
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
-
-            String employeeEmail = "test@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
-            String message =  String.format("Order status record for order with id %s not found", orderId);
-
-            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.order.status.not.found"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
-            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
-        }
-
-        @ParameterizedTest
-        @EnumSource(value = OrderStatus.class, names = {"CANCELED", "CONFIRMED"})
-        void testCancelOrder_WhenOrderStatusRecordNotPending_ShouldThrowException(OrderStatus orderStatus) {
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
-
-            String employeeEmail = "test@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
-
-            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(orderStatus).build();
-            String message =  "Order status is not pending";
-
-            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
-            when(messageSource.getMessage(eq("error.order.status.not.pending"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(IllegalStateException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
-            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
-        }
+      verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+      verify(clientRepository, times(1)).findByEmail(clientEmail);
+      verify(bookRepository, never()).findByName(anyString());
+      verify(clientRepository, never()).save(any(Client.class));
+      verify(orderRepository, never()).save(any(Order.class));
+      verify(mapper, never()).map(any(Order.class), any());
     }
 
-    @Nested
-    class ConfirmOrder {
+    @Test
+    void testAddOrder_ShouldThrowExceptionWhenBookNotFound() {
+      String employeeEmail = "employee@test.com";
+      Employee employee = Employee.builder().email(employeeEmail).build();
 
-        @Test
-        void testConfirmOrder_ShouldReturnNothing() {
+      String clientEmail = "client@test.com)";
+      Client client = Client.builder().email(clientEmail).build();
 
-            BigDecimal clientBalance = BigDecimal.TEN;
-            Client client = Client.builder().balance(clientBalance).build();
+      String bookName = "bookName";
 
-            Long orderId = 1L;
-            BigDecimal price = BigDecimal.TEN;
-            Order order = Order.builder().id(orderId).price(price).client(client).build();
+      BookItemDto bookItemDto = BookItemDto.builder().bookName(bookName).build();
+      List<BookItemDto> bookItems = Collections.singletonList(bookItemDto);
 
-            String employeeEmail = "test@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
+      CreateOrderRequestDto orderDTO = CreateOrderRequestDto.builder()
+          .employeeEmail(employeeEmail)
+          .clientEmail(clientEmail)
+          .bookItems(bookItems)
+          .build();
+      String message = String.format("Book with name %s not found", bookName);
 
-            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+      when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.of(client));
+      when(bookRepository.findByName(bookName)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(message);
 
-            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));;
-            when(orderRepository.save(order)).thenReturn(order);
-            when(orderStatusRepository.save(statusRecord)).thenReturn(statusRecord);
-            when(clientRepository.save(client)).thenReturn(client);
+      assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDTO));
 
-            orderService.confirmOrder(orderId, employeeEmail);
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, times(1)).findByEmail(employeeEmail);
-            verify(orderStatusRepository, times(1)).findByOrderId(orderId);
-            verify(orderRepository, times(1)).save(order);
-            verify(orderStatusRepository, times(1)).save(statusRecord);
-            verify(clientRepository, times(1)).save(client);
-        }
-
-        @Test
-        void testConfirmOrder_WhenOrderNotFound_ShouldThrowException() {
-
-            Long orderId = 1L;
-
-            String employeeEmail = "test@test.com";
-            String message = String.format("Order with id '%s' not found", orderId);
-
-            when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.order.not.found"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, never()).findByEmail(anyString());
-            verify(orderStatusRepository, never()).findByOrderId(anyLong());
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        void testConfirmOrder_WhenEmployeeNotFound_ShouldThrowException() {
-
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
-
-            String employeeEmail = "test@test.com";
-            String message = "Employee with email '%s' not found";
-
-            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, times(1)).findByEmail(anyString());
-            verify(orderStatusRepository, never()).findByOrderId(anyLong());
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        void testConfirmOrder_WhenOrderStatusNotFound_ShouldThrowException() {
-
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
-
-            String employeeEmail = "test@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
-            String message =  String.format("Order status for order with id '%s' not found", orderId);
-
-            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.order.status.not.found"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, times(1)).findByEmail(anyString());
-            verify(orderStatusRepository, times(1)).findByOrderId(anyLong());
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @ParameterizedTest
-        @EnumSource(value = OrderStatus.class, names = {"CANCELED", "CONFIRMED"})
-        void testConfirmOrder_WhenOrderStatusNotPending_ShouldThrowException(OrderStatus orderStatus) {
-
-            Long orderId = 1L;
-            Order order = Order.builder().id(orderId).build();
-
-            String employeeEmail = "test@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
-
-            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(orderStatus).build();
-            String message = "Order status is not pending";
-
-            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
-            when(messageSource.getMessage(eq("error.order.status.not.pending"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(IllegalStateException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, times(1)).findByEmail(anyString());
-            verify(orderStatusRepository, times(1)).findByOrderId(anyLong());
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
-
-        @Test
-        void testConfirmOrder_WhenBalanceInsufficient_ShouldThrowException() {
-
-            BigDecimal clientBalance = BigDecimal.ZERO;
-            Client client = Client.builder().balance(clientBalance).build();
-
-            Long orderId = 1L;
-            BigDecimal price = BigDecimal.TEN;
-            Order order = Order.builder().id(orderId).price(price).client(client).build();
-
-            String employeeEmail = "test@test.com";
-            Employee employee = Employee.builder().email(employeeEmail).build();
-
-            OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
-            String message = "User has not enough money";
-
-            when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
-            when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
-            when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
-            when(messageSource.getMessage(eq("error.user.insufficient.funds"), any(), any(Locale.class))).thenReturn(message);
-
-            assertThrows(InsufficientFundsException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
-
-            verify(orderRepository, times(1)).findById(orderId);
-            verify(employeeRepository, times(1)).findByEmail(anyString());
-            verify(orderStatusRepository, times(1)).findByOrderId(anyLong());
-            verify(orderRepository, never()).save(any(Order.class));
-            verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
-            verify(clientRepository, never()).save(any(Client.class));
-        }
+      verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+      verify(clientRepository, times(1)).findByEmail(clientEmail);
+      verify(bookRepository, times(1)).findByName(bookName);
+      verify(clientRepository, never()).save(any(Client.class));
+      verify(orderRepository, never()).save(any(Order.class));
+      verify(mapper, never()).map(any(Order.class), any());
     }
+  }
+
+  @Nested
+  class GetAllOrders {
+
+    @Test
+    void testGetAllOrders_WhenKeywordNotGiven_ShouldReturnAllOrders() {
+      Pageable pageable = PageRequest.of(0, 10);
+      Page<Order> orders = new PageImpl<>(List.of(new Order()));
+
+      when(orderRepository.findAll(pageable)).thenReturn(orders);
+      when(mapper.map(any(Order.class), eq(OrderDisplayDto.class))).thenReturn(new OrderDisplayDto());
+
+      orderService.getAllOrders(pageable, null);
+
+      verify(orderRepository, times(1)).findAll(pageable);
+      verify(mapper, times(1)).map(any(Order.class), eq(OrderDisplayDto.class));
+    }
+
+    @Test
+    void testGetAllOrders_WhenKeywordGiven_ShouldReturnSelectedOrders() {
+      Pageable pageable = PageRequest.of(0, 10);
+      Page<Order> orders = new PageImpl<>(List.of(new Order()));
+      String keyword = "keyword";
+
+      when(orderRepository.searchOrders(keyword, pageable)).thenReturn(orders);
+      when(mapper.map(any(Order.class), eq(OrderDisplayDto.class))).thenReturn(new OrderDisplayDto());
+
+      orderService.getAllOrders(pageable, keyword);
+
+      verify(orderRepository, times(1)).searchOrders(keyword, pageable);
+      verify(mapper, times(1)).map(any(Order.class), eq(OrderDisplayDto.class));
+    }
+
+    @Test
+    void testGetAllOrders_ShouldReturnEmptyList_WhenOrdersNotFound() {
+      Pageable pageable = PageRequest.of(0, 10);
+      Page<Order> orders = new PageImpl<>(List.of());
+
+      when(orderRepository.findAll(pageable)).thenReturn(orders);
+
+      orderService.getAllOrders(pageable, null);
+
+      verify(orderRepository, times(1)).findAll(pageable);
+      verify(mapper, never()).map(any(Order.class), eq(OrderDisplayDto.class));
+    }
+  }
+
+  @Nested
+  class CancelOrder {
+
+    @Test
+    void testCancelOrder_ShouldReturnNothing() {
+      Long orderId = 1L;
+      Order order = Order.builder().id(orderId).build();
+      String employeeEmail = "test@test.com";
+      Employee employee = Employee.builder().email(employeeEmail).build();
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+
+      // Stubs stay the same, but execution order has changed
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+      when(orderRepository.save(order)).thenReturn(order);
+      when(orderStatusRepository.save(statusRecord)).thenReturn(statusRecord);
+
+      orderService.cancelOrder(orderId, employeeEmail);
+
+      // All should be called in the success path
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+      verify(orderRepository, times(1)).findById(orderId);
+      verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+      verify(orderRepository, times(1)).save(order);
+      verify(orderStatusRepository, times(1)).save(statusRecord);
+    }
+
+    @Test
+    void testCancelOrder_WhenOrderStatusRecordNotFound_ShouldThrowException() {
+      Long orderId = 1L;
+      String employeeEmail = "test@test.com";
+      String message = String.format("Order status record for order with id %s not found", orderId);
+
+      // This is now the FIRST check in your implementation
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.order.status.not.found"), any(), any(Locale.class))).thenReturn(message);
+
+      assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
+
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+      // These are never reached now because StatusRecord was first!
+      verify(orderRepository, never()).findById(anyLong());
+      verify(employeeRepository, never()).findByEmail(anyString());
+      verify(orderRepository, never()).save(any(Order.class));
+      verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = OrderStatus.class, names = {"CANCELED", "CONFIRMED"})
+    void testCancelOrder_WhenOrderStatusRecordNotPending_ShouldThrowException(OrderStatus orderStatus) {
+      Long orderId = 1L;
+      String employeeEmail = "test@test.com";
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(orderStatus).build();
+      String message = "Order status is not pending";
+
+      // Logic: find status -> check status -> (fails here)
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      when(messageSource.getMessage(eq("error.order.status.not.pending"), any(), any(Locale.class))).thenReturn(message);
+
+      assertThrows(IllegalStateException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
+
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+      // Order and Employee repos are never touched because the check failed early
+      verify(orderRepository, never()).findById(anyLong());
+      verify(employeeRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void testCancelOrder_WhenOrderNotFound_ShouldThrowException() {
+      Long orderId = 1L;
+      String employeeEmail = "test@test.com";
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+      String message = String.format("Order with id %s not found", orderId);
+
+      // Logic: find status (ok) -> check status (ok) -> find order (fails here)
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.order.not.found"), any(), any(Locale.class))).thenReturn(message);
+
+      assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
+
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+      verify(orderRepository, times(1)).findById(orderId);
+      // Employee is still safe since it's the last check
+      verify(employeeRepository, never()).findByEmail(anyString());
+    }
+
+    @Test
+    void testCancelOrder_WhenEmployeeNotFound_ShouldThrowException() {
+      Long orderId = 1L;
+      Order order = Order.builder().id(orderId).build();
+      String employeeEmail = "test@test.com";
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+      String message = String.format("Employee with email %s not found", employeeEmail);
+
+      // Logic: find status (ok) -> check status (ok) -> find order (ok) -> find employee (fails here)
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
+
+      assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
+
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+      verify(orderRepository, times(1)).findById(orderId);
+      verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+      verify(orderRepository, never()).save(any(Order.class));
+    }
+  }
+
+  @Nested
+  class ConfirmOrder {
+
+    @Test
+    void testConfirmOrder_ShouldReturnNothing() {
+
+      BigDecimal clientBalance = BigDecimal.TEN;
+      Client client = Client.builder().balance(clientBalance).build();
+
+      Long orderId = 1L;
+      BigDecimal price = BigDecimal.TEN;
+      Order order = Order.builder().id(orderId).price(price).client(client).build();
+
+      String employeeEmail = "test@test.com";
+      Employee employee = Employee.builder().email(employeeEmail).build();
+
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+
+      when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      ;
+      when(orderRepository.save(order)).thenReturn(order);
+      when(orderStatusRepository.save(statusRecord)).thenReturn(statusRecord);
+      when(clientRepository.save(client)).thenReturn(client);
+
+      orderService.confirmOrder(orderId, employeeEmail);
+
+      verify(orderRepository, times(1)).findById(orderId);
+      verify(employeeRepository, times(1)).findByEmail(employeeEmail);
+      verify(orderStatusRepository, times(1)).findByOrderId(orderId);
+      verify(orderRepository, times(1)).save(order);
+      verify(orderStatusRepository, times(1)).save(statusRecord);
+      verify(clientRepository, times(1)).save(client);
+    }
+
+    @Test
+    void testConfirmOrder_WhenOrderNotFound_ShouldThrowException() {
+
+      Long orderId = 1L;
+
+      String employeeEmail = "test@test.com";
+      String message = String.format("Order with id '%s' not found", orderId);
+
+      when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.order.not.found"), any(), any(Locale.class))).thenReturn(message);
+
+      assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
+
+      verify(orderRepository, times(1)).findById(orderId);
+      verify(employeeRepository, never()).findByEmail(anyString());
+      verify(orderStatusRepository, never()).findByOrderId(anyLong());
+      verify(orderRepository, never()).save(any(Order.class));
+      verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+      verify(clientRepository, never()).save(any(Client.class));
+    }
+
+    @Test
+    void testConfirmOrder_WhenEmployeeNotFound_ShouldThrowException() {
+
+      Long orderId = 1L;
+      Order order = Order.builder().id(orderId).build();
+
+      String employeeEmail = "test@test.com";
+      String message = "Employee with email '%s' not found";
+
+      when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
+
+      assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
+
+      verify(orderRepository, times(1)).findById(orderId);
+      verify(employeeRepository, times(1)).findByEmail(anyString());
+      verify(orderStatusRepository, never()).findByOrderId(anyLong());
+      verify(orderRepository, never()).save(any(Order.class));
+      verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+      verify(clientRepository, never()).save(any(Client.class));
+    }
+
+    @Test
+    void testConfirmOrder_WhenOrderStatusNotFound_ShouldThrowException() {
+
+      Long orderId = 1L;
+      Order order = Order.builder().id(orderId).build();
+
+      String employeeEmail = "test@test.com";
+      Employee employee = Employee.builder().email(employeeEmail).build();
+      String message = String.format("Order status for order with id '%s' not found", orderId);
+
+      when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.order.status.not.found"), any(), any(Locale.class))).thenReturn(message);
+
+      assertThrows(NotFoundException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
+
+      verify(orderRepository, times(1)).findById(orderId);
+      verify(employeeRepository, times(1)).findByEmail(anyString());
+      verify(orderStatusRepository, times(1)).findByOrderId(anyLong());
+      verify(orderRepository, never()).save(any(Order.class));
+      verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+      verify(clientRepository, never()).save(any(Client.class));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = OrderStatus.class, names = {"CANCELED", "CONFIRMED"})
+    void testConfirmOrder_WhenOrderStatusNotPending_ShouldThrowException(OrderStatus orderStatus) {
+
+      Long orderId = 1L;
+      Order order = Order.builder().id(orderId).build();
+
+      String employeeEmail = "test@test.com";
+      Employee employee = Employee.builder().email(employeeEmail).build();
+
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(orderStatus).build();
+      String message = "Order status is not pending";
+
+      when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      when(messageSource.getMessage(eq("error.order.status.not.pending"), any(), any(Locale.class))).thenReturn(message);
+
+      assertThrows(IllegalStateException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
+
+      verify(orderRepository, times(1)).findById(orderId);
+      verify(employeeRepository, times(1)).findByEmail(anyString());
+      verify(orderStatusRepository, times(1)).findByOrderId(anyLong());
+      verify(orderRepository, never()).save(any(Order.class));
+      verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+      verify(clientRepository, never()).save(any(Client.class));
+    }
+
+    @Test
+    void testConfirmOrder_WhenBalanceInsufficient_ShouldThrowException() {
+
+      BigDecimal clientBalance = BigDecimal.ZERO;
+      Client client = Client.builder().balance(clientBalance).build();
+
+      Long orderId = 1L;
+      BigDecimal price = BigDecimal.TEN;
+      Order order = Order.builder().id(orderId).price(price).client(client).build();
+
+      String employeeEmail = "test@test.com";
+      Employee employee = Employee.builder().email(employeeEmail).build();
+
+      OrderStatusRecord statusRecord = OrderStatusRecord.builder().status(OrderStatus.PENDING).build();
+      String message = "User has not enough money";
+
+      when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+      when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
+      when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
+      when(messageSource.getMessage(eq("error.user.insufficient.funds"), any(), any(Locale.class))).thenReturn(message);
+
+      assertThrows(InsufficientFundsException.class, () -> orderService.confirmOrder(orderId, employeeEmail));
+
+      verify(orderRepository, times(1)).findById(orderId);
+      verify(employeeRepository, times(1)).findByEmail(anyString());
+      verify(orderStatusRepository, times(1)).findByOrderId(anyLong());
+      verify(orderRepository, never()).save(any(Order.class));
+      verify(orderStatusRepository, never()).save(any(OrderStatusRecord.class));
+      verify(clientRepository, never()).save(any(Client.class));
+    }
+  }
 }

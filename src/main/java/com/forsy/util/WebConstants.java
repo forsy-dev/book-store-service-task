@@ -1,111 +1,139 @@
 package com.forsy.util;
 
-import org.springframework.web.util.UriComponentsBuilder;
-
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import org.springframework.web.util.UriComponentsBuilder;
 
+/**
+ * Utility class containing centralized constants and helper methods for the web layer.
+ *
+ * <p>This class serves as the single source of truth for URL routes, view names,
+ * path segments, model attributes, and request parameters. It also provide
+ * static utility methods for path manipulation, URI expansion, and localized
+ * redirection logic.
+ *
+ * @author Illia
+ */
 public final class WebConstants {
 
-    private WebConstants() {}
+  /**
+   * Private constructor to prevent instantiation of this utility class.
+   */
+  private WebConstants() {
+    throw new UnsupportedOperationException(
+        "This is a utility class and cannot be instantiated");
+  }
 
-    // View Names
-    // Books
-    public static final String VIEW_BOOKS = "books";
-    public static final String VIEW_BOOK_FORM = "book-form";
-    public static final String VIEW_BOOK_DETAIL = "book-detail";
+  // --- View Names ---
+  public static final String VIEW_BOOKS = "books";
+  public static final String VIEW_BOOK_FORM = "book-form";
+  public static final String VIEW_BOOK_DETAIL = "book-detail";
+  public static final String VIEW_CLIENTS = "clients";
+  public static final String VIEW_CLIENT_DETAIL = "client-detail";
 
-    // Clients
-    public static final String VIEW_CLIENTS = "clients";
-    public static final String VIEW_CLIENT_DETAIL = "client-detail";
+  // --- Path Segments ---
+  public static final String PATH_VAR_NAME = "/{name}";
+  public static final String PATH_NEW = "/new";
+  public static final String PATH_EDIT = "/edit";
+  public static final String PATH_VAR_EMAIL = "/{email}";
+  public static final String PATH_PROFILE = "/profile";
+  public static final String PATH_BLOCK = "/block";
+  public static final String PATH_UNBLOCK = "/unblock";
+  public static final String PATH_ADD_BALANCE = "/add-balance";
 
-    // Path Segments
-    // Books
-    public static final String PATH_VAR_NAME = "/{name}";
-    public static final String PATH_NEW = "/new";
-    public static final String PATH_EDIT = "/edit";
+  // --- URL Routes ---
+  public static final String URL_BOOKS = "/books";
+  public static final String URL_BOOK_DETAIL = URL_BOOKS + PATH_VAR_NAME;
+  public static final String URL_CLIENTS = "/clients";
+  public static final String URL_CLIENT_DETAIL = URL_CLIENTS + PATH_VAR_EMAIL;
+  public static final String URL_CLIENT_PROFILE = URL_CLIENTS + PATH_PROFILE;
+  public static final String URL_CLIENT_BLOCK = URL_CLIENT_DETAIL + PATH_BLOCK;
+  public static final String URL_CLIENT_UNBLOCK = URL_CLIENT_DETAIL + PATH_UNBLOCK;
+  public static final String URL_CLIENT_ADD_BALANCE = URL_CLIENT_DETAIL + PATH_ADD_BALANCE;
+  public static final String URL_PROFILE = "/profile";
+  public static final String URL_LOGIN = "/login";
 
-    // Clients
-    public static final String PATH_VAR_EMAIL = "/{email}";
-    public static final String PATH_PROFILE = "/profile";
-    public static final String PATH_BLOCK = "/block";
-    public static final String PATH_UNBLOCK = "/unblock";
-    public static final String PATH_ADD_BALANCE = "/add-balance";
+  // --- Attribute Names ---
+  public static final String ATTR_BOOK_PAGE = "bookPage";
+  public static final String ATTR_KEYWORD = "keyword";
+  public static final String ATTR_BOOK = "book";
+  public static final String ATTR_ADD_TO_CART_DTO = "addToCartDTO";
+  public static final String ATTR_IS_EDIT = "isEdit";
+  public static final String ATTR_CLIENT_PAGE = "clientPage";
+  public static final String ATTR_CLIENT = "client";
+  public static final String ATTR_CLIENT_UPDATE_DTO = "clientUpdateDTO";
+  public static final String ATTR_ADD_BALANCE_DTO = "addBalanceDTO";
+  public static final String ATTR_ERROR_MESSAGE = "errorMessage";
+  public static final String ATTR_SUCCESS_MESSAGE = "successMessage";
 
-    // URL Routes
-    // Books
-    public static final String URL_BOOKS = "/books";
-    public static final String URL_BOOK_DETAIL = URL_BOOKS + PATH_VAR_NAME;
+  // --- Parameter Names ---
+  public static final String PARAM_KEYWORD = "keyword";
+  public static final String PARAM_ACCOUNT_DELETED = "accountDeleted";
 
-    // Clients
-    public static final String URL_CLIENTS = "/clients";
-    public static final String URL_CLIENT_DETAIL = URL_CLIENTS + PATH_VAR_EMAIL;
-    public static final String URL_CLIENT_PROFILE = URL_CLIENTS + PATH_PROFILE;
-    public static final String URL_CLIENT_BLOCK = URL_CLIENT_DETAIL + PATH_BLOCK;
-    public static final String URL_CLIENT_UNBLOCK = URL_CLIENT_DETAIL + PATH_UNBLOCK;
-    public static final String URL_CLIENT_ADD_BALANCE = URL_CLIENT_DETAIL + PATH_ADD_BALANCE;
+  /**
+   * Prefixes a path with the Spring MVC redirect prefix.
+   *
+   * @param path the destination path
+   * @return the formatted redirect string
+   */
+  public static String redirect(String path) {
+    return "redirect:" + path;
+  }
 
-    // Common
-    public static final String URL_PROFILE = "/profile";
-    public static final String URL_LOGIN = "/login";
+  /**
+   * Generates the internal key used by Spring's BindingResult to store
+   * validation errors for a specific attribute.
+   *
+   * @param attribute the name of the model attribute
+   * @return the full key for the BindingResult
+   */
+  public static String getBindingResultKey(String attribute) {
+    return "org.springframework.validation.BindingResult." + attribute;
+  }
 
-    // Attributes Names
-    // Books
-    public static final String ATTR_BOOK_PAGE = "bookPage";
-    public static final String ATTR_KEYWORD = "keyword";
-    public static final String ATTR_BOOK = "book";
-    public static final String ATTR_ADD_TO_CART_DTO = "addToCartDTO";
-    public static final String ATTR_IS_EDIT = "isEdit";
-
-    // Clients
-    public static final String ATTR_CLIENT_PAGE = "clientPage";
-    public static final String ATTR_CLIENT = "client";
-    public static final String ATTR_CLIENT_UPDATE_DTO = "clientUpdateDTO";
-    public static final String ATTR_ADD_BALANCE_DTO = "addBalanceDTO";
-
-    // Error
-    public static final String ATTR_ERROR_MESSAGE = "errorMessage";
-
-    // Success
-    public static final String ATTR_SUCCESS_MESSAGE = "successMessage";
-
-    // Parameters Names
-    public static final String PARAM_KEYWORD = "keyword";
-    public static final String PARAM_ACCOUNT_DELETED = "accountDeleted";
-
-    public static String redirect(String path) {
-        return "redirect:" + path;
+  /**
+   * Appends URL-encoded query parameters to a given path.
+   *
+   * @param path       the base URL path
+   * @param parameters a map of key-value pairs to append as query parameters
+   * @return the complete URL string with encoded parameters
+   */
+  public static String addParameters(String path, Map<String, String> parameters) {
+    if (parameters.isEmpty()) {
+      return path;
     }
 
-    public static String getBindingResultKey(String attribute) {
-        return "org.springframework.validation.BindingResult." + attribute;
+    StringBuilder builder = new StringBuilder(path);
+    if (!path.contains("?")) {
+      builder.append("?");
+    } else if (!path.endsWith("?") && !path.endsWith("&")) {
+      builder.append("&");
     }
 
-    public static String addParameters(String path, Map<String, String> parameters) {
-        if (parameters.isEmpty()) {
-            return path;
-        }
+    for (Map.Entry<String, String> entry : parameters.entrySet()) {
+      String encodedKey = URLEncoder.encode(
+          entry.getKey(), StandardCharsets.UTF_8);
+      String encodedValue = URLEncoder.encode(
+          entry.getValue(), StandardCharsets.UTF_8);
 
-        StringBuilder builder = new StringBuilder(path);
-        if (!path.contains("?")) {
-            builder.append("?");
-        } else if (!path.endsWith("?") && !path.endsWith("&")) {
-            builder.append("&");
-        }
-
-        for (Map.Entry<String, String> entry : parameters.entrySet()) {
-            String encodedKey = URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8);
-            String encodedValue = URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8);
-
-            builder.append(encodedKey).append("=").append(encodedValue).append("&");
-        }
-
-        builder.deleteCharAt(builder.length() - 1);
-        return builder.toString();
+      builder.append(encodedKey).append("=").append(encodedValue).append("&");
     }
 
-    public static String expandPathVariables(String path, Object... variables) {
-        return UriComponentsBuilder.fromPath(path).buildAndExpand(variables).toUriString();
-    }
+    builder.deleteCharAt(builder.length() - 1);
+    return builder.toString();
+  }
+
+  /**
+   * Expands template variables within a path using Spring's URI component builder.
+   *
+   * @param path      the path containing placeholders (e.g., "/{name}")
+   * @param variables the values to inject into the placeholders
+   * @return the expanded URI string
+   */
+  public static String expandPathVariables(String path, Object... variables) {
+    return UriComponentsBuilder.fromPath(path)
+        .buildAndExpand(variables)
+        .toUriString();
+  }
 }

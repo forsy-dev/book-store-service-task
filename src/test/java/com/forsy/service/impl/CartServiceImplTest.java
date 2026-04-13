@@ -1,10 +1,26 @@
 package com.forsy.service.impl;
 
-import com.forsy.dto.AddToCartDTO;
-import com.forsy.dto.BookDTO;
-import com.forsy.dto.CartItemDisplayDTO;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.forsy.dto.AddToCartDto;
+import com.forsy.dto.BookDto;
+import com.forsy.dto.CartItemDisplayDto;
 import com.forsy.exception.NotFoundException;
 import com.forsy.service.BookService;
+import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,183 +29,172 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
 
-import java.math.BigDecimal;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 @ExtendWith(MockitoExtension.class)
 public class CartServiceImplTest {
 
-    @InjectMocks
-    private CartServiceImpl cartService;
+  @InjectMocks
+  private CartServiceImpl cartService;
 
-    @Mock
-    private BookService bookService;
+  @Mock
+  private BookService bookService;
 
-    @Mock
-    private MessageSource messageSource;
+  @Mock
+  private MessageSource messageSource;
 
-    @Nested
-    class AddBookToCart {
+  @Nested
+  class AddBookToCart {
 
-        @Test
-        void testAddBookToCart_ShouldReturnNothingWhenSuccess() {
-            Map<String, Integer> cart = new HashMap<>();
-            String bookName = "book";
-            int quantity = 1;
-            AddToCartDTO dto = new AddToCartDTO(bookName, quantity);
+    @Test
+    void testAddBookToCart_ShouldReturnNothingWhenSuccess() {
+      Map<String, Integer> cart = new HashMap<>();
+      String bookName = "book";
+      int quantity = 1;
+      AddToCartDto dto = new AddToCartDto(bookName, quantity);
 
-            when(bookService.getBookByName(bookName)).thenReturn(new BookDTO());
+      when(bookService.getBookByName(bookName)).thenReturn(new BookDto());
 
-            cartService.addBookToCart(cart, dto);
+      cartService.addBookToCart(cart, dto);
 
-            verify(bookService, times(1)).getBookByName(bookName);
-        }
-
-        @Test
-        void testAddBookToCart_ShouldThrowExceptionWhenCartIsNull() {
-            Map<String, Integer> cart = null;
-            String bookName = "book";
-            int quantity = 1;
-            AddToCartDTO dto = new AddToCartDTO(bookName, quantity);
-
-            when(messageSource.getMessage(eq("error.cart.null"), any(), any(Locale.class))).thenReturn("Cart is null");
-
-            assertThrows(IllegalArgumentException.class, () -> cartService.addBookToCart(cart, dto));
-
-            verify(bookService, never()).getBookByName(bookName);
-        }
-
-        @Test
-        void testAddBookToCart_ShouldThrowExceptionWhenBookNotFound() {
-            Map<String, Integer> cart = new HashMap<>();
-            String bookName = "book";
-            int quantity = 1;
-            AddToCartDTO dto = new AddToCartDTO(bookName, quantity);
-
-            when(bookService.getBookByName(bookName)).thenThrow(new NotFoundException("Book not found"));
-
-            assertThrows(NotFoundException.class, () -> cartService.addBookToCart(cart, dto));
-
-            verify(bookService, times(1)).getBookByName(bookName);
-        }
+      verify(bookService, times(1)).getBookByName(bookName);
     }
 
-    @Nested
-    class GetCart {
+    @Test
+    void testAddBookToCart_ShouldThrowExceptionWhenCartIsNull() {
+      String bookName = "book";
+      int quantity = 1;
+      AddToCartDto dto = new AddToCartDto(bookName, quantity);
 
-        @Test
-        void testGetCart_ShouldReturnListWhenSuccess() {
-            String bookName = "book";
-            int quantity = 2;
-            Map<String, Integer> cart = new HashMap<>();
-            cart.put(bookName, quantity);
+      when(messageSource.getMessage(eq("error.cart.null"), any(), any(Locale.class))).thenReturn("Cart is null");
 
-            BigDecimal price = BigDecimal.TEN;
-            BookDTO bookDto = BookDTO.builder().name(bookName).price(price).build();
-            BigDecimal expectedSubtotal = price.multiply(BigDecimal.valueOf(quantity));
+      assertThrows(IllegalArgumentException.class, () -> cartService.addBookToCart(null, dto));
 
-            when(bookService.getBookByName(bookName)).thenReturn(bookDto);
-
-            List<CartItemDisplayDTO> dto = cartService.getCartItems(cart);
-
-            assertEquals(bookName, dto.get(0).getBook().getName());
-            assertEquals(quantity, dto.get(0).getQuantity());
-            assertEquals(0, expectedSubtotal.compareTo(dto.get(0).getSubtotal()), "Subtotal calculation is incorrect");
-
-            verify(bookService, times(1)).getBookByName(bookName);
-        }
-
-        @Test
-        void testGetCart_ShouldReturnEmptyListWhenCartIsNull() {
-            Map<String, Integer> cart = null;
-
-            List<CartItemDisplayDTO> dto = cartService.getCartItems(cart);
-
-            assertEquals(0, dto.size());
-
-            verify(bookService, never()).getBookByName(anyString());
-        }
+      verify(bookService, never()).getBookByName(bookName);
     }
 
-    @Nested
-    class GetCartItems {
+    @Test
+    void testAddBookToCart_ShouldThrowExceptionWhenBookNotFound() {
+      Map<String, Integer> cart = new HashMap<>();
+      String bookName = "book";
+      int quantity = 1;
+      AddToCartDto dto = new AddToCartDto(bookName, quantity);
 
-        @Test
-        void testGetCartItems_ShouldReturnItems() {
-            String bookName = "book";
-            int quantity = 2;
-            Map<String, Integer> cart = new HashMap<>();
-            cart.put(bookName, quantity);
+      when(bookService.getBookByName(bookName)).thenThrow(new NotFoundException("Book not found"));
 
-            BigDecimal price = BigDecimal.TEN;
-            BookDTO bookDto = BookDTO.builder().name(bookName).price(price).build();
-            BigDecimal expectedSubtotal = price.multiply(BigDecimal.valueOf(quantity));
+      assertThrows(NotFoundException.class, () -> cartService.addBookToCart(cart, dto));
 
-            when(bookService.getBookByName(bookName)).thenReturn(bookDto);
+      verify(bookService, times(1)).getBookByName(bookName);
+    }
+  }
 
-            List<CartItemDisplayDTO> dto = cartService.getCartItems(cart);
+  @Nested
+  class GetCart {
 
-            assertEquals(bookName, dto.get(0).getBook().getName());
-            assertEquals(quantity, dto.get(0).getQuantity());
-            assertEquals(0, expectedSubtotal.compareTo(dto.get(0).getSubtotal()), "Subtotal calculation is incorrect");
+    @Test
+    void testGetCart_ShouldReturnListWhenSuccess() {
+      String bookName = "book";
+      int quantity = 2;
+      Map<String, Integer> cart = new HashMap<>();
+      cart.put(bookName, quantity);
 
-            verify(bookService, times(1)).getBookByName(bookName);
-        }
+      BigDecimal price = BigDecimal.TEN;
+      BookDto bookDto = BookDto.builder().name(bookName).price(price).build();
+      BigDecimal expectedSubtotal = price.multiply(BigDecimal.valueOf(quantity));
 
-        @Test
-        void testGetCartItems_ShouldSkipItem_WhenNotFound() {
-            String bookName = "book";
-            int quantity = 2;
-            Map<String, Integer> cart = new HashMap<>();
-            cart.put(bookName, quantity);
+      when(bookService.getBookByName(bookName)).thenReturn(bookDto);
 
-            when(bookService.getBookByName(bookName)).thenThrow(new NotFoundException("Book not found"));
+      List<CartItemDisplayDto> dto = cartService.getCartItems(cart);
 
-            List<CartItemDisplayDTO> dto = cartService.getCartItems(cart);
+      assertEquals(bookName, dto.get(0).getBook().getName());
+      assertEquals(quantity, dto.get(0).getQuantity());
+      assertEquals(0, expectedSubtotal.compareTo(dto.get(0).getSubtotal()), "Subtotal calculation is incorrect");
 
-            assertEquals(0, dto.size());
-
-            verify(bookService, times(1)).getBookByName(bookName);
-        }
+      verify(bookService, times(1)).getBookByName(bookName);
     }
 
-    @Nested
-    class CalculateTotalCost {
+    @Test
+    void testGetCart_ShouldReturnEmptyListWhenCartIsNull() {
 
-        @Test
-        void testCalculateTotalCost_ShouldReturnSum() {
-            CartItemDisplayDTO dto1 = CartItemDisplayDTO.builder().subtotal(BigDecimal.TEN).build();
-            CartItemDisplayDTO dto2 = CartItemDisplayDTO.builder().subtotal(BigDecimal.ONE).build();
-            List<CartItemDisplayDTO> items = Arrays.asList(dto1, dto2);
+      List<CartItemDisplayDto> dto = cartService.getCartItems(null);
 
-            BigDecimal total = cartService.calculateTotalCost(items);
+      assertEquals(0, dto.size());
 
-            assertEquals(BigDecimal.valueOf(11), total);
-        }
+      verify(bookService, never()).getBookByName(anyString());
+    }
+  }
 
-        @Test
-        void testCalculateTotalCost_WhenListEmpty_ShouldReturnZero() {
-            BigDecimal total = cartService.calculateTotalCost(List.of());
+  @Nested
+  class GetCartItems {
 
-            assertEquals(BigDecimal.ZERO, total);
-        }
+    @Test
+    void testGetCartItems_ShouldReturnItems() {
+      String bookName = "book";
+      int quantity = 2;
+      Map<String, Integer> cart = new HashMap<>();
+      cart.put(bookName, quantity);
+
+      BigDecimal price = BigDecimal.TEN;
+      BookDto bookDto = BookDto.builder().name(bookName).price(price).build();
+      BigDecimal expectedSubtotal = price.multiply(BigDecimal.valueOf(quantity));
+
+      when(bookService.getBookByName(bookName)).thenReturn(bookDto);
+
+      List<CartItemDisplayDto> dto = cartService.getCartItems(cart);
+
+      assertEquals(bookName, dto.get(0).getBook().getName());
+      assertEquals(quantity, dto.get(0).getQuantity());
+      assertEquals(0, expectedSubtotal.compareTo(dto.get(0).getSubtotal()), "Subtotal calculation is incorrect");
+
+      verify(bookService, times(1)).getBookByName(bookName);
     }
 
-    @Nested
-    class RemoveBookFromCart {
+    @Test
+    void testGetCartItems_ShouldSkipItem_WhenNotFound() {
+      String bookName = "book";
+      int quantity = 2;
+      Map<String, Integer> cart = new HashMap<>();
+      cart.put(bookName, quantity);
 
-        @Test
-        void testRemoveBookFromCart_ShouldRemoveBook() {
-            Map<String, Integer> cart = new HashMap<>();
-            cart.put("book", 1);
-            cartService.removeBookFromCart(cart, "book");
-            assertEquals(0, cart.size());
-        }
+      when(bookService.getBookByName(bookName)).thenThrow(new NotFoundException("Book not found"));
+
+      List<CartItemDisplayDto> dto = cartService.getCartItems(cart);
+
+      assertEquals(0, dto.size());
+
+      verify(bookService, times(1)).getBookByName(bookName);
     }
+  }
+
+  @Nested
+  class CalculateTotalCost {
+
+    @Test
+    void testCalculateTotalCost_ShouldReturnSum() {
+      CartItemDisplayDto dto1 = CartItemDisplayDto.builder().subtotal(BigDecimal.TEN).build();
+      CartItemDisplayDto dto2 = CartItemDisplayDto.builder().subtotal(BigDecimal.ONE).build();
+      List<CartItemDisplayDto> items = Arrays.asList(dto1, dto2);
+
+      BigDecimal total = cartService.calculateTotalCost(items);
+
+      assertEquals(BigDecimal.valueOf(11), total);
+    }
+
+    @Test
+    void testCalculateTotalCost_WhenListEmpty_ShouldReturnZero() {
+      BigDecimal total = cartService.calculateTotalCost(List.of());
+
+      assertEquals(BigDecimal.ZERO, total);
+    }
+  }
+
+  @Nested
+  class RemoveBookFromCart {
+
+    @Test
+    void testRemoveBookFromCart_ShouldRemoveBook() {
+      Map<String, Integer> cart = new HashMap<>();
+      cart.put("book", 1);
+      cartService.removeBookFromCart(cart, "book");
+      assertEquals(0, cart.size());
+    }
+  }
 }

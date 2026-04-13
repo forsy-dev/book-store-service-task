@@ -1,20 +1,20 @@
 package util;
 
-import jakarta.validation.ConstraintViolation;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import jakarta.validation.ConstraintViolation;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 public final class ValidationUtil {
-    private ValidationUtil() {}
+  private ValidationUtil() {
+  }
 
-    public static <T> void validateMessageTemplates(Set<ConstraintViolation<T>> violations, Set<String> expectedTemplates) {
-        Set<String> actualTemplates = violations.stream()
-            .map(ConstraintViolation::getMessageTemplate)
-            .collect(Collectors.toSet());
+  public static <T> void validateMessageTemplates(Set<ConstraintViolation<T>> violations, Set<String> expectedTemplates) {
+    Set<String> actualTemplates = violations.stream()
+        .map(ConstraintViolation::getMessageTemplate)
+        .collect(Collectors.toSet());
 
-        assertEquals(expectedTemplates, actualTemplates, "Validation messages did not match expected values");
-    }
+    assertEquals(expectedTemplates, actualTemplates, "Validation messages did not match expected values");
+  }
 }

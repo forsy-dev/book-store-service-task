@@ -1,8 +1,20 @@
 package com.forsy.controller;
 
-import com.forsy.dto.AddToCartDTO;
-import com.forsy.dto.CartItemDisplayDTO;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.forsy.dto.AddToCartDto;
+import com.forsy.dto.CartItemDisplayDto;
 import com.forsy.service.CartService;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,84 +24,72 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 public class CartSecurityIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @MockBean
-    private CartService cartService;
+  @MockBean
+  private CartService cartService;
 
-    @Nested
-    class AddBookToCart {
+  @Nested
+  class AddBookToCart {
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testAddBookToCart_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testAddBookToCart_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
 
-            String bookName = "book";
-            int quantity = 10;
-            AddToCartDTO dto = new AddToCartDTO(bookName, quantity);
+      String bookName = "book";
+      int quantity = 10;
+      AddToCartDto dto = new AddToCartDto(bookName, quantity);
 
-            doNothing().when(cartService).addBookToCart(anyMap(), any(AddToCartDTO.class));
+      doNothing().when(cartService).addBookToCart(anyMap(), any(AddToCartDto.class));
 
-            mockMvc.perform(post("/cart/add")
-                            .flashAttr("addToCartDTO", dto))
-                    .andExpect(status().is3xxRedirection())
-                    .andExpect(redirectedUrl("/books"));
-        }
-
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testAddBookToCart_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
-
-            String bookName = "book";
-            int quantity = 10;
-            AddToCartDTO dto = new AddToCartDTO(bookName, quantity);
-
-            mockMvc.perform(post("/cart/add")
-                            .flashAttr("addToCartDTO", dto))
-                    .andExpect(status().isForbidden());
-        }
+      mockMvc.perform(post("/cart/add")
+                          .flashAttr("addToCartDTO", dto))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/books"));
     }
 
-    @Nested
-    class ShowCart {
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testAddBookToCart_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
 
-        @Test
-        @WithMockUser(roles = "CLIENT")
-        void testShowCart_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+      String bookName = "book";
+      int quantity = 10;
+      AddToCartDto dto = new AddToCartDto(bookName, quantity);
 
-            List<CartItemDisplayDTO> items = Collections.emptyList();
-            BigDecimal totalCost = BigDecimal.ZERO;
-
-            when(cartService.getCartItems(anyMap())).thenReturn(items);
-            when(cartService.calculateTotalCost(items)).thenReturn(totalCost);
-
-            mockMvc.perform(get("/cart"))
-                    .andExpect(status().isOk());
-        }
-
-        @Test
-        @WithMockUser(roles = "EMPLOYEE")
-        void testShowCart_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
-
-            mockMvc.perform(get("/cart"))
-                    .andExpect(status().isForbidden());
-        }
+      mockMvc.perform(post("/cart/add")
+                          .flashAttr("addToCartDTO", dto))
+          .andExpect(status().isForbidden());
     }
+  }
+
+  @Nested
+  class ShowCart {
+
+    @Test
+    @WithMockUser(roles = "CLIENT")
+    void testShowCart_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+
+      List<CartItemDisplayDto> items = Collections.emptyList();
+      BigDecimal totalCost = BigDecimal.ZERO;
+
+      when(cartService.getCartItems(anyMap())).thenReturn(items);
+      when(cartService.calculateTotalCost(items)).thenReturn(totalCost);
+
+      mockMvc.perform(get("/cart"))
+          .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testShowCart_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
+
+      mockMvc.perform(get("/cart"))
+          .andExpect(status().isForbidden());
+    }
+  }
 }

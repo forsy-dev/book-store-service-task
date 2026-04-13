@@ -1,11 +1,24 @@
 package com.forsy.service.impl;
 
-import com.forsy.dto.BookDTO;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.forsy.dto.BookDto;
 import com.forsy.exception.AlreadyExistException;
 import com.forsy.exception.NotFoundException;
 import com.forsy.model.Book;
 import com.forsy.repo.BookRepository;
 import com.forsy.util.MessageKeys;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Optional;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,228 +32,221 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import java.util.Collections;
-import java.util.Locale;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 public class BookServiceImplTest {
 
-    @InjectMocks
-    private BookServiceImpl bookService;
+  @InjectMocks
+  private BookServiceImpl bookService;
 
-    @Mock
-    private BookRepository bookRepository;
+  @Mock
+  private BookRepository bookRepository;
 
-    @Mock
-    private ModelMapper mapper;
+  @Mock
+  private ModelMapper mapper;
 
-    @Mock
-    private MessageSource messageSource;
+  @Mock
+  private MessageSource messageSource;
 
-    @Nested
-    class GetAllBooks {
+  @Nested
+  class GetAllBooks {
 
-        @Test
-        void testGetAllBooks_WhenKeywordNotGiven_ShouldReturnAllBooks() {
-            Book book = Book.builder().build();
-            BookDTO expectedDto = new BookDTO();
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Book> bookPage = new PageImpl<>(Collections.singletonList(book), pageable, 1);
-            String keyword = "";
+    @Test
+    void testGetAllBooks_WhenKeywordNotGiven_ShouldReturnAllBooks() {
+      Book book = Book.builder().build();
+      BookDto expectedDto = new BookDto();
+      Pageable pageable = PageRequest.of(0, 10);
+      Page<Book> bookPage = new PageImpl<>(Collections.singletonList(book), pageable, 1);
+      String keyword = "";
 
-            when(bookRepository.findAll(pageable)).thenReturn(bookPage);
-            when(mapper.map(book, BookDTO.class)).thenReturn(expectedDto);
+      when(bookRepository.findAll(pageable)).thenReturn(bookPage);
+      when(mapper.map(book, BookDto.class)).thenReturn(expectedDto);
 
-            Page<BookDTO> actualBookDto = bookService.getAllBooks(pageable, keyword);
+      Page<BookDto> actualBookDto = bookService.getAllBooks(pageable, keyword);
 
-            verify(bookRepository, times(1)).findAll(pageable);
-            verify(mapper, times(1)).map(book, BookDTO.class);
+      verify(bookRepository, times(1)).findAll(pageable);
+      verify(mapper, times(1)).map(book, BookDto.class);
 
-            assertEquals(1, actualBookDto.getTotalElements());
-            assertEquals(1, actualBookDto.getContent().size());
-            assertEquals(expectedDto, actualBookDto.getContent().get(0));
-        }
-
-        @Test
-        void testGetAllBooks_WhenKeywordGivenShouldReturnFoundBooks() {
-            Book book = Book.builder().build();
-            BookDTO expectedDto = new BookDTO();
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Book> bookPage = new PageImpl<>(Collections.singletonList(book), pageable, 1);
-            String keyword = "test";
-
-            when(bookRepository.findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable))
-                .thenReturn(bookPage);
-            when(mapper.map(book, BookDTO.class)).thenReturn(expectedDto);
-
-            Page<BookDTO> actualBookDto = bookService.getAllBooks(pageable, keyword);
-
-            verify(bookRepository, times(1))
-                .findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable);
-            verify(mapper, times(1)).map(book, BookDTO.class);
-
-            assertEquals(1, actualBookDto.getTotalElements());
-            assertEquals(1, actualBookDto.getContent().size());
-            assertEquals(expectedDto, actualBookDto.getContent().get(0));
-        }
+      assertEquals(1, actualBookDto.getTotalElements());
+      assertEquals(1, actualBookDto.getContent().size());
+      assertEquals(expectedDto, actualBookDto.getContent().get(0));
     }
 
-    @Nested
-    class FindByName {
+    @Test
+    void testGetAllBooks_WhenKeywordGivenShouldReturnFoundBooks() {
+      Book book = Book.builder().build();
+      BookDto expectedDto = new BookDto();
+      Pageable pageable = PageRequest.of(0, 10);
+      Page<Book> bookPage = new PageImpl<>(Collections.singletonList(book), pageable, 1);
+      String keyword = "test";
 
-        @Test
-        void testGetBookByName_ShouldReturnBook() {
-            String name = "name";
-            Book book = Book.builder().name(name).build();
-            BookDTO expectedDto = BookDTO.builder().name(name).build();
+      when(bookRepository.findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable))
+          .thenReturn(bookPage);
+      when(mapper.map(book, BookDto.class)).thenReturn(expectedDto);
 
-            when(bookRepository.findByName(name)).thenReturn(Optional.of(book));
-            when(mapper.map(book, BookDTO.class)).thenReturn(expectedDto);
+      Page<BookDto> actualBookDto = bookService.getAllBooks(pageable, keyword);
 
-            BookDTO actualBookDto = bookService.getBookByName(name);
+      verify(bookRepository, times(1))
+          .findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable);
+      verify(mapper, times(1)).map(book, BookDto.class);
 
-            verify(bookRepository, times(1)).findByName(name);
-            verify(mapper, times(1)).map(book, BookDTO.class);
+      assertEquals(1, actualBookDto.getTotalElements());
+      assertEquals(1, actualBookDto.getContent().size());
+      assertEquals(expectedDto, actualBookDto.getContent().get(0));
+    }
+  }
 
-            assertEquals(name, actualBookDto.getName());
-        }
+  @Nested
+  class FindByName {
 
-        @Test
-        void testGetBookByName_ShouldThrowExceptionWhenBookNotFound() {
-            String name = "name";
-            String errorMessage = "Book not found";
+    @Test
+    void testGetBookByName_ShouldReturnBook() {
+      String name = "name";
+      Book book = Book.builder().name(name).build();
+      BookDto expectedDto = BookDto.builder().name(name).build();
 
-            when(bookRepository.findByName(name)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class)))
-                .thenReturn(errorMessage);
+      when(bookRepository.findByName(name)).thenReturn(Optional.of(book));
+      when(mapper.map(book, BookDto.class)).thenReturn(expectedDto);
 
-            assertThrows(NotFoundException.class, () -> bookService.getBookByName(name));
+      BookDto actualBookDto = bookService.getBookByName(name);
 
-            verify(bookRepository, times(1)).findByName(name);
-            verify(mapper, never()).map(any(Book.class), any());
-        }
+      verify(bookRepository, times(1)).findByName(name);
+      verify(mapper, times(1)).map(book, BookDto.class);
+
+      assertEquals(name, actualBookDto.getName());
     }
 
-    @Nested
-    class UpdateByName {
+    @Test
+    void testGetBookByName_ShouldThrowExceptionWhenBookNotFound() {
+      String name = "name";
+      String errorMessage = "Book not found";
 
-        @Test
-        void testUpdateBookByName_ShouldReturnBook() {
-            String oldName = "oldName";
-            String newName = "newName";
-            Book existingBook = Book.builder().id(1L).name(oldName).build();
-            BookDTO updateDto = BookDTO.builder().name(newName).build();
-            BookDTO expectedDto = BookDTO.builder().name(newName).build();
+      when(bookRepository.findByName(name)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class)))
+          .thenReturn(errorMessage);
 
-            when(bookRepository.findByName(oldName)).thenReturn(Optional.of(existingBook));
-            doNothing().when(mapper).map(updateDto, existingBook);
-            when(bookRepository.save(existingBook)).thenReturn(existingBook);
-            when(mapper.map(existingBook, BookDTO.class)).thenReturn(expectedDto);
+      assertThrows(NotFoundException.class, () -> bookService.getBookByName(name));
 
-            BookDTO actualBookDto = bookService.updateBookByName(oldName, updateDto);
+      verify(bookRepository, times(1)).findByName(name);
+      verify(mapper, never()).map(any(Book.class), any());
+    }
+  }
 
-            verify(bookRepository, times(1)).findByName(oldName);
-            verify(mapper, times(1)).map(updateDto, existingBook);
-            verify(bookRepository, times(1)).save(existingBook);
-            verify(mapper, times(1)).map(existingBook, BookDTO.class);
+  @Nested
+  class UpdateByName {
 
-            assertEquals(expectedDto, actualBookDto);
-        }
+    @Test
+    void testUpdateBookByName_ShouldReturnBook() {
+      String oldName = "oldName";
+      String newName = "newName";
+      Book existingBook = Book.builder().id(1L).name(oldName).build();
+      BookDto updateDto = BookDto.builder().name(newName).build();
+      BookDto expectedDto = BookDto.builder().name(newName).build();
 
-        @Test
-        void testUpdateBookByName_ShouldThrowExceptionWhenBookNotFound() {
-            String oldName = "oldName";
-            BookDTO updateDto = BookDTO.builder().build();
-            String errorMessage = "Book not found";
+      when(bookRepository.findByName(oldName)).thenReturn(Optional.of(existingBook));
+      doNothing().when(mapper).map(updateDto, existingBook);
+      when(bookRepository.save(existingBook)).thenReturn(existingBook);
+      when(mapper.map(existingBook, BookDto.class)).thenReturn(expectedDto);
 
-            when(bookRepository.findByName(oldName)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(errorMessage);
+      BookDto actualBookDto = bookService.updateBookByName(oldName, updateDto);
 
-            assertThrows(NotFoundException.class, () -> bookService.updateBookByName(oldName, updateDto));
+      verify(bookRepository, times(1)).findByName(oldName);
+      verify(mapper, times(1)).map(updateDto, existingBook);
+      verify(bookRepository, times(1)).save(existingBook);
+      verify(mapper, times(1)).map(existingBook, BookDto.class);
 
-            verify(bookRepository, times(1)).findByName(oldName);
-            verify(mapper, never()).map(any(BookDTO.class), any(Book.class));
-            verify(bookRepository, never()).save(any(Book.class));
-            verify(mapper, never()).map(any(Book.class), any());
-        }
+      assertEquals(expectedDto, actualBookDto);
     }
 
-    @Nested
-    class DeleteByName {
+    @Test
+    void testUpdateBookByName_ShouldThrowExceptionWhenBookNotFound() {
+      String oldName = "oldName";
+      BookDto updateDto = BookDto.builder().build();
+      String errorMessage = "Book not found";
 
-        @Test
-        void testDeleteBookByName_ShouldReturnNothing() {
-            String name = "name";
-            Book book = Book.builder().name(name).build();
+      when(bookRepository.findByName(oldName)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(errorMessage);
 
-            when(bookRepository.findByName(name)).thenReturn(Optional.of(book));
-            doNothing().when(bookRepository).delete(book);
+      assertThrows(NotFoundException.class, () -> bookService.updateBookByName(oldName, updateDto));
 
-            bookService.deleteBookByName(name);
+      verify(bookRepository, times(1)).findByName(oldName);
+      verify(mapper, never()).map(any(BookDto.class), any(Book.class));
+      verify(bookRepository, never()).save(any(Book.class));
+      verify(mapper, never()).map(any(Book.class), any());
+    }
+  }
 
-            verify(bookRepository, times(1)).findByName(name);
-            verify(bookRepository, times(1)).delete(book);
-        }
+  @Nested
+  class DeleteByName {
 
-        @Test
-        void testDeleteBookByName_ShouldThrowExceptionWhenBookNotFound() {
-            String name = "name";
-            String errorMessage = "Book not found";
+    @Test
+    void testDeleteBookByName_ShouldReturnNothing() {
+      String name = "name";
+      Book book = Book.builder().name(name).build();
 
-            when(bookRepository.findByName(name)).thenReturn(Optional.empty());
-            when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(errorMessage);
+      when(bookRepository.findByName(name)).thenReturn(Optional.of(book));
+      doNothing().when(bookRepository).delete(book);
 
-            assertThrows(NotFoundException.class, () -> bookService.deleteBookByName(name));
+      bookService.deleteBookByName(name);
 
-            verify(bookRepository, times(1)).findByName(name);
-            verify(bookRepository, never()).delete(any(Book.class));
-        }
+      verify(bookRepository, times(1)).findByName(name);
+      verify(bookRepository, times(1)).delete(book);
     }
 
-    @Nested
-    class AddBook {
+    @Test
+    void testDeleteBookByName_ShouldThrowExceptionWhenBookNotFound() {
+      String name = "name";
+      String errorMessage = "Book not found";
 
-        @Test
-        void testAddBook_ShouldReturnBook() {
-            String name = "name";
-            BookDTO createDto = BookDTO.builder().name(name).build();
-            BookDTO expectedDto = BookDTO.builder().name(name).build();
-            Book mappedBook = Book.builder().name(name).build();
+      when(bookRepository.findByName(name)).thenReturn(Optional.empty());
+      when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(errorMessage);
 
-            when(bookRepository.existsByName(name)).thenReturn(false);
-            when(mapper.map(createDto, Book.class)).thenReturn(mappedBook);
-            when(bookRepository.save(mappedBook)).thenReturn(mappedBook);
-            when(mapper.map(mappedBook, BookDTO.class)).thenReturn(expectedDto);
+      assertThrows(NotFoundException.class, () -> bookService.deleteBookByName(name));
 
-            BookDTO actualBookDto = bookService.addBook(createDto);
-
-            verify(bookRepository, times(1)).existsByName(name);
-            verify(mapper, times(1)).map(createDto, Book.class);
-            verify(bookRepository, times(1)).save(mappedBook);
-            verify(mapper, times(1)).map(mappedBook, BookDTO.class);
-
-            assertEquals(expectedDto, actualBookDto);
-        }
-
-        @Test
-        void testAddBook_ShouldThrowExceptionWhenBookAlreadyExists() {
-            String name = "name";
-            BookDTO createDto = BookDTO.builder().name(name).build();
-            String errorMessage = "Book not found";
-
-            when(bookRepository.existsByName(name)).thenReturn(true);
-            when(messageSource.getMessage(eq(MessageKeys.ERROR_BOOK_ALREADY_EXISTS), any(), any(Locale.class))).thenReturn(errorMessage);
-
-            assertThrows(AlreadyExistException.class, () -> bookService.addBook(createDto));
-
-            verify(bookRepository, times(1)).existsByName(name);
-            verify(mapper, never()).map(any(BookDTO.class), any());
-            verify(bookRepository, never()).save(any(Book.class));
-            verify(mapper, never()).map(any(Book.class), any());
-        }
+      verify(bookRepository, times(1)).findByName(name);
+      verify(bookRepository, never()).delete(any(Book.class));
     }
+  }
+
+  @Nested
+  class AddBook {
+
+    @Test
+    void testAddBook_ShouldReturnBook() {
+      String name = "name";
+      BookDto createDto = BookDto.builder().name(name).build();
+      BookDto expectedDto = BookDto.builder().name(name).build();
+      Book mappedBook = Book.builder().name(name).build();
+
+      when(bookRepository.existsByName(name)).thenReturn(false);
+      when(mapper.map(createDto, Book.class)).thenReturn(mappedBook);
+      when(bookRepository.save(mappedBook)).thenReturn(mappedBook);
+      when(mapper.map(mappedBook, BookDto.class)).thenReturn(expectedDto);
+
+      BookDto actualBookDto = bookService.addBook(createDto);
+
+      verify(bookRepository, times(1)).existsByName(name);
+      verify(mapper, times(1)).map(createDto, Book.class);
+      verify(bookRepository, times(1)).save(mappedBook);
+      verify(mapper, times(1)).map(mappedBook, BookDto.class);
+
+      assertEquals(expectedDto, actualBookDto);
+    }
+
+    @Test
+    void testAddBook_ShouldThrowExceptionWhenBookAlreadyExists() {
+      String name = "name";
+      BookDto createDto = BookDto.builder().name(name).build();
+      String errorMessage = "Book not found";
+
+      when(bookRepository.existsByName(name)).thenReturn(true);
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_BOOK_ALREADY_EXISTS), any(), any(Locale.class))).thenReturn(errorMessage);
+
+      assertThrows(AlreadyExistException.class, () -> bookService.addBook(createDto));
+
+      verify(bookRepository, times(1)).existsByName(name);
+      verify(mapper, never()).map(any(BookDto.class), any());
+      verify(bookRepository, never()).save(any(Book.class));
+      verify(mapper, never()).map(any(Book.class), any());
+    }
+  }
 }
