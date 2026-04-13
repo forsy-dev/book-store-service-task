@@ -11,7 +11,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-
+/**
+ * Aspect for centralized logging of the service layer.
+ *
+ * <p>This component uses Aspect-Oriented Programming (AOP) to intercept
+ * method executions within the {@code com.forsy.service} package. It provides
+ * standardized logging for method entry, exit, execution duration, and exceptions
+ * without polluting the core business logic.
+ *
+ * @author Illia
+ */
 @Aspect
 @Component
 public class ServiceLoggingAspect {

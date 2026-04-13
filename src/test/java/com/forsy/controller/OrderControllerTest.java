@@ -26,6 +26,7 @@ import com.forsy.util.CartCookieUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -40,7 +41,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(OrderController.class)
-public class OrderControllerTest {
+class OrderControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -65,7 +66,7 @@ public class OrderControllerTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"CLIENT", "EMPLOYEE"})
-    void testGetOrderForUser_WhenTryingToAccessOtherUserOrders_ShouldReturnError() throws Exception {
+    void testGetOrderForUserWhenTryingToAccessOtherUserOrdersShouldReturnError() throws Exception {
       String otherEmail = "test1@test.com";
       String email = "test@test.com";
 
@@ -76,11 +77,13 @@ public class OrderControllerTest {
     }
 
     @Test
-    void testGetOrderForUser_WhenAuthenticatedAsClientAndKeywordNotGiven_ShouldReturnAllOrders() throws Exception {
+    @DisplayName("Return all client orders when no keyword is provided")
+    void getClientOrdersWithoutKeyword() throws Exception {
       String email = "test@test.com";
       Page<OrderDisplayDto> orders = Page.empty();
 
-      when(orderService.getOrdersByClient(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
+      when(orderService.getOrdersByClient(eq(email), any(Pageable.class), nullable(String.class)))
+          .thenReturn(orders);
 
       mockMvc.perform(get("/orders/{email}", email)
                           .with(user(email).roles("CLIENT")))
@@ -89,12 +92,14 @@ public class OrderControllerTest {
     }
 
     @Test
-    void testGetOrderForUser_WhenAuthenticatedAsClientAndKeywordGiven_ShouldReturnSelectedOrders() throws Exception {
+    @DisplayName("Return selected orders for client when a search keyword is provided")
+    void getClientOrdersWithKeyword() throws Exception {
       String email = "test@test.com";
       Page<OrderDisplayDto> orders = Page.empty();
       String keyword = "keyword";
 
-      when(orderService.getOrdersByClient(eq(email), any(Pageable.class), eq(keyword))).thenReturn(orders);
+      when(orderService.getOrdersByClient(eq(email), any(Pageable.class), eq(keyword)))
+          .thenReturn(orders);
 
       mockMvc.perform(get("/orders/{email}", email)
                           .param("keyword", keyword)
@@ -104,11 +109,13 @@ public class OrderControllerTest {
     }
 
     @Test
-    void testGetOrderForUser_WhenAuthenticatedAsEmployeeAndKeywordNotGiven_ShouldReturnAllOrders() throws Exception {
+    @DisplayName("Return all employee-managed orders when no keyword is provided")
+    void getEmployeeOrdersWithoutKeyword() throws Exception {
       String email = "test@test.com";
       Page<OrderDisplayDto> orders = Page.empty();
 
-      when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
+      when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), nullable(String.class)))
+          .thenReturn(orders);
 
       mockMvc.perform(get("/orders/{email}", email)
                           .with(user(email).roles("EMPLOYEE")))
@@ -117,12 +124,14 @@ public class OrderControllerTest {
     }
 
     @Test
-    void testGetOrderForUser_WhenAuthenticatedAsEmployeeAndKeywordGiven_ShouldReturnSelectedOrders() throws Exception {
+    @DisplayName("Return selected orders for employee when a search keyword is provided")
+    void getEmployeeOrdersWithKeyword() throws Exception {
       String email = "test@test.com";
       Page<OrderDisplayDto> orders = Page.empty();
       String keyword = "keyword";
 
-      when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), eq(keyword))).thenReturn(orders);
+      when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), eq(keyword)))
+          .thenReturn(orders);
 
       mockMvc.perform(get("/orders/{email}", email)
                           .param("keyword", keyword)
@@ -136,7 +145,7 @@ public class OrderControllerTest {
   class GetAllOrders {
 
     @Test
-    void testGetAllOrders_WhenAuthenticatedAsClient_ShouldRedirect() throws Exception {
+    void testGetAllOrdersWhenAuthenticatedAsClientShouldRedirect() throws Exception {
       String email = "test@test.com";
 
       mockMvc.perform(get("/orders")
@@ -146,10 +155,11 @@ public class OrderControllerTest {
     }
 
     @Test
-    void testGetAllOrders_WhenAuthenticatedAsEmployee_ShouldReturnOrders() throws Exception {
+    void testGetAllOrdersWhenAuthenticatedAsEmployeeShouldReturnOrders() throws Exception {
       String email = "test@test.com";
 
-      when(orderService.getAllOrders(any(Pageable.class), nullable(String.class))).thenReturn(Page.empty());
+      when(orderService.getAllOrders(any(Pageable.class), nullable(String.class)))
+          .thenReturn(Page.empty());
 
       mockMvc.perform(get("/orders")
                           .with(user(email).roles("EMPLOYEE")))
@@ -163,7 +173,7 @@ public class OrderControllerTest {
   class SubmitOrder {
 
     @Test
-    void testSubmitOrder_WhenCartIsEmpty_ShouldRedirect() throws Exception {
+    void testSubmitOrderWhenCartIsEmptyShouldRedirect() throws Exception {
       String email = "test@test.com";
       Map<String, Integer> cart = new HashMap<>();
 
@@ -177,34 +187,14 @@ public class OrderControllerTest {
     }
 
     @Test
-    void testSubmitOrder_WhenNoEmployeeFound_ShouldRedirect() throws Exception {
-      String email = "test@test.com";
+    void testSubmitOrderWhenNoEmployeeFoundShouldRedirect() throws Exception {
       Map<String, Integer> cart = new HashMap<>();
       cart.put("book", 1);
 
       when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
       when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(Page.empty());
 
-      mockMvc.perform(post("/orders/submit")
-                          .with(user(email).roles("CLIENT"))
-                          .with(csrf()))
-          .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/cart"));
-    }
-
-    @Test
-    void testSubmitOrder_WhenAddingOrderFails_ShouldRedirect() throws Exception {
       String email = "test@test.com";
-      Map<String, Integer> cart = new HashMap<>();
-      cart.put("book", 1);
-
-      String employeeEmail = "emp@emp.com";
-      EmployeeDisplayDto employeeDisplayDTO = EmployeeDisplayDto.builder().email(employeeEmail).build();
-      Page<EmployeeDisplayDto> page = new PageImpl<>(java.util.List.of(employeeDisplayDTO));
-
-      when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
-      when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(page);
-      when(orderService.addOrder(any(CreateOrderRequestDto.class))).thenThrow(new RuntimeException("Error"));
 
       mockMvc.perform(post("/orders/submit")
                           .with(user(email).roles("CLIENT"))
@@ -214,18 +204,43 @@ public class OrderControllerTest {
     }
 
     @Test
-    void testSubmitOrder_WhenAddingOrderSucceeds_ShouldRedirect() throws Exception {
+    void testSubmitOrderWhenAddingOrderFailsShouldRedirect() throws Exception {
       String email = "test@test.com";
       Map<String, Integer> cart = new HashMap<>();
       cart.put("book", 1);
 
       String employeeEmail = "emp@emp.com";
-      EmployeeDisplayDto employeeDisplayDTO = EmployeeDisplayDto.builder().email(employeeEmail).build();
-      Page<EmployeeDisplayDto> page = new PageImpl<>(java.util.List.of(employeeDisplayDTO));
+      EmployeeDisplayDto employeeDisplayDto = EmployeeDisplayDto.builder()
+          .email(employeeEmail).build();
+      Page<EmployeeDisplayDto> page = new PageImpl<>(java.util.List.of(employeeDisplayDto));
 
       when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
       when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(page);
-      when(orderService.addOrder(any(CreateOrderRequestDto.class))).thenReturn(OrderDisplayDto.builder().build());
+      when(orderService.addOrder(any(CreateOrderRequestDto.class)))
+          .thenThrow(new RuntimeException("Error"));
+
+      mockMvc.perform(post("/orders/submit")
+                          .with(user(email).roles("CLIENT"))
+                          .with(csrf()))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl("/cart"));
+    }
+
+    @Test
+    void testSubmitOrderWhenAddingOrderSucceedsShouldRedirect() throws Exception {
+      String email = "test@test.com";
+      Map<String, Integer> cart = new HashMap<>();
+      cart.put("book", 1);
+
+      String employeeEmail = "emp@emp.com";
+      EmployeeDisplayDto employeeDisplayDto = EmployeeDisplayDto.builder()
+          .email(employeeEmail).build();
+      Page<EmployeeDisplayDto> page = new PageImpl<>(java.util.List.of(employeeDisplayDto));
+
+      when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
+      when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(page);
+      when(orderService.addOrder(any(CreateOrderRequestDto.class)))
+          .thenReturn(OrderDisplayDto.builder().build());
 
       mockMvc.perform(post("/orders/submit")
                           .with(user(email).roles("CLIENT"))
@@ -239,7 +254,7 @@ public class OrderControllerTest {
   class CancelOrder {
 
     @Test
-    void testCancelOrder_WhenSuccess_ShouldRedirect() throws Exception {
+    void testCancelOrderWhenSuccessShouldRedirect() throws Exception {
       long orderId = 1L;
       String email = "test@test.com";
 
@@ -254,7 +269,7 @@ public class OrderControllerTest {
     }
 
     @Test
-    void testCancelOrder_WhenFails_ShouldRedirect() throws Exception {
+    void testCancelOrderWhenFailsShouldRedirect() throws Exception {
       long orderId = 1L;
       String email = "test@test.com";
 
@@ -273,7 +288,7 @@ public class OrderControllerTest {
   class ConfirmOrder {
 
     @Test
-    void testConfirmOrder_WhenSuccess_ShouldRedirect() throws Exception {
+    void testConfirmOrderWhenSuccessShouldRedirect() throws Exception {
       long orderId = 1L;
       String email = "test@test.com";
 
@@ -288,11 +303,12 @@ public class OrderControllerTest {
     }
 
     @Test
-    void testConfirmOrder_WhenFailure_ShouldRedirect() throws Exception {
+    void testConfirmOrderWhenFailureShouldRedirect() throws Exception {
       long orderId = 1L;
       String email = "test@test.com";
 
-      doThrow(new RuntimeException("Error occurred")).when(orderService).confirmOrder(orderId, email);
+      doThrow(new RuntimeException("Error occurred")).when(orderService)
+          .confirmOrder(orderId, email);
 
       mockMvc.perform(post("/orders/{id}/confirm", orderId)
                           .with(user(email).roles("EMPLOYEE"))

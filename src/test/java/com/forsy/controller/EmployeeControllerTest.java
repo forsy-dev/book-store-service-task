@@ -24,7 +24,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(EmployeeController.class)
-public class EmployeeControllerTest {
+class EmployeeControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -42,22 +42,23 @@ public class EmployeeControllerTest {
   class UpdateClient {
 
     @Test
-    void testUpdateEmployee_ShouldRedirectToProfile_WhenSuccess() throws Exception {
+    void testUpdateEmployeeShouldRedirectToProfileWhenSuccess() throws Exception {
       String email = "test@test.com";
       String phone = "1234567890";
       LocalDate dateOfBirth = LocalDate.now().minusYears(18);
       String name = "name";
-      EmployeeUpdateDto employeeUpdateDTO = EmployeeUpdateDto.builder()
+      EmployeeUpdateDto employeeUpdateDto = EmployeeUpdateDto.builder()
           .name(name)
           .phone(phone)
           .birthDate(dateOfBirth)
           .build();
-      EmployeeDisplayDto employeeDisplayDTO = new EmployeeDisplayDto();
+      EmployeeDisplayDto employeeDisplayDto = new EmployeeDisplayDto();
 
-      when(employeeService.updateEmployeeByEmail(eq(email), any(EmployeeUpdateDto.class))).thenReturn(employeeDisplayDTO);
+      when(employeeService.updateEmployeeByEmail(eq(email), any(EmployeeUpdateDto.class)))
+          .thenReturn(employeeDisplayDto);
 
       mockMvc.perform(put("/employees/profile")
-                          .flashAttr("employeeUpdateDTO", employeeUpdateDTO)
+                          .flashAttr("employeeUpdateDTO", employeeUpdateDto)
                           .with(user(email).roles("EMPLOYEE"))
                           .with(csrf()))
           .andExpect(status().is3xxRedirection())
@@ -66,12 +67,12 @@ public class EmployeeControllerTest {
     }
 
     @Test
-    void testUpdateEmployee_ShouldRedirectToProfile_WhenValidationFails() throws Exception {
+    void testUpdateEmployeeShouldRedirectToProfileWhenValidationFails() throws Exception {
       String email = "a";
       String phone = "1";
       LocalDate dateOfBirth = LocalDate.now().minusYears(18);
       String name = "name";
-      EmployeeUpdateDto employeeUpdateDTO = EmployeeUpdateDto.builder()
+      EmployeeUpdateDto employeeUpdateDto = EmployeeUpdateDto.builder()
           .name(name)
           .phone(phone)
           .birthDate(dateOfBirth)
@@ -79,12 +80,13 @@ public class EmployeeControllerTest {
 
 
       mockMvc.perform(put("/employees/profile")
-                          .flashAttr("employeeUpdateDTO", employeeUpdateDTO)
+                          .flashAttr("employeeUpdateDTO", employeeUpdateDto)
                           .with(user(email).roles("EMPLOYEE"))
                           .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/profile?error=validation"))
-          .andExpect(flash().attributeExists("org.springframework.validation.BindingResult.employeeUpdateDTO"))
+          .andExpect(flash().attributeExists(
+              "org.springframework.validation.BindingResult.employeeUpdateDTO"))
           .andExpect(flash().attributeExists("employeeUpdateDTO"));
     }
   }

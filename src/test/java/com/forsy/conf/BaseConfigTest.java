@@ -11,9 +11,10 @@ class BaseConfigTest {
   @Test
   @DisplayName("Annotation [Configuration] exist for BaseConfig class")
   void testsConfigAnnotation() throws ClassNotFoundException {
-    Class<?> aClass = Class.forName("com.forsy.conf.BaseConfig");
+    Class<?> configClass = Class.forName("com.forsy.conf.BaseConfig");
 
-    assertTrue(aClass.isAnnotationPresent(Configuration.class),
-               String.format("Class [%s]. [@Configuration] is missed.", aClass.getSimpleName()));
+    assertTrue(configClass.isAnnotationPresent(Configuration.class),
+               String.format("Class [%s]. [@Configuration] is missed.",
+                             configClass.getSimpleName()));
   }
 }

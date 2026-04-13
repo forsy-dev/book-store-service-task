@@ -118,12 +118,18 @@
                 <version>3.3.1</version>
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
+
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
+                    <failOnViolation>true</failOnViolation>
+
+                    <violationSeverity>warning</violationSeverity>
+
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>verify</phase>
+                        <phase>validate</phase>
                         <goals>
                             <goal>check</goal>
                         </goals>

@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class EmployeeSecurityIntegrationTest {
+class EmployeeSecurityIntegrationTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -35,7 +35,7 @@ public class EmployeeSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testUpdateEmployee_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testUpdateEmployeeWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
 
       mockMvc.perform(put("/employees/profile"))
           .andExpect(status().isForbidden());
@@ -43,23 +43,24 @@ public class EmployeeSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testUpdateEmployee_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testUpdateEmployeeWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
 
       String email = "test@test.com";
       String phone = "1234567890";
       LocalDate dateOfBirth = LocalDate.now().minusYears(18);
       String name = "name";
-      EmployeeUpdateDto employeeUpdateDTO = EmployeeUpdateDto.builder()
+      EmployeeUpdateDto employeeUpdateDto = EmployeeUpdateDto.builder()
           .name(name)
           .phone(phone)
           .birthDate(dateOfBirth)
           .build();
-      EmployeeDisplayDto employeeDisplayDTO = new EmployeeDisplayDto();
+      EmployeeDisplayDto employeeDisplayDto = new EmployeeDisplayDto();
 
-      when(employeeService.updateEmployeeByEmail(eq(email), any(EmployeeUpdateDto.class))).thenReturn(employeeDisplayDTO);
+      when(employeeService.updateEmployeeByEmail(eq(email), any(EmployeeUpdateDto.class)))
+          .thenReturn(employeeDisplayDto);
 
       mockMvc.perform(put("/employees/profile")
-                          .flashAttr("employeeUpdateDTO", employeeUpdateDTO))
+                          .flashAttr("employeeUpdateDTO", employeeUpdateDto))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/profile"));
     }

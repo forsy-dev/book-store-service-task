@@ -36,8 +36,8 @@ class ChangePasswordDtoValidationTest {
 
   @Test
   void whenAllFieldsAreValid_thenValidationSucceeds() {
-    ChangePasswordDto changePasswordDTO = getValidDtoBuilder().build();
-    Set<ConstraintViolation<ChangePasswordDto>> violations = validator.validate(changePasswordDTO);
+    ChangePasswordDto changePasswordDto = getValidDtoBuilder().build();
+    Set<ConstraintViolation<ChangePasswordDto>> violations = validator.validate(changePasswordDto);
     assertTrue(violations.isEmpty(), "A valid DTO should have no constraint violations");
   }
 
@@ -46,8 +46,9 @@ class ChangePasswordDtoValidationTest {
 
     @Test
     void whenOldPasswordIsBlank_thenValidationFails() {
-      ChangePasswordDto changePasswordDTO = getValidDtoBuilder().oldPassword(" ").build();
-      Set<ConstraintViolation<ChangePasswordDto>> violations = validator.validate(changePasswordDTO);
+      ChangePasswordDto changePasswordDto = getValidDtoBuilder().oldPassword(" ").build();
+      Set<ConstraintViolation<ChangePasswordDto>> violations =
+          validator.validate(changePasswordDto);
       assertEquals(1, violations.size());
       assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
     }
@@ -70,9 +71,10 @@ class ChangePasswordDtoValidationTest {
 
     @ParameterizedTest(name = "New Password \"{0}\" should trigger {1}")
     @MethodSource("invalidNewPasswordProvider")
-    void whenNewPasswordIsInvalid_thenValidationFails(String newPassword, Set<String> expectedMessages) {
-      ChangePasswordDto passwordDTO = getValidDtoBuilder().newPassword(newPassword).build();
-      Set<ConstraintViolation<ChangePasswordDto>> violations = validator.validate(passwordDTO);
+    void whenNewPasswordIsInvalid_thenValidationFails(String newPassword,
+        Set<String> expectedMessages) {
+      ChangePasswordDto passwordDto = getValidDtoBuilder().newPassword(newPassword).build();
+      Set<ConstraintViolation<ChangePasswordDto>> violations = validator.validate(passwordDto);
       ValidationUtil.validateMessageTemplates(violations, expectedMessages);
     }
   }

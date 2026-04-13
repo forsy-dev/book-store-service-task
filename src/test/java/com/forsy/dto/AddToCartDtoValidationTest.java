@@ -36,8 +36,8 @@ class AddToCartDtoValidationTest {
 
   @Test
   void whenAllFieldsAreValid_thenValidationSucceeds() {
-    AddToCartDto addToCartDTO = getValidDtoBuilder().build();
-    Set<ConstraintViolation<AddToCartDto>> violations = validator.validate(addToCartDTO);
+    AddToCartDto addToCartDto = getValidDtoBuilder().build();
+    Set<ConstraintViolation<AddToCartDto>> violations = validator.validate(addToCartDto);
     assertTrue(violations.isEmpty(), "A valid DTO should have no constraint violations");
   }
 
@@ -56,11 +56,11 @@ class AddToCartDtoValidationTest {
     @ParameterizedTest(name = "Book name \"{0}\" should trigger {1}")
     @MethodSource("invalidBookNameProvider")
     void whenBookNameIsInvalid_thenValidationFails(String bookName, Set<String> expectedMessages) {
-      AddToCartDto addBalanceDTO = getValidDtoBuilder()
+      AddToCartDto addBalanceDto = getValidDtoBuilder()
           .bookName(bookName)
           .build();
 
-      Set<ConstraintViolation<AddToCartDto>> violations = validator.validate(addBalanceDTO);
+      Set<ConstraintViolation<AddToCartDto>> violations = validator.validate(addBalanceDto);
       ValidationUtil.validateMessageTemplates(violations, expectedMessages);
     }
   }
@@ -70,16 +70,16 @@ class AddToCartDtoValidationTest {
 
     @Test
     void whenQuantityIsNull_thenValidationFails() {
-      AddToCartDto addBalanceDTO = getValidDtoBuilder().quantity(null).build();
-      Set<ConstraintViolation<AddToCartDto>> violations = validator.validate(addBalanceDTO);
+      AddToCartDto addBalanceDto = getValidDtoBuilder().quantity(null).build();
+      Set<ConstraintViolation<AddToCartDto>> violations = validator.validate(addBalanceDto);
       assertEquals(1, violations.size());
       assertEquals("{NotNull.invalid}", violations.iterator().next().getMessageTemplate());
     }
 
     @Test
     void whenQuantityIsNotPositive_thenValidationFails() {
-      AddToCartDto addBalanceDTO = getValidDtoBuilder().quantity(0).build();
-      Set<ConstraintViolation<AddToCartDto>> violations = validator.validate(addBalanceDTO);
+      AddToCartDto addBalanceDto = getValidDtoBuilder().quantity(0).build();
+      Set<ConstraintViolation<AddToCartDto>> violations = validator.validate(addBalanceDto);
       assertEquals(1, violations.size());
       assertEquals("{Min.invalid}", violations.iterator().next().getMessageTemplate());
     }

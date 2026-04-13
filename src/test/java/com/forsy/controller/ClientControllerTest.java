@@ -41,7 +41,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ClientController.class)
-public class ClientControllerTest {
+class ClientControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -62,9 +62,11 @@ public class ClientControllerTest {
   class GetClients {
 
     @Test
-    void testGetAllClients_ShouldReturnClientsList() throws Exception {
-      Page<ClientDisplayDto> clientPage = new PageImpl<>(Collections.singletonList(new ClientDisplayDto()));
-      when(clientService.getAllClients(any(Pageable.class), nullable(String.class))).thenReturn(clientPage);
+    void testGetAllClientsShouldReturnClientsList() throws Exception {
+      Page<ClientDisplayDto> clientPage =
+          new PageImpl<>(Collections.singletonList(new ClientDisplayDto()));
+      when(clientService.getAllClients(any(Pageable.class),
+                                       nullable(String.class))).thenReturn(clientPage);
 
       mockMvc.perform(get(WebConstants.URL_CLIENTS)
                           .with(user("testuser").roles("EMPLOYEE")))
@@ -78,7 +80,7 @@ public class ClientControllerTest {
   class GetClientByEmail {
 
     @Test
-    void testGetClient_ShouldReturnClient_WhenSuccess() throws Exception {
+    void testGetClientShouldReturnClientWhenSuccess() throws Exception {
       String email = "a";
       ClientDisplayDto clientDto = ClientDisplayDto.builder().email(email).build();
 
@@ -95,18 +97,19 @@ public class ClientControllerTest {
   class UpdateClient {
 
     @Test
-    void testUpdateClient_ShouldRedirectToProfile_WhenSuccess() throws Exception {
+    void testUpdateClientShouldRedirectToProfileWhenSuccess() throws Exception {
       String email = "test@test.com";
       String name = "name";
-      ClientUpdateDto clientUpdateDTO = ClientUpdateDto.builder()
+      ClientUpdateDto clientUpdateDto = ClientUpdateDto.builder()
           .name(name)
           .build();
-      ClientDisplayDto clientDisplayDTO = new ClientDisplayDto();
+      ClientDisplayDto clientDisplayDto = new ClientDisplayDto();
 
-      when(clientService.updateClientByEmail(eq(email), any(ClientUpdateDto.class))).thenReturn(clientDisplayDTO);
+      when(clientService.updateClientByEmail(eq(email), any(ClientUpdateDto.class)))
+          .thenReturn(clientDisplayDto);
 
       mockMvc.perform(put(WebConstants.URL_CLIENT_PROFILE)
-                          .flashAttr(WebConstants.ATTR_CLIENT_UPDATE_DTO, clientUpdateDTO)
+                          .flashAttr(WebConstants.ATTR_CLIENT_UPDATE_DTO, clientUpdateDto)
                           .with(user(email).roles("CLIENT"))
                           .with(csrf()))
           .andExpect(status().is3xxRedirection())
@@ -115,18 +118,20 @@ public class ClientControllerTest {
     }
 
     @Test
-    void testUpdateClient_ShouldRedirectToProfile_WhenValidationFails() throws Exception {
+    void testUpdateClientShouldRedirectToProfileWhenValidationFails() throws Exception {
       String email = "test@test.com";
-      ClientUpdateDto clientUpdateDTO = ClientUpdateDto.builder()
+      ClientUpdateDto clientUpdateDto = ClientUpdateDto.builder()
           .build();
 
       mockMvc.perform(put(WebConstants.URL_CLIENT_PROFILE)
-                          .flashAttr(WebConstants.ATTR_CLIENT_UPDATE_DTO, clientUpdateDTO)
+                          .flashAttr(WebConstants.ATTR_CLIENT_UPDATE_DTO, clientUpdateDto)
                           .with(user(email).roles("CLIENT"))
                           .with(csrf()))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.addParameters(WebConstants.URL_PROFILE, Map.of("error", "validation"))))
-          .andExpect(flash().attributeExists(WebConstants.getBindingResultKey(WebConstants.ATTR_CLIENT_UPDATE_DTO)))
+          .andExpect(redirectedUrl(WebConstants.addParameters(WebConstants.URL_PROFILE,
+                                                              Map.of("error", "validation"))))
+          .andExpect(flash().attributeExists(WebConstants.getBindingResultKey(
+              WebConstants.ATTR_CLIENT_UPDATE_DTO)))
           .andExpect(flash().attributeExists(WebConstants.ATTR_CLIENT_UPDATE_DTO));
     }
   }
@@ -135,7 +140,7 @@ public class ClientControllerTest {
   class DeleteClient {
 
     @Test
-    void testDeleteClient_ShouldRedirectToLogin_WhenSuccess() throws Exception {
+    void testDeleteClientShouldRedirectToLoginWhenSuccess() throws Exception {
       String email = "test@test.com";
 
       doNothing().when(clientService).deleteClientByEmail(email);
@@ -144,14 +149,16 @@ public class ClientControllerTest {
                           .with(user(email).roles("CLIENT"))
                           .with(csrf()))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.addParameters(WebConstants.URL_LOGIN, Map.of("accountDeleted", "true"))));
+          .andExpect(redirectedUrl(WebConstants.addParameters(WebConstants.URL_LOGIN,
+                                                              Map.of("accountDeleted", "true"))));
     }
 
     @Test
-    void testDeleteClient_ShouldReturnErrorPage_WhenEmailNotFound() throws Exception {
+    void testDeleteClientShouldReturnErrorPageWhenEmailNotFound() throws Exception {
       String email = "test@test.com";
 
-      doThrow(new NotFoundException("Client not found")).when(clientService).deleteClientByEmail(email);
+      doThrow(new NotFoundException("Client not found")).when(clientService)
+          .deleteClientByEmail(email);
 
       mockMvc.perform(delete(WebConstants.URL_CLIENT_PROFILE)
                           .with(user(email).roles("CLIENT"))
@@ -164,7 +171,7 @@ public class ClientControllerTest {
   class BlockClient {
 
     @Test
-    void testBlockClient_ShouldRedirectToClientDetail_WhenSuccess() throws Exception {
+    void testBlockClientShouldRedirectToClientDetailWhenSuccess() throws Exception {
       String email = "test@test.com";
 
       doNothing().when(clientService).blockClient(email);
@@ -173,11 +180,12 @@ public class ClientControllerTest {
                           .with(user(email).roles("EMPLOYEE"))
                           .with(csrf()))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_DETAIL, email)));
+          .andExpect(redirectedUrl(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_DETAIL,
+                                                                    email)));
     }
 
     @Test
-    void testBlockClient_ShouldReturnErrorPage_WhenEmailNotFound() throws Exception {
+    void testBlockClientShouldReturnErrorPageWhenEmailNotFound() throws Exception {
       String email = "test@test.com";
 
       doThrow(NotFoundException.class).when(clientService).blockClient(email);
@@ -193,7 +201,7 @@ public class ClientControllerTest {
   class UnblockClient {
 
     @Test
-    void testUnblockClient_ShouldRedirectToClientDetail_WhenSuccess() throws Exception {
+    void testUnblockClientShouldRedirectToClientDetailWhenSuccess() throws Exception {
       String email = "test@test.com";
 
       doNothing().when(clientService).unblockClient(email);
@@ -202,11 +210,12 @@ public class ClientControllerTest {
                           .with(user(email).roles("EMPLOYEE"))
                           .with(csrf()))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_DETAIL, email)));
+          .andExpect(redirectedUrl(WebConstants.expandPathVariables(
+              WebConstants.URL_CLIENT_DETAIL, email)));
     }
 
     @Test
-    void testUnblockClient_ShouldReturnErrorPage_WhenEmailNotFound() throws Exception {
+    void testUnblockClientShouldReturnErrorPageWhenEmailNotFound() throws Exception {
       String email = "test@test.com";
 
       doThrow(NotFoundException.class).when(clientService).unblockClient(email);
@@ -222,55 +231,63 @@ public class ClientControllerTest {
   class AddBalanceToClient {
 
     @Test
-    void testAddBalanceToClient_ShouldRedirectToClientDetail_WhenSuccess() throws Exception {
+    void testAddBalanceToClientShouldRedirectToClientDetailWhenSuccess() throws Exception {
       String clientEmail = "test@test.com";
       String employeeEmail = "test@emp.com";
       AddBalanceDto dto = AddBalanceDto.builder().amount(BigDecimal.TEN).build();
-      ClientDisplayDto clientDisplayDTO = ClientDisplayDto.builder().email(clientEmail).balance(BigDecimal.TEN).build();
+      ClientDisplayDto clientDisplayDto = ClientDisplayDto.builder().email(clientEmail)
+          .balance(BigDecimal.TEN).build();
 
-      when(clientService.addBalanceToClient(clientEmail, dto)).thenReturn(clientDisplayDTO);
+      when(clientService.addBalanceToClient(clientEmail, dto)).thenReturn(clientDisplayDto);
 
-      mockMvc.perform(post(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_ADD_BALANCE, clientEmail))
+      mockMvc.perform(post(WebConstants.expandPathVariables(
+          WebConstants.URL_CLIENT_ADD_BALANCE, clientEmail))
                           .with(user(employeeEmail).roles("EMPLOYEE"))
                           .flashAttr(WebConstants.ATTR_ADD_BALANCE_DTO, dto)
                           .with(csrf()))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_DETAIL, clientEmail)))
+          .andExpect(redirectedUrl(WebConstants.expandPathVariables(
+              WebConstants.URL_CLIENT_DETAIL, clientEmail)))
           .andExpect(flash().attributeExists(WebConstants.ATTR_SUCCESS_MESSAGE));
     }
 
     @Test
-    void testAddBalanceToClient_ShouldRedirectToClientDetail_WhenValidationFails() throws Exception {
+    void testAddBalanceToClientShouldRedirectToClientDetailWhenValidationFails() throws Exception {
       String clientEmail = "test@test.com";
       String employeeEmail = "test@emp.com";
       AddBalanceDto dto = AddBalanceDto.builder().amount(BigDecimal.ZERO).build();
-      ClientDisplayDto clientDisplayDTO = ClientDisplayDto.builder().email(clientEmail).balance(BigDecimal.ZERO).build();
+      ClientDisplayDto clientDisplayDto = ClientDisplayDto.builder().email(clientEmail)
+          .balance(BigDecimal.ZERO).build();
 
-      when(clientService.addBalanceToClient(clientEmail, dto)).thenReturn(clientDisplayDTO);
+      when(clientService.addBalanceToClient(clientEmail, dto)).thenReturn(clientDisplayDto);
 
-      mockMvc.perform(post(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_ADD_BALANCE, clientEmail))
+      mockMvc.perform(post(WebConstants.expandPathVariables(
+          WebConstants.URL_CLIENT_ADD_BALANCE, clientEmail))
                           .with(user(employeeEmail).roles("EMPLOYEE"))
                           .flashAttr(WebConstants.ATTR_ADD_BALANCE_DTO, dto)
                           .with(csrf()))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_DETAIL, clientEmail)))
+          .andExpect(redirectedUrl(WebConstants.expandPathVariables(
+              WebConstants.URL_CLIENT_DETAIL, clientEmail)))
           .andExpect(flash().attributeExists(WebConstants.ATTR_ERROR_MESSAGE));
     }
 
     @Test
-    void testAddBalanceToClient_ShouldRedirectToClientDetail_WhenAddingBalanceToClientFails() throws Exception {
+    void addBalanceRedirectsOnFailure() throws Exception {
       String clientEmail = "test@test.com";
       String employeeEmail = "test@emp.com";
       AddBalanceDto dto = AddBalanceDto.builder().amount(BigDecimal.ZERO).build();
 
       when(clientService.addBalanceToClient(clientEmail, dto)).thenThrow(new RuntimeException());
 
-      mockMvc.perform(post(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_ADD_BALANCE, clientEmail))
+      mockMvc.perform(post(WebConstants.expandPathVariables(
+          WebConstants.URL_CLIENT_ADD_BALANCE, clientEmail))
                           .with(user(employeeEmail).roles("EMPLOYEE"))
                           .flashAttr(WebConstants.ATTR_ADD_BALANCE_DTO, dto)
                           .with(csrf()))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_DETAIL, clientEmail)))
+          .andExpect(redirectedUrl(WebConstants.expandPathVariables(
+              WebConstants.URL_CLIENT_DETAIL, clientEmail)))
           .andExpect(flash().attributeExists(WebConstants.ATTR_ERROR_MESSAGE));
     }
   }

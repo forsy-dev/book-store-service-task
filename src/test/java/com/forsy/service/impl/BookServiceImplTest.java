@@ -33,7 +33,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
-public class BookServiceImplTest {
+class BookServiceImplTest {
 
   @InjectMocks
   private BookServiceImpl bookService;
@@ -51,7 +51,7 @@ public class BookServiceImplTest {
   class GetAllBooks {
 
     @Test
-    void testGetAllBooks_WhenKeywordNotGiven_ShouldReturnAllBooks() {
+    void testGetAllBooksWhenKeywordNotGivenShouldReturnAllBooks() {
       Book book = Book.builder().build();
       BookDto expectedDto = new BookDto();
       Pageable pageable = PageRequest.of(0, 10);
@@ -72,21 +72,23 @@ public class BookServiceImplTest {
     }
 
     @Test
-    void testGetAllBooks_WhenKeywordGivenShouldReturnFoundBooks() {
+    void testGetAllBooksWhenKeywordGivenShouldReturnFoundBooks() {
       Book book = Book.builder().build();
       BookDto expectedDto = new BookDto();
       Pageable pageable = PageRequest.of(0, 10);
       Page<Book> bookPage = new PageImpl<>(Collections.singletonList(book), pageable, 1);
       String keyword = "test";
 
-      when(bookRepository.findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable))
+      when(bookRepository.findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(
+          keyword, keyword, pageable))
           .thenReturn(bookPage);
       when(mapper.map(book, BookDto.class)).thenReturn(expectedDto);
 
       Page<BookDto> actualBookDto = bookService.getAllBooks(pageable, keyword);
 
       verify(bookRepository, times(1))
-          .findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(keyword, keyword, pageable);
+          .findAllByNameContainingIgnoreCaseOrAuthorContainingIgnoreCase(
+              keyword, keyword, pageable);
       verify(mapper, times(1)).map(book, BookDto.class);
 
       assertEquals(1, actualBookDto.getTotalElements());
@@ -99,7 +101,7 @@ public class BookServiceImplTest {
   class FindByName {
 
     @Test
-    void testGetBookByName_ShouldReturnBook() {
+    void testGetBookByNameShouldReturnBook() {
       String name = "name";
       Book book = Book.builder().name(name).build();
       BookDto expectedDto = BookDto.builder().name(name).build();
@@ -116,7 +118,7 @@ public class BookServiceImplTest {
     }
 
     @Test
-    void testGetBookByName_ShouldThrowExceptionWhenBookNotFound() {
+    void testGetBookByNameShouldThrowExceptionWhenBookNotFound() {
       String name = "name";
       String errorMessage = "Book not found";
 
@@ -135,7 +137,7 @@ public class BookServiceImplTest {
   class UpdateByName {
 
     @Test
-    void testUpdateBookByName_ShouldReturnBook() {
+    void testUpdateBookByNameShouldReturnBook() {
       String oldName = "oldName";
       String newName = "newName";
       Book existingBook = Book.builder().id(1L).name(oldName).build();
@@ -147,7 +149,7 @@ public class BookServiceImplTest {
       when(bookRepository.save(existingBook)).thenReturn(existingBook);
       when(mapper.map(existingBook, BookDto.class)).thenReturn(expectedDto);
 
-      BookDto actualBookDto = bookService.updateBookByName(oldName, updateDto);
+      final BookDto actualBookDto = bookService.updateBookByName(oldName, updateDto);
 
       verify(bookRepository, times(1)).findByName(oldName);
       verify(mapper, times(1)).map(updateDto, existingBook);
@@ -158,13 +160,14 @@ public class BookServiceImplTest {
     }
 
     @Test
-    void testUpdateBookByName_ShouldThrowExceptionWhenBookNotFound() {
+    void testUpdateBookByNameShouldThrowExceptionWhenBookNotFound() {
       String oldName = "oldName";
       BookDto updateDto = BookDto.builder().build();
       String errorMessage = "Book not found";
 
       when(bookRepository.findByName(oldName)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(errorMessage);
+      when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class)))
+          .thenReturn(errorMessage);
 
       assertThrows(NotFoundException.class, () -> bookService.updateBookByName(oldName, updateDto));
 
@@ -179,7 +182,7 @@ public class BookServiceImplTest {
   class DeleteByName {
 
     @Test
-    void testDeleteBookByName_ShouldReturnNothing() {
+    void testDeleteBookByNameShouldReturnNothing() {
       String name = "name";
       Book book = Book.builder().name(name).build();
 
@@ -193,12 +196,13 @@ public class BookServiceImplTest {
     }
 
     @Test
-    void testDeleteBookByName_ShouldThrowExceptionWhenBookNotFound() {
+    void testDeleteBookByNameShouldThrowExceptionWhenBookNotFound() {
       String name = "name";
       String errorMessage = "Book not found";
 
       when(bookRepository.findByName(name)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class))).thenReturn(errorMessage);
+      when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class)))
+          .thenReturn(errorMessage);
 
       assertThrows(NotFoundException.class, () -> bookService.deleteBookByName(name));
 
@@ -211,7 +215,7 @@ public class BookServiceImplTest {
   class AddBook {
 
     @Test
-    void testAddBook_ShouldReturnBook() {
+    void testAddBookShouldReturnBook() {
       String name = "name";
       BookDto createDto = BookDto.builder().name(name).build();
       BookDto expectedDto = BookDto.builder().name(name).build();
@@ -222,7 +226,7 @@ public class BookServiceImplTest {
       when(bookRepository.save(mappedBook)).thenReturn(mappedBook);
       when(mapper.map(mappedBook, BookDto.class)).thenReturn(expectedDto);
 
-      BookDto actualBookDto = bookService.addBook(createDto);
+      final BookDto actualBookDto = bookService.addBook(createDto);
 
       verify(bookRepository, times(1)).existsByName(name);
       verify(mapper, times(1)).map(createDto, Book.class);
@@ -233,13 +237,15 @@ public class BookServiceImplTest {
     }
 
     @Test
-    void testAddBook_ShouldThrowExceptionWhenBookAlreadyExists() {
+    void testAddBookShouldThrowExceptionWhenBookAlreadyExists() {
       String name = "name";
       BookDto createDto = BookDto.builder().name(name).build();
       String errorMessage = "Book not found";
 
       when(bookRepository.existsByName(name)).thenReturn(true);
-      when(messageSource.getMessage(eq(MessageKeys.ERROR_BOOK_ALREADY_EXISTS), any(), any(Locale.class))).thenReturn(errorMessage);
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_BOOK_ALREADY_EXISTS), any(), any(Locale.class)))
+          .thenReturn(errorMessage);
 
       assertThrows(AlreadyExistException.class, () -> bookService.addBook(createDto));
 

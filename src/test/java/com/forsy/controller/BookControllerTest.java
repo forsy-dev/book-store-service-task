@@ -39,7 +39,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(BookController.class)
-public class BookControllerTest {
+class BookControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -57,9 +57,10 @@ public class BookControllerTest {
   class GetBooks {
 
     @Test
-    void testGetAllBooks_ShouldReturnBooksList() throws Exception {
+    void testGetAllBooksShouldReturnBooksList() throws Exception {
       Page<BookDto> bookPage = new PageImpl<>(Collections.singletonList(new BookDto()));
-      when(bookService.getAllBooks(any(Pageable.class), nullable(String.class))).thenReturn(bookPage);
+      when(bookService.getAllBooks(any(Pageable.class),
+                                   nullable(String.class))).thenReturn(bookPage);
 
       mockMvc.perform(get("/books")
                           .with(user("testuser").roles("CLIENT")))
@@ -74,7 +75,7 @@ public class BookControllerTest {
   class GetBookByName {
 
     @Test
-    void testGetBookByName_ShouldReturnBook() throws Exception {
+    void testGetBookByNameShouldReturnBook() throws Exception {
       String bookName = "testbook";
       BookDto bookDto = BookDto.builder().name(bookName).build();
       when(bookService.getBookByName(bookName)).thenReturn(bookDto);
@@ -88,7 +89,7 @@ public class BookControllerTest {
     }
 
     @Test
-    void testGetBookByName_ShouldReturnError() throws Exception {
+    void testGetBookByNameShouldReturnError() throws Exception {
       String bookName = "testbook";
       when(bookService.getBookByName(bookName)).thenThrow(new NotFoundException("Book not found"));
 
@@ -103,7 +104,7 @@ public class BookControllerTest {
   class GetBookForm {
 
     @Test
-    void testGetBookForm_ShouldReturnForm() throws Exception {
+    void testGetBookFormShouldReturnForm() throws Exception {
       BookDto bookDto = BookDto.builder().build();
 
       mockMvc.perform(get("/books/new")
@@ -137,7 +138,7 @@ public class BookControllerTest {
     }
 
     @Test
-    void testAddBook_ShouldRedirectToBooks_WhenSuccess() throws Exception {
+    void testAddBookShouldRedirectToBooksWhenSuccess() throws Exception {
       when(bookService.addBook(any(BookDto.class))).thenReturn(bookDto);
 
       mockMvc.perform(post("/books")
@@ -149,7 +150,7 @@ public class BookControllerTest {
     }
 
     @Test
-    void testAddBook_ShouldReturnToForm_WhenValidationFails() throws Exception {
+    void testAddBookShouldReturnToFormWhenValidationFails() throws Exception {
       bookDto.setName("");
 
       when(bookService.addBook(any(BookDto.class))).thenReturn(bookDto);
@@ -163,7 +164,7 @@ public class BookControllerTest {
     }
 
     @Test
-    void testAddBook_ShouldReturnToForm_WhenServiceExceptionThrown() throws Exception {
+    void testAddBookShouldReturnToFormWhenServiceExceptionThrown() throws Exception {
       when(bookService.addBook(any(BookDto.class)))
           .thenThrow(new AlreadyExistException("Book already exists"));
 
@@ -198,7 +199,7 @@ public class BookControllerTest {
     }
 
     @Test
-    void testGetEditBookForm_ShouldReturnToForm_WhenSuccess() throws Exception {
+    void testGetEditBookFormShouldReturnToFormWhenSuccess() throws Exception {
 
       when(bookService.getBookByName("book")).thenReturn(bookDto);
 
@@ -233,7 +234,7 @@ public class BookControllerTest {
     }
 
     @Test
-    void testEditBook_ShouldRedirect_WhenSuccess() throws Exception {
+    void testEditBookShouldRedirectWhenSuccess() throws Exception {
 
       when(bookService.updateBookByName(bookDto.getName(), bookDto)).thenReturn(bookDto);
 
@@ -246,7 +247,7 @@ public class BookControllerTest {
     }
 
     @Test
-    void testEditBook_ShouldReturnToForm_WhenValidationFails() throws Exception {
+    void testEditBookShouldReturnToFormWhenValidationFails() throws Exception {
       bookDto.setName("a");
 
       mockMvc.perform(put("/books/{name}", bookDto.getName())
@@ -258,9 +259,10 @@ public class BookControllerTest {
     }
 
     @Test
-    void testEditBook_ShouldReturnErrorPage_WhenBookNotFound() throws Exception {
+    void testEditBookShouldReturnErrorPageWhenBookNotFound() throws Exception {
 
-      when(bookService.updateBookByName(bookDto.getName(), bookDto)).thenThrow(new NotFoundException("Book not found"));
+      when(bookService.updateBookByName(bookDto.getName(), bookDto))
+          .thenThrow(new NotFoundException("Book not found"));
 
       mockMvc.perform(put("/books/{name}", bookDto.getName())
                           .with(user("testuser").roles("EMPLOYEE"))
@@ -275,7 +277,7 @@ public class BookControllerTest {
   class DeleteBook {
 
     @Test
-    void testDeleteBook_ShouldRedirect_WhenSuccess() throws Exception {
+    void testDeleteBookShouldRedirectWhenSuccess() throws Exception {
 
       String bookName = "book";
 
@@ -289,7 +291,7 @@ public class BookControllerTest {
     }
 
     @Test
-    void testDeleteBook_ShouldReturnErrorPage_WhenBookNotFound() throws Exception {
+    void testDeleteBookShouldReturnErrorPageWhenBookNotFound() throws Exception {
 
       String bookName = "book";
 

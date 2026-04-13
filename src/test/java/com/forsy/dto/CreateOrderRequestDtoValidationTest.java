@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-public class CreateOrderRequestDtoValidationTest {
+class CreateOrderRequestDtoValidationTest {
 
   private static Validator validator;
 
@@ -35,8 +35,9 @@ public class CreateOrderRequestDtoValidationTest {
 
   @Test
   void whenAllFieldsAreValid_thenValidationSucceeds() {
-    CreateOrderRequestDto createOrderRequestDTO = getValidDtoBuilder().build();
-    Set<ConstraintViolation<CreateOrderRequestDto>> violations = validator.validate(createOrderRequestDTO);
+    CreateOrderRequestDto createOrderRequestDto = getValidDtoBuilder().build();
+    Set<ConstraintViolation<CreateOrderRequestDto>> violations =
+        validator.validate(createOrderRequestDto);
     assertTrue(violations.isEmpty(), "A valid DTO should have no constraint violations");
   }
 
@@ -45,16 +46,18 @@ public class CreateOrderRequestDtoValidationTest {
 
     @Test
     void whenClientEmailIsNull_thenValidationFails() {
-      CreateOrderRequestDto createOrderRequestDTO = getValidDtoBuilder().clientEmail(null).build();
-      Set<ConstraintViolation<CreateOrderRequestDto>> violations = validator.validate(createOrderRequestDTO);
+      CreateOrderRequestDto createOrderRequestDto = getValidDtoBuilder().clientEmail(null).build();
+      Set<ConstraintViolation<CreateOrderRequestDto>> violations =
+          validator.validate(createOrderRequestDto);
       assertEquals(1, violations.size());
       assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
     }
 
     @Test
     void whenClientEmailIsInvalid_thenValidationFails() {
-      CreateOrderRequestDto createOrderRequestDTO = getValidDtoBuilder().clientEmail("aa").build();
-      Set<ConstraintViolation<CreateOrderRequestDto>> violations = validator.validate(createOrderRequestDTO);
+      CreateOrderRequestDto createOrderRequestDto = getValidDtoBuilder().clientEmail("aa").build();
+      Set<ConstraintViolation<CreateOrderRequestDto>> violations =
+          validator.validate(createOrderRequestDto);
       assertEquals(1, violations.size());
       assertEquals("{Email.invalid}", violations.iterator().next().getMessageTemplate());
     }
@@ -65,16 +68,20 @@ public class CreateOrderRequestDtoValidationTest {
 
     @Test
     void whenEmployeeEmailIsNull_thenValidationFails() {
-      CreateOrderRequestDto createOrderRequestDTO = getValidDtoBuilder().employeeEmail(null).build();
-      Set<ConstraintViolation<CreateOrderRequestDto>> violations = validator.validate(createOrderRequestDTO);
+      CreateOrderRequestDto createOrderRequestDto = getValidDtoBuilder()
+          .employeeEmail(null).build();
+      Set<ConstraintViolation<CreateOrderRequestDto>> violations =
+          validator.validate(createOrderRequestDto);
       assertEquals(1, violations.size());
       assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
     }
 
     @Test
     void whenEmployeeEmailIsInvalid_thenValidationFails() {
-      CreateOrderRequestDto createOrderRequestDTO = getValidDtoBuilder().employeeEmail("aa").build();
-      Set<ConstraintViolation<CreateOrderRequestDto>> violations = validator.validate(createOrderRequestDTO);
+      CreateOrderRequestDto createOrderRequestDto = getValidDtoBuilder()
+          .employeeEmail("aa").build();
+      Set<ConstraintViolation<CreateOrderRequestDto>> violations =
+          validator.validate(createOrderRequestDto);
       assertEquals(1, violations.size());
       assertEquals("{Email.invalid}", violations.iterator().next().getMessageTemplate());
     }
@@ -85,16 +92,19 @@ public class CreateOrderRequestDtoValidationTest {
 
     @Test
     void whenOrderDateIsNull_thenValidationFails() {
-      CreateOrderRequestDto createOrderRequestDTO = getValidDtoBuilder().orderDate(null).build();
-      Set<ConstraintViolation<CreateOrderRequestDto>> violations = validator.validate(createOrderRequestDTO);
+      CreateOrderRequestDto createOrderRequestDto = getValidDtoBuilder().orderDate(null).build();
+      Set<ConstraintViolation<CreateOrderRequestDto>> violations =
+          validator.validate(createOrderRequestDto);
       assertEquals(1, violations.size());
       assertEquals("{NotNull.invalid}", violations.iterator().next().getMessageTemplate());
     }
 
     @Test
     void whenOrderDateIsInFuture_thenValidationFails() {
-      CreateOrderRequestDto createOrderRequestDTO = getValidDtoBuilder().orderDate(LocalDateTime.now().plusDays(1)).build();
-      Set<ConstraintViolation<CreateOrderRequestDto>> violations = validator.validate(createOrderRequestDTO);
+      CreateOrderRequestDto createOrderRequestDto = getValidDtoBuilder()
+          .orderDate(LocalDateTime.now().plusDays(1)).build();
+      Set<ConstraintViolation<CreateOrderRequestDto>> violations =
+          validator.validate(createOrderRequestDto);
       assertEquals(1, violations.size());
       assertEquals("{PastOrPresent.invalid}", violations.iterator().next().getMessageTemplate());
     }
@@ -105,16 +115,19 @@ public class CreateOrderRequestDtoValidationTest {
 
     @Test
     void whenBookItemsIsNull_thenValidationFails() {
-      CreateOrderRequestDto createOrderRequestDTO = getValidDtoBuilder().bookItems(null).build();
-      Set<ConstraintViolation<CreateOrderRequestDto>> violations = validator.validate(createOrderRequestDTO);
+      CreateOrderRequestDto createOrderRequestDto = getValidDtoBuilder().bookItems(null).build();
+      Set<ConstraintViolation<CreateOrderRequestDto>> violations =
+          validator.validate(createOrderRequestDto);
       assertEquals(1, violations.size());
       assertEquals("{NotEmpty.Order.bookItems}", violations.iterator().next().getMessageTemplate());
     }
 
     @Test
     void whenBookItemsIsEmpty_thenValidationFails() {
-      CreateOrderRequestDto createOrderRequestDTO = getValidDtoBuilder().bookItems(List.of()).build();
-      Set<ConstraintViolation<CreateOrderRequestDto>> violations = validator.validate(createOrderRequestDTO);
+      CreateOrderRequestDto createOrderRequestDto =
+          getValidDtoBuilder().bookItems(List.of()).build();
+      Set<ConstraintViolation<CreateOrderRequestDto>> violations =
+          validator.validate(createOrderRequestDto);
       assertEquals(1, violations.size());
       assertEquals("{NotEmpty.Order.bookItems}", violations.iterator().next().getMessageTemplate());
     }

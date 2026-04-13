@@ -36,7 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class OrderSecurityIntegrationTest {
+class OrderSecurityIntegrationTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -58,7 +58,7 @@ public class OrderSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT", username = "test@test.com")
-    void testGetAllOrders_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+    void testGetAllOrdersWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
       String email = "test@test.com";
 
       mockMvc.perform(get("/orders"))
@@ -68,9 +68,10 @@ public class OrderSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testGetAllOrders_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testGetAllOrdersWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
 
-      when(orderService.getAllOrders(any(Pageable.class), nullable((String.class)))).thenReturn(Page.empty());
+      when(orderService.getAllOrders(any(Pageable.class), nullable((String.class))))
+          .thenReturn(Page.empty());
 
       mockMvc.perform(get("/orders"))
           .andExpect(status().isOk())
@@ -83,14 +84,15 @@ public class OrderSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT", username = "test@test.com")
-    void testGetOrderForUser_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+    void testGetOrderForUserWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
 
       String email = "test@test.com";
-      ClientDisplayDto clientDisplayDTO = ClientDisplayDto.builder().email(email).build();
+      ClientDisplayDto clientDisplayDto = ClientDisplayDto.builder().email(email).build();
       Page<OrderDisplayDto> orders = Page.empty();
 
-      when(clientService.getClientByEmail(email)).thenReturn(clientDisplayDTO);
-      when(orderService.getOrdersByClient(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
+      when(clientService.getClientByEmail(email)).thenReturn(clientDisplayDto);
+      when(orderService.getOrdersByClient(eq(email), any(Pageable.class), nullable(String.class)))
+          .thenReturn(orders);
 
       mockMvc.perform(get("/orders/{email}", email))
           .andExpect(status().isOk());
@@ -98,12 +100,13 @@ public class OrderSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
-    void testGetOrderForUser_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testGetOrderForUserWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
 
       String email = "test@test.com";
       Page<OrderDisplayDto> orders = Page.empty();
 
-      when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), nullable(String.class))).thenReturn(orders);
+      when(orderService.getOrdersByEmployee(eq(email), any(Pageable.class), nullable(String.class)))
+          .thenReturn(orders);
 
       mockMvc.perform(get("/orders/{email}", email))
           .andExpect(status().isOk());
@@ -115,18 +118,20 @@ public class OrderSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT", username = "test@test.com")
-    void testSubmitOrder_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+    void testSubmitOrderWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
 
       Map<String, Integer> cart = new HashMap<>();
       cart.put("book", 1);
 
       String employeeEmail = "emp@emp.com";
-      EmployeeDisplayDto employeeDisplayDTO = EmployeeDisplayDto.builder().email(employeeEmail).build();
-      Page<EmployeeDisplayDto> page = new PageImpl<>(java.util.List.of(employeeDisplayDTO));
+      EmployeeDisplayDto employeeDisplayDto = EmployeeDisplayDto.builder()
+          .email(employeeEmail).build();
+      Page<EmployeeDisplayDto> page = new PageImpl<>(java.util.List.of(employeeDisplayDto));
 
       when(cartCookieUtil.getCartFromCookie(any(HttpServletRequest.class))).thenReturn(cart);
       when(employeeService.getAllEmployees(any(Pageable.class))).thenReturn(page);
-      when(orderService.addOrder(any(CreateOrderRequestDto.class))).thenReturn(OrderDisplayDto.builder().build());
+      when(orderService.addOrder(any(CreateOrderRequestDto.class)))
+          .thenReturn(OrderDisplayDto.builder().build());
 
       mockMvc.perform(post("/orders/submit"))
           .andExpect(status().is3xxRedirection())
@@ -135,7 +140,7 @@ public class OrderSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
-    void testSubmitOrder_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
+    void testSubmitOrderWhenAuthenticatedAsEmployeeShouldForbidAccess() throws Exception {
 
       mockMvc.perform(post("/orders/submit"))
           .andExpect(status().isForbidden());
@@ -147,7 +152,7 @@ public class OrderSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testCancelOrder_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testCancelOrderWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
 
       long orderId = 1L;
 
@@ -157,7 +162,7 @@ public class OrderSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
-    void testCancelOrder_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testCancelOrderWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
 
       long orderId = 1L;
       String email = "test@test.com";
@@ -175,7 +180,7 @@ public class OrderSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testConfirmOrder_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testConfirmOrderWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
 
       long orderId = 1L;
 
@@ -185,7 +190,7 @@ public class OrderSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
-    void testConfirmOrder_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testConfirmOrderWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
 
       long orderId = 1L;
       String email = "test@test.com";

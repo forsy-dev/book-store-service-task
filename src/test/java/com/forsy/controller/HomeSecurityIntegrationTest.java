@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class HomeSecurityIntegrationTest {
+class HomeSecurityIntegrationTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -31,7 +31,7 @@ public class HomeSecurityIntegrationTest {
   private ClientService clientService;
 
   @Test
-  void testGetLoginPage_WhenAnonymous_ShouldReturnLoginPage() throws Exception {
+  void testGetLoginPageWhenAnonymousShouldReturnLoginPage() throws Exception {
     mockMvc.perform(get("/login"))
         .andExpect(status().isOk());
   }
@@ -40,14 +40,14 @@ public class HomeSecurityIntegrationTest {
   class GetRegisterPage {
 
     @Test
-    void testGetRegisterPage_WhenAnonymous_ShouldReturnRegisterPage() throws Exception {
+    void testGetRegisterPageWhenAnonymousShouldReturnRegisterPage() throws Exception {
       mockMvc.perform(get("/register"))
           .andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testGetRegisterPage_WhenAuthenticatedAsClient_ShouldRedirect() throws Exception {
+    void testGetRegisterPageWhenAuthenticatedAsClientShouldRedirect() throws Exception {
       mockMvc.perform(get("/register"))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/books"));
@@ -55,7 +55,7 @@ public class HomeSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testGetRegisterPage_WhenAuthenticatedAsEmployee_ShouldRedirect() throws Exception {
+    void testGetRegisterPageWhenAuthenticatedAsEmployeeShouldRedirect() throws Exception {
       mockMvc.perform(get("/register"))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/books"));
@@ -65,49 +65,49 @@ public class HomeSecurityIntegrationTest {
   @Nested
   class RegisterClient {
 
-    ClientCreateDto clientCreateDTO;
-    ClientDisplayDto clientDisplayDTO;
+    ClientCreateDto clientCreateDto;
+    ClientDisplayDto clientDisplayDto;
 
     @BeforeEach
     void setUp() {
-      clientCreateDTO = ClientCreateDto.builder()
+      clientCreateDto = ClientCreateDto.builder()
           .name("testclient")
           .email("test@test.com")
           .password("Te$t1234")
           .build();
-      clientDisplayDTO = ClientDisplayDto.builder()
+      clientDisplayDto = ClientDisplayDto.builder()
           .name("testclient")
           .email("test@test.com")
           .build();
     }
 
     @Test
-    void testRegisterClient_WhenAnonymous_ShouldRedirectToLoginPage() throws Exception {
+    void testRegisterClientWhenAnonymousShouldRedirectToLoginPage() throws Exception {
 
-      when(clientService.addClient(any(ClientCreateDto.class))).thenReturn(clientDisplayDTO);
+      when(clientService.addClient(any(ClientCreateDto.class))).thenReturn(clientDisplayDto);
 
       mockMvc.perform(post("/register")
-                          .flashAttr("client", clientCreateDTO))
+                          .flashAttr("client", clientCreateDto))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/login"));
     }
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testRegisterClient_WhenAuthorizedAsClient_ShouldRedirectToBooksPage() throws Exception {
+    void testRegisterClientWhenAuthorizedAsClientShouldRedirectToBooksPage() throws Exception {
 
       mockMvc.perform(post("/register")
-                          .flashAttr("client", clientCreateDTO))
+                          .flashAttr("client", clientCreateDto))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/books"));
     }
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testRegisterClient_WhenAuthorizedAsEmployee_ShouldRedirectToBooksPage() throws Exception {
+    void testRegisterClientWhenAuthorizedAsEmployeeShouldRedirectToBooksPage() throws Exception {
 
       mockMvc.perform(post("/register")
-                          .flashAttr("client", clientCreateDTO))
+                          .flashAttr("client", clientCreateDto))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/books"));
     }

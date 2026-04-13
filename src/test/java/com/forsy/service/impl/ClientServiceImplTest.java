@@ -44,7 +44,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
-public class ClientServiceImplTest {
+class ClientServiceImplTest {
 
   @InjectMocks
   private ClientServiceImpl clientService;
@@ -71,7 +71,7 @@ public class ClientServiceImplTest {
   private MessageSource messageSource;
 
   @Test
-  void testGetAllClients_ShouldReturnPagedClients() {
+  void testGetAllClientsShouldReturnPagedClients() {
     Client client = Client.builder().build();
     ClientDisplayDto expectedDto = new ClientDisplayDto();
     Pageable pageable = PageRequest.of(0, 10);
@@ -79,10 +79,11 @@ public class ClientServiceImplTest {
     ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
     when(clientRepository.findAll(pageable)).thenReturn(clientPage);
-    when(clientBlockStatusRepository.findByClientEmail(client.getEmail())).thenReturn(Optional.of(clientBlockStatus));
+    when(clientBlockStatusRepository.findByClientEmail(client.getEmail()))
+        .thenReturn(Optional.of(clientBlockStatus));
     when(mapper.map(client, ClientDisplayDto.class)).thenReturn(expectedDto);
 
-    Page<ClientDisplayDto> actualClientDto = clientService.getAllClients(pageable, null);
+    final Page<ClientDisplayDto> actualClientDto = clientService.getAllClients(pageable, null);
 
     verify(clientRepository, times(1)).findAll(pageable);
     verify(clientBlockStatusRepository, times(1)).findByClientEmail(client.getEmail());
@@ -97,32 +98,34 @@ public class ClientServiceImplTest {
   class FindByEmail {
 
     @Test
-    void testGetClientByEmail_ShouldReturnClient() {
+    void testGetClientByEmailShouldReturnClient() {
       String email = "email";
       Client client = Client.builder().email(email).build();
       ClientDisplayDto expectedDto = ClientDisplayDto.builder().email(email).build();
       ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
-      when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
+      when(clientBlockStatusRepository.findByClientEmail(email))
+          .thenReturn(Optional.of(clientBlockStatus));
       when(mapper.map(client, ClientDisplayDto.class)).thenReturn(expectedDto);
 
-      ClientDisplayDto clientDisplayDTO = clientService.getClientByEmail(email);
+      final ClientDisplayDto clientDisplayDto = clientService.getClientByEmail(email);
 
       verify(clientRepository, times(1)).findByEmail(email);
       verify(clientBlockStatusRepository, times(1)).findByClientEmail(email);
       verify(mapper, times(1)).map(client, ClientDisplayDto.class);
 
-      assertEquals(expectedDto, clientDisplayDTO);
+      assertEquals(expectedDto, clientDisplayDto);
     }
 
     @Test
-    void testGetClientByEmail_ShouldThrowExceptionWhenClientNotFound() {
+    void testGetClientByEmailShouldThrowExceptionWhenClientNotFound() {
       String email = "email";
       String message = "Client with email: " + email + " not found";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+          .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.getClientByEmail(email));
 
@@ -135,7 +138,7 @@ public class ClientServiceImplTest {
   class UpdateByEmail {
 
     @Test
-    void testUpdateClientByEmail_ShouldReturnClient() {
+    void testUpdateClientByEmailShouldReturnClient() {
       String email = "email";
       String oldName = "oldName";
       String newName = "newName";
@@ -148,24 +151,25 @@ public class ClientServiceImplTest {
       when(clientRepository.save(client)).thenReturn(client);
       when(mapper.map(client, ClientDisplayDto.class)).thenReturn(expectedDto);
 
-      ClientDisplayDto clientDisplayDTO = clientService.updateClientByEmail(email, dto);
+      final ClientDisplayDto clientDisplayDto = clientService.updateClientByEmail(email, dto);
 
       verify(clientRepository, times(1)).findByEmail(email);
       verify(mapper, times(1)).map(dto, client);
       verify(clientRepository, times(1)).save(client);
       verify(mapper, times(1)).map(client, ClientDisplayDto.class);
 
-      assertEquals(expectedDto, clientDisplayDTO);
+      assertEquals(expectedDto, clientDisplayDto);
     }
 
     @Test
-    void testUpdateClientByEmail_ShouldThrowExceptionWhenEmailNotFound() {
+    void testUpdateClientByEmailShouldThrowExceptionWhenEmailNotFound() {
       String email = "email";
       ClientUpdateDto dto = ClientUpdateDto.builder().build();
       String message = "Client with email: " + email + " not found";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+          .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.updateClientByEmail(email, dto));
 
@@ -180,14 +184,15 @@ public class ClientServiceImplTest {
   class DeleteByEmail {
 
     @Test
-    void testDeleteClientByEmail_ShouldReturnNothing() {
+    void testDeleteClientByEmailShouldReturnNothing() {
       String email = "email";
       Client client = Client.builder().email(email).build();
       ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
       doNothing().when(orderRepository).deleteAllByClientEmail(email);
-      when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
+      when(clientBlockStatusRepository.findByClientEmail(email))
+          .thenReturn(Optional.of(clientBlockStatus));
       doNothing().when(clientRepository).delete(client);
       doNothing().when(clientBlockStatusRepository).delete(clientBlockStatus);
 
@@ -201,12 +206,13 @@ public class ClientServiceImplTest {
     }
 
     @Test
-    void testDeleteClientByEmail_ShouldThrowExceptionWhenEmailNotFound() {
+    void testDeleteClientByEmailShouldThrowExceptionWhenEmailNotFound() {
       String email = "email";
       String message = "Client with email: " + email + " not found";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+          .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.deleteClientByEmail(email));
 
@@ -219,11 +225,12 @@ public class ClientServiceImplTest {
   class ChangePassword {
 
     @Test
-    void testChangePassword_ShouldReturn() {
+    void testChangePasswordShouldReturn() {
       String email = "test@test.com";
       String oldPassword = "oldPassword";
       String newPassword = "newPassword";
-      ChangePasswordDto dto = ChangePasswordDto.builder().oldPassword(oldPassword).newPassword(newPassword).build();
+      final ChangePasswordDto dto = ChangePasswordDto.builder().oldPassword(oldPassword)
+          .newPassword(newPassword).build();
       Client client = Client.builder().email(email).password(oldPassword).build();
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
@@ -240,13 +247,14 @@ public class ClientServiceImplTest {
     }
 
     @Test
-    void testChangePassword_ShouldThrowExceptionWhenEmailNotFound() {
+    void testChangePasswordShouldThrowExceptionWhenEmailNotFound() {
       String email = "test@test.com";
       ChangePasswordDto dto = ChangePasswordDto.builder().build();
       String message = "Client with email: " + email + " not found";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+          .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.changePassword(email, dto));
 
@@ -257,17 +265,19 @@ public class ClientServiceImplTest {
     }
 
     @Test
-    void testChangePassword_ShouldThrowExceptionWhenOldPasswordInvalid() {
+    void testChangePasswordShouldThrowExceptionWhenOldPasswordInvalid() {
       String email = "test@test.com";
       String passwordDto = "oldPassword";
       String passwordClient = "";
-      ChangePasswordDto dto = ChangePasswordDto.builder().oldPassword(passwordDto).build();
+      final ChangePasswordDto dto = ChangePasswordDto.builder().oldPassword(passwordDto).build();
       Client client = Client.builder().email(email).password(passwordClient).build();
       String message = "Invalid old password";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
       when(passwordEncoder.matches(passwordDto, client.getPassword())).thenReturn(false);
-      when(messageSource.getMessage(eq("error.user.old.password.not.match"), any(), any(Locale.class))).thenReturn(message);
+      when(messageSource.getMessage(
+          eq("error.user.old.password.not.match"), any(), any(Locale.class)))
+          .thenReturn(message);
 
       assertThrows(InvalidPasswordException.class, () -> clientService.changePassword(email, dto));
 
@@ -282,7 +292,7 @@ public class ClientServiceImplTest {
   class AddClient {
 
     @Test
-    void testAddClient_ShouldReturnClient() {
+    void testAddClientShouldReturnClient() {
       String email = "test@test.com";
       ClientCreateDto dto = ClientCreateDto.builder().email(email).build();
       Client client = Client.builder().email(email).build();
@@ -294,11 +304,13 @@ public class ClientServiceImplTest {
       when(clientBlockStatusRepository.existsByClientEmail(email)).thenReturn(false);
       when(mapper.map(dto, Client.class)).thenReturn(client);
       when(clientRepository.save(client)).thenReturn(client);
-      when(clientBlockStatusRepository.save(any(ClientBlockStatus.class))).thenReturn(clientBlockStatus);
-      when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
+      when(clientBlockStatusRepository.save(any(ClientBlockStatus.class)))
+          .thenReturn(clientBlockStatus);
+      when(clientBlockStatusRepository.findByClientEmail(email))
+          .thenReturn(Optional.of(clientBlockStatus));
       when(mapper.map(client, ClientDisplayDto.class)).thenReturn(expectedDto);
 
-      ClientDisplayDto actualClientDto = clientService.addClient(dto);
+      final ClientDisplayDto actualClientDto = clientService.addClient(dto);
 
       verify(clientRepository, times(1)).existsByEmail(email);
       verify(employeeRepository, times(1)).existsByEmail(email);
@@ -313,13 +325,14 @@ public class ClientServiceImplTest {
     }
 
     @Test
-    void testAddClient_ShouldThrowExceptionWhenClientEmailAlreadyExist() {
+    void testAddClientShouldThrowExceptionWhenClientEmailAlreadyExist() {
       String email = "test@test.com";
       ClientCreateDto dto = ClientCreateDto.builder().email(email).build();
       String message = "Client with email: " + email + " already exist";
 
       when(clientRepository.existsByEmail(email)).thenReturn(true);
-      when(messageSource.getMessage(eq("error.user.already.exist"), any(), any(Locale.class))).thenReturn(message);
+      when(messageSource.getMessage(eq("error.user.already.exist"), any(), any(Locale.class)))
+          .thenReturn(message);
 
       assertThrows(AlreadyExistException.class, () -> clientService.addClient(dto));
 
@@ -331,14 +344,15 @@ public class ClientServiceImplTest {
     }
 
     @Test
-    void testAddClient_ShouldThrowExceptionWhenEmployeeEmailAlreadyExist() {
+    void testAddClientShouldThrowExceptionWhenEmployeeEmailAlreadyExist() {
       String email = "test@test.com";
-      ClientCreateDto dto = ClientCreateDto.builder().email(email).build();
+      final ClientCreateDto dto = ClientCreateDto.builder().email(email).build();
       String message = "Employee with email: " + email + " already exist";
 
       when(clientRepository.existsByEmail(email)).thenReturn(false);
       when(employeeRepository.existsByEmail(email)).thenReturn(true);
-      when(messageSource.getMessage(eq("error.user.already.exist"), any(), any(Locale.class))).thenReturn(message);
+      when(messageSource.getMessage(eq("error.user.already.exist"), any(), any(Locale.class)))
+          .thenReturn(message);
 
       assertThrows(AlreadyExistException.class, () -> clientService.addClient(dto));
 
@@ -354,20 +368,22 @@ public class ClientServiceImplTest {
   class AddBalanceToClient {
 
     @Test
-    void testAddBalanceToClient_ShouldReturnClient() {
+    void testAddBalanceToClientShouldReturnClient() {
       String email = "test@test.com";
       BigDecimal amount = BigDecimal.TEN;
       AddBalanceDto dto = AddBalanceDto.builder().amount(amount).build();
       Client client = Client.builder().email(email).balance(BigDecimal.ZERO).build();
-      ClientDisplayDto expectedDto = ClientDisplayDto.builder().email(email).balance(amount).build();
+      ClientDisplayDto expectedDto = ClientDisplayDto.builder().email(email)
+          .balance(amount).build();
       ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
       when(clientRepository.save(client)).thenReturn(client);
-      when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
+      when(clientBlockStatusRepository.findByClientEmail(email))
+          .thenReturn(Optional.of(clientBlockStatus));
       when(mapper.map(client, ClientDisplayDto.class)).thenReturn(expectedDto);
 
-      ClientDisplayDto actualClientDto = clientService.addBalanceToClient(email, dto);
+      final ClientDisplayDto actualClientDto = clientService.addBalanceToClient(email, dto);
 
       verify(clientRepository, times(1)).findByEmail(email);
       verify(clientRepository, times(1)).save(client);
@@ -378,13 +394,14 @@ public class ClientServiceImplTest {
     }
 
     @Test
-    void testAddBalanceToClient_ShouldThrowExceptionWhenEmailNotFound() {
+    void testAddBalanceToClientShouldThrowExceptionWhenEmailNotFound() {
       String email = "test@test.com";
       AddBalanceDto dto = AddBalanceDto.builder().build();
       String message = "Client with email: " + email + " not found";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+          .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.addBalanceToClient(email, dto));
 
@@ -398,11 +415,12 @@ public class ClientServiceImplTest {
   class BlockClient {
 
     @Test
-    void testBlockClient_ShouldDoNothing() {
+    void testBlockClientShouldDoNothing() {
       String email = "test@test.com";
       ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
-      when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
+      when(clientBlockStatusRepository.findByClientEmail(email))
+          .thenReturn(Optional.of(clientBlockStatus));
       when(clientBlockStatusRepository.save(clientBlockStatus)).thenReturn(clientBlockStatus);
 
       clientService.blockClient(email);
@@ -412,12 +430,13 @@ public class ClientServiceImplTest {
     }
 
     @Test
-    void testBlockClient_ShouldThrowExceptionWhenEmailNotFound() {
+    void testBlockClientShouldThrowExceptionWhenEmailNotFound() {
       String email = "test@test.com";
       String message = "Client with email: " + email + " not found";
 
       when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+          .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.blockClient(email));
 
@@ -430,11 +449,12 @@ public class ClientServiceImplTest {
   class UnblockClient {
 
     @Test
-    void testBlockClient_ShouldDoNothing() {
+    void testBlockClientShouldDoNothing() {
       String email = "test@test.com";
       ClientBlockStatus clientBlockStatus = ClientBlockStatus.builder().isBlocked(false).build();
 
-      when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.of(clientBlockStatus));
+      when(clientBlockStatusRepository.findByClientEmail(email))
+          .thenReturn(Optional.of(clientBlockStatus));
       when(clientBlockStatusRepository.save(clientBlockStatus)).thenReturn(clientBlockStatus);
 
       clientService.unblockClient(email);
@@ -444,12 +464,13 @@ public class ClientServiceImplTest {
     }
 
     @Test
-    void testBlockClient_ShouldThrowExceptionWhenEmailNotFound() {
+    void testBlockClientShouldThrowExceptionWhenEmailNotFound() {
       String email = "test@test.com";
       String message = "Client with email: " + email + " not found";
 
       when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class))).thenReturn(message);
+      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+          .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.unblockClient(email));
 

@@ -26,7 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = HomeController.class,
     excludeAutoConfiguration = {SecurityAutoConfiguration.class})
-public class HomeControllerTest {
+class HomeControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -57,51 +57,52 @@ public class HomeControllerTest {
   @Nested
   class RegisterClient {
 
-    ClientCreateDto clientCreateDTO;
-    ClientDisplayDto clientDisplayDTO;
+    ClientCreateDto clientCreateDto;
+    ClientDisplayDto clientDisplayDto;
 
     @BeforeEach
     void setUp() {
-      clientCreateDTO = ClientCreateDto.builder()
+      clientCreateDto = ClientCreateDto.builder()
           .name("testclient")
           .email("test@test.com")
           .password("Te$t1234")
           .build();
-      clientDisplayDTO = ClientDisplayDto.builder()
+      clientDisplayDto = ClientDisplayDto.builder()
           .name("testclient")
           .email("test@test.com")
           .build();
     }
 
     @Test
-    void testRegisterClient_ShouldRedirect() throws Exception {
+    void testRegisterClientShouldRedirect() throws Exception {
 
-      when(clientService.addClient(any(ClientCreateDto.class))).thenReturn(clientDisplayDTO);
+      when(clientService.addClient(any(ClientCreateDto.class))).thenReturn(clientDisplayDto);
 
       mockMvc.perform(post("/register")
-                          .flashAttr("client", clientCreateDTO))
+                          .flashAttr("client", clientCreateDto))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/login"));
     }
 
     @Test
-    void testRegisterClient_ShouldReturnToRegisterForm_WhenValidationFails() throws Exception {
-      clientCreateDTO.setPassword("");
+    void testRegisterClientShouldReturnToRegisterFormWhenValidationFails() throws Exception {
+      clientCreateDto.setPassword("");
 
-      when(clientService.addClient(any(ClientCreateDto.class))).thenReturn(clientDisplayDTO);
+      when(clientService.addClient(any(ClientCreateDto.class))).thenReturn(clientDisplayDto);
 
       mockMvc.perform(post("/register")
-                          .flashAttr("client", clientCreateDTO))
+                          .flashAttr("client", clientCreateDto))
           .andExpect(status().isOk())
           .andExpect(view().name("register-form"));
     }
 
     @Test
-    void testRegisterClient_ShouldReturnToRegisterForm_WhenEmailAlreadyExist() throws Exception {
-      when(clientService.addClient(any(ClientCreateDto.class))).thenThrow(new AlreadyExistException("Client already exists"));
+    void testRegisterClientShouldReturnToRegisterFormWhenEmailAlreadyExist() throws Exception {
+      when(clientService.addClient(any(ClientCreateDto.class)))
+          .thenThrow(new AlreadyExistException("Client already exists"));
 
       mockMvc.perform(post("/register")
-                          .flashAttr("client", clientCreateDTO))
+                          .flashAttr("client", clientCreateDto))
           .andExpect(status().isOk())
           .andExpect(view().name("register-form"))
           .andExpect(model().attributeExists("errorMessage"));

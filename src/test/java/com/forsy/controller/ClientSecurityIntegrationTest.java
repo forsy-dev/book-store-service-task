@@ -35,7 +35,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class ClientSecurityIntegrationTest {
+class ClientSecurityIntegrationTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -48,17 +48,19 @@ public class ClientSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testGetClients_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testGetClientsWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       mockMvc.perform(get(WebConstants.URL_CLIENTS))
           .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testGetClients_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
-      Page<ClientDisplayDto> clientPage = new PageImpl<>(Collections.singletonList(new ClientDisplayDto()));
+    void testGetClientsWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
+      Page<ClientDisplayDto> clientPage = new PageImpl<>(Collections.singletonList(
+          new ClientDisplayDto()));
 
-      when(clientService.getAllClients(any(Pageable.class), nullable(String.class))).thenReturn(clientPage);
+      when(clientService.getAllClients(any(Pageable.class), nullable(String.class)))
+          .thenReturn(clientPage);
 
       mockMvc.perform(get(WebConstants.URL_CLIENTS))
           .andExpect(status().isOk());
@@ -70,7 +72,7 @@ public class ClientSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testGetClientByEmail_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testGetClientByEmailWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String email = "email";
 
       mockMvc.perform(get(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_DETAIL, email)))
@@ -79,7 +81,7 @@ public class ClientSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testGetClientByEmail_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testGetClientByEmailWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       String email = "email";
 
       when(clientService.getClientByEmail(email)).thenReturn(new ClientDisplayDto());
@@ -94,25 +96,26 @@ public class ClientSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testUpdateClient_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+    void testUpdateClientWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
       String email = "test@test.com";
       String name = "name";
-      ClientUpdateDto clientUpdateDTO = ClientUpdateDto.builder()
+      ClientUpdateDto clientUpdateDto = ClientUpdateDto.builder()
           .name(name)
           .build();
-      ClientDisplayDto clientDisplayDTO = new ClientDisplayDto();
+      ClientDisplayDto clientDisplayDto = new ClientDisplayDto();
 
-      when(clientService.updateClientByEmail(eq(email), any(ClientUpdateDto.class))).thenReturn(clientDisplayDTO);
+      when(clientService.updateClientByEmail(eq(email), any(ClientUpdateDto.class)))
+          .thenReturn(clientDisplayDto);
 
       mockMvc.perform(put(WebConstants.URL_CLIENT_PROFILE)
-                          .flashAttr(WebConstants.ATTR_CLIENT_UPDATE_DTO, clientUpdateDTO))
+                          .flashAttr(WebConstants.ATTR_CLIENT_UPDATE_DTO, clientUpdateDto))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl(WebConstants.URL_PROFILE));
     }
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testUpdateClient_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
+    void testUpdateClientWhenAuthenticatedAsEmployeeShouldForbidAccess() throws Exception {
 
       mockMvc.perform(put(WebConstants.URL_CLIENT_PROFILE))
           .andExpect(status().isForbidden());
@@ -124,19 +127,20 @@ public class ClientSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testDeleteClient_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+    void testDeleteClientWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
       String email = "test@test.com";
 
       doNothing().when(clientService).deleteClientByEmail(email);
 
       mockMvc.perform(delete(WebConstants.URL_CLIENT_PROFILE))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.addParameters(WebConstants.URL_LOGIN, Map.of(WebConstants.PARAM_ACCOUNT_DELETED, "true"))));
+          .andExpect(redirectedUrl(WebConstants.addParameters(
+              WebConstants.URL_LOGIN, Map.of(WebConstants.PARAM_ACCOUNT_DELETED, "true"))));
     }
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testDeleteClient_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
+    void testDeleteClientWhenAuthenticatedAsEmployeeShouldForbidAccess() throws Exception {
 
       mockMvc.perform(delete(WebConstants.URL_CLIENT_PROFILE))
           .andExpect(status().isForbidden());
@@ -148,7 +152,7 @@ public class ClientSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testBlockClient_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testBlockClientWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String email = "test@test.com";
 
       mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_BLOCK, email)))
@@ -157,14 +161,15 @@ public class ClientSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testBlockClient_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testBlockClientWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       String email = "test@test.com";
 
       doNothing().when(clientService).blockClient(email);
 
       mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_BLOCK, email)))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_DETAIL, email)));
+          .andExpect(redirectedUrl(WebConstants.expandPathVariables(
+              WebConstants.URL_CLIENT_DETAIL, email)));
     }
   }
 
@@ -173,7 +178,7 @@ public class ClientSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testUnblockClient_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testUnblockClientWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String email = "test@test.com";
 
       mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_UNBLOCK, email)))
@@ -182,14 +187,15 @@ public class ClientSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testUnblockClient_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testUnblockClientWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       String email = "test@test.com";
 
       doNothing().when(clientService).unblockClient(email);
 
       mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_UNBLOCK, email)))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_DETAIL, email)));
+          .andExpect(redirectedUrl(WebConstants.expandPathVariables(
+              WebConstants.URL_CLIENT_DETAIL, email)));
     }
   }
 
@@ -198,26 +204,30 @@ public class ClientSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testAddBalanceToClient_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testAddBalanceToClientWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String email = "test@test.com";
 
-      mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_ADD_BALANCE, email)))
+      mockMvc.perform(put(WebConstants.expandPathVariables(
+          WebConstants.URL_CLIENT_ADD_BALANCE, email)))
           .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testAddBalanceToClient_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testAddBalanceToClientWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       String clientEmail = "test@test.com";
       AddBalanceDto dto = AddBalanceDto.builder().amount(BigDecimal.TEN).build();
-      ClientDisplayDto clientDisplayDTO = ClientDisplayDto.builder().email(clientEmail).balance(BigDecimal.TEN).build();
+      ClientDisplayDto clientDisplayDto = ClientDisplayDto.builder().email(clientEmail)
+          .balance(BigDecimal.TEN).build();
 
-      when(clientService.addBalanceToClient(clientEmail, dto)).thenReturn(clientDisplayDTO);
+      when(clientService.addBalanceToClient(clientEmail, dto)).thenReturn(clientDisplayDto);
 
-      mockMvc.perform(post(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_ADD_BALANCE, clientEmail))
+      mockMvc.perform(post(WebConstants.expandPathVariables(
+          WebConstants.URL_CLIENT_ADD_BALANCE, clientEmail))
                           .flashAttr(WebConstants.ATTR_ADD_BALANCE_DTO, dto))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_DETAIL, clientEmail)))
+          .andExpect(redirectedUrl(WebConstants.expandPathVariables(
+              WebConstants.URL_CLIENT_DETAIL, clientEmail)))
           .andExpect(flash().attributeExists(WebConstants.ATTR_SUCCESS_MESSAGE));
     }
   }

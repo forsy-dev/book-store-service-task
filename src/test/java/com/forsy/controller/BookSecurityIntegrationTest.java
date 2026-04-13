@@ -32,7 +32,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class BookSecurityIntegrationTest {
+class BookSecurityIntegrationTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -45,10 +45,11 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testGetBooks_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+    void testGetBooksWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
       Page<BookDto> bookPage = new PageImpl<>(Collections.singletonList(new BookDto()));
 
-      when(bookService.getAllBooks(any(Pageable.class), nullable(String.class))).thenReturn(bookPage);
+      when(bookService.getAllBooks(any(Pageable.class), nullable(String.class)))
+          .thenReturn(bookPage);
 
       mockMvc.perform(get("/books"))
           .andExpect(status().isOk());
@@ -56,10 +57,11 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testGetBooks_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testGetBooksWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       Page<BookDto> bookPage = new PageImpl<>(Collections.singletonList(new BookDto()));
 
-      when(bookService.getAllBooks(any(Pageable.class), nullable(String.class))).thenReturn(bookPage);
+      when(bookService.getAllBooks(any(Pageable.class), nullable(String.class)))
+          .thenReturn(bookPage);
 
       mockMvc.perform(get("/books"))
           .andExpect(status().isOk());
@@ -71,7 +73,7 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testGetBookByName_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+    void testGetBookByNameWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
       String bookName = "testbook";
       BookDto bookDto = BookDto.builder().name(bookName).build();
 
@@ -83,7 +85,7 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testGetBookByName_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testGetBookByNameWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       String bookName = "testbook";
       BookDto bookDto = BookDto.builder().name(bookName).build();
 
@@ -99,14 +101,14 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testGetBookForm_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testGetBookFormWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       mockMvc.perform(get("/books/new"))
           .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testGetBookForm_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testGetBookFormWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       mockMvc.perform(get("/books/new"))
           .andExpect(status().isOk());
     }
@@ -117,14 +119,14 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testAddBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testAddBookWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       mockMvc.perform(post("/books"))
           .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testAddBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testAddBookWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       BookDto bookDto = BookDto.builder()
           .name("book")
           .genre("genre")
@@ -149,7 +151,7 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testGetEditBookForm_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testGetEditBookFormWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String name = "testbook";
       mockMvc.perform(get("/books/{name}/edit", name))
           .andExpect(status().isForbidden());
@@ -157,7 +159,7 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testGetEditBookForm_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testGetEditBookFormWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       BookDto bookDto = BookDto.builder()
           .name("book")
           .genre("genre")
@@ -183,7 +185,7 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testEditBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testEditBookWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String name = "testbook";
       mockMvc.perform(put("/books/{name}", name))
           .andExpect(status().isForbidden());
@@ -191,7 +193,7 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testEditBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testEditBookWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       BookDto bookDto = BookDto.builder()
           .name("book")
           .genre("genre")
@@ -219,7 +221,7 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testDeleteBook_WhenAuthenticatedAsClient_ShouldForbidAccess() throws Exception {
+    void testDeleteBookWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String name = "testbook";
 
       mockMvc.perform(delete("/books/{name}", name))
@@ -228,7 +230,7 @@ public class BookSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testDeleteBook_WhenAuthenticatedAsEmployee_ShouldAllowAccess() throws Exception {
+    void testDeleteBookWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
       String name = "testbook";
 
       doNothing().when(bookService).deleteBookByName(name);

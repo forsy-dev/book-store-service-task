@@ -30,23 +30,23 @@ class AddBalanceDtoValidationTest {
 
   @Test
   void whenAllFieldsAreValid_thenValidationSucceeds() {
-    AddBalanceDto addBalanceDTO = getValidDtoBuilder().build();
-    Set<ConstraintViolation<AddBalanceDto>> violations = validator.validate(addBalanceDTO);
+    AddBalanceDto addBalanceDto = getValidDtoBuilder().build();
+    Set<ConstraintViolation<AddBalanceDto>> violations = validator.validate(addBalanceDto);
     assertTrue(violations.isEmpty(), "A valid DTO should have no constraint violations");
   }
 
   @Test
   void whenBalanceIsNull_thenValidationFails() {
-    AddBalanceDto addBalanceDTO = getValidDtoBuilder().amount(null).build();
-    Set<ConstraintViolation<AddBalanceDto>> violations = validator.validate(addBalanceDTO);
+    AddBalanceDto addBalanceDto = getValidDtoBuilder().amount(null).build();
+    Set<ConstraintViolation<AddBalanceDto>> violations = validator.validate(addBalanceDto);
     assertEquals(1, violations.size());
     assertEquals("{NotNull.invalid}", violations.iterator().next().getMessageTemplate());
   }
 
   @Test
   void whenBalanceIsNotTooSmall_thenValidationFails() {
-    AddBalanceDto addBalanceDTO = getValidDtoBuilder().amount(BigDecimal.ZERO).build();
-    Set<ConstraintViolation<AddBalanceDto>> violations = validator.validate(addBalanceDTO);
+    AddBalanceDto addBalanceDto = getValidDtoBuilder().amount(BigDecimal.ZERO).build();
+    Set<ConstraintViolation<AddBalanceDto>> violations = validator.validate(addBalanceDto);
     assertEquals(1, violations.size());
     assertEquals("{DecimalMin.invalid}", violations.iterator().next().getMessageTemplate());
   }

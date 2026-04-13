@@ -26,7 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class ProfileSecurityIntegrationTest {
+class ProfileSecurityIntegrationTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -45,13 +45,13 @@ public class ProfileSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT", username = "email")
-    void testGetProfile_WhenAuthenticatedAsClient_ShouldReturnProfile() throws Exception {
+    void testGetProfileWhenAuthenticatedAsClientShouldReturnProfile() throws Exception {
       String email = "email";
       ClientDisplayDto client = ClientDisplayDto.builder().email(email).build();
-      ClientUpdateDto clientUpdateDTO = ClientUpdateDto.builder().build();
+      ClientUpdateDto clientUpdateDto = ClientUpdateDto.builder().build();
 
       when(clientService.getClientByEmail(email)).thenReturn(client);
-      when(mapper.map(client, ClientUpdateDto.class)).thenReturn(clientUpdateDTO);
+      when(mapper.map(client, ClientUpdateDto.class)).thenReturn(clientUpdateDto);
 
       mockMvc.perform(get("/profile"))
           .andExpect(status().isOk());
@@ -59,13 +59,13 @@ public class ProfileSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE", username = "email")
-    void testGetProfile_WhenAuthenticatedAsEmployee_ShouldReturnProfile() throws Exception {
+    void testGetProfileWhenAuthenticatedAsEmployeeShouldReturnProfile() throws Exception {
       String email = "email";
       EmployeeDisplayDto employee = EmployeeDisplayDto.builder().email(email).build();
-      EmployeeUpdateDto employeeUpdateDTO = EmployeeUpdateDto.builder().build();
+      EmployeeUpdateDto employeeUpdateDto = EmployeeUpdateDto.builder().build();
 
       when(employeeService.getEmployeeByEmail(email)).thenReturn(employee);
-      when(mapper.map(employee, EmployeeUpdateDto.class)).thenReturn(employeeUpdateDTO);
+      when(mapper.map(employee, EmployeeUpdateDto.class)).thenReturn(employeeUpdateDto);
 
       mockMvc.perform(get("/profile"))
           .andExpect(status().isOk());
@@ -77,38 +77,38 @@ public class ProfileSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testChangePassword_WhenAuthenticatedAsClient_ShouldRedirectToProfile() throws Exception {
+    void testChangePasswordWhenAuthenticatedAsClientShouldRedirectToProfile() throws Exception {
       String email = "email";
       String oldPassword = "oldPassword";
       String newPassword = "Te$t1234";
-      ChangePasswordDto changePasswordDTO = ChangePasswordDto.builder()
+      ChangePasswordDto changePasswordDto = ChangePasswordDto.builder()
           .oldPassword(oldPassword)
           .newPassword(newPassword)
           .build();
 
-      doNothing().when(clientService).changePassword(email, changePasswordDTO);
+      doNothing().when(clientService).changePassword(email, changePasswordDto);
 
       mockMvc.perform(put("/profile/password")
-                          .flashAttr("changePasswordDTO", changePasswordDTO))
+                          .flashAttr("changePasswordDTO", changePasswordDto))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/profile"));
     }
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testChangePassword_WhenAuthenticatedAsEmployee_ShouldRedirectToProfile() throws Exception {
+    void testChangePasswordWhenAuthenticatedAsEmployeeShouldRedirectToProfile() throws Exception {
       String email = "email";
       String oldPassword = "oldPassword";
       String newPassword = "Te$t1234";
-      ChangePasswordDto changePasswordDTO = ChangePasswordDto.builder()
+      ChangePasswordDto changePasswordDto = ChangePasswordDto.builder()
           .oldPassword(oldPassword)
           .newPassword(newPassword)
           .build();
 
-      doNothing().when(employeeService).changePassword(email, changePasswordDTO);
+      doNothing().when(employeeService).changePassword(email, changePasswordDto);
 
       mockMvc.perform(put("/profile/password")
-                          .flashAttr("changePasswordDTO", changePasswordDTO))
+                          .flashAttr("changePasswordDTO", changePasswordDto))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/profile"));
     }

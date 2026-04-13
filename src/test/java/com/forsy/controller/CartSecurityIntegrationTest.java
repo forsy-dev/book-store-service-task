@@ -26,7 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class CartSecurityIntegrationTest {
+class CartSecurityIntegrationTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -39,7 +39,7 @@ public class CartSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testAddBookToCart_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+    void testAddBookToCartWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
 
       String bookName = "book";
       int quantity = 10;
@@ -55,7 +55,7 @@ public class CartSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testAddBookToCart_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
+    void testAddBookToCartWhenAuthenticatedAsEmployeeShouldForbidAccess() throws Exception {
 
       String bookName = "book";
       int quantity = 10;
@@ -72,7 +72,7 @@ public class CartSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "CLIENT")
-    void testShowCart_WhenAuthenticatedAsClient_ShouldAllowAccess() throws Exception {
+    void testShowCartWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
 
       List<CartItemDisplayDto> items = Collections.emptyList();
       BigDecimal totalCost = BigDecimal.ZERO;
@@ -86,7 +86,7 @@ public class CartSecurityIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    void testShowCart_WhenAuthenticatedAsEmployee_ShouldForbidAccess() throws Exception {
+    void testShowCartWhenAuthenticatedAsEmployeeShouldForbidAccess() throws Exception {
 
       mockMvc.perform(get("/cart"))
           .andExpect(status().isForbidden());

@@ -47,8 +47,8 @@ class BookDtoValidationTest {
 
   @Test
   void whenAllFieldsAreValid_thenValidationSucceeds() {
-    BookDto bookDTO = getValidDtoBuilder().build();
-    Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+    BookDto bookDto = getValidDtoBuilder().build();
+    Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
     assertTrue(violations.isEmpty(), "A valid DTO should have no constraint violations");
   }
 
@@ -67,8 +67,8 @@ class BookDtoValidationTest {
     @ParameterizedTest(name = "Name \"{0}\" should trigger {1}")
     @MethodSource("invalidNameProvider")
     void whenNameIsInvalid_thenValidationFails(String name, Set<String> expectedMessages) {
-      BookDto bookDTO = getValidDtoBuilder().name(name).build();
-      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+      BookDto bookDto = getValidDtoBuilder().name(name).build();
+      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
       ValidationUtil.validateMessageTemplates(violations, expectedMessages);
     }
   }
@@ -88,8 +88,8 @@ class BookDtoValidationTest {
     @ParameterizedTest(name = "Genre \"{0}\" should trigger {1}")
     @MethodSource("invalidGenreProvider")
     void whenGenreIsInvalid_thenValidationFails(String genre, Set<String> expectedMessages) {
-      BookDto bookDTO = getValidDtoBuilder().genre(genre).build();
-      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+      BookDto bookDto = getValidDtoBuilder().genre(genre).build();
+      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
       ValidationUtil.validateMessageTemplates(violations, expectedMessages);
     }
   }
@@ -99,8 +99,8 @@ class BookDtoValidationTest {
 
     @Test
     void whenAgeGroupIsNull_thenValidationFails() {
-      BookDto bookDTO = getValidDtoBuilder().ageGroup(null).build();
-      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+      BookDto bookDto = getValidDtoBuilder().ageGroup(null).build();
+      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
       ValidationUtil.validateMessageTemplates(violations, Set.of("{NotNull.invalid}"));
     }
   }
@@ -118,8 +118,8 @@ class BookDtoValidationTest {
     @ParameterizedTest(name = "Price \"{0}\" should trigger {1}")
     @MethodSource("invalidPriceProvider")
     void whenPriceIsInvalid_thenValidationFails(BigDecimal price, Set<String> expectedMessages) {
-      BookDto bookDTO = getValidDtoBuilder().price(price).build();
-      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+      BookDto bookDto = getValidDtoBuilder().price(price).build();
+      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
       ValidationUtil.validateMessageTemplates(violations, expectedMessages);
     }
   }
@@ -130,15 +130,16 @@ class BookDtoValidationTest {
     static Stream<Arguments> invalidPublicationDateProvider() {
       return Stream.of(
           Arguments.of(null, Set.of("{NotNull.invalid}")), // Null
-          Arguments.of(LocalDate.now().plusDays(1), Set.of("{PastOrPresent.invalid}")) // In The Future
+          Arguments.of(LocalDate.now().plusDays(1), Set.of("{PastOrPresent.invalid}"))
       );
     }
 
     @ParameterizedTest(name = "Publication Date \"{0}\" should trigger {1}")
     @MethodSource("invalidPublicationDateProvider")
-    void whenPublicationDateIsInvalid_thenValidationFails(LocalDate publicationDate, Set<String> expectedMessages) {
-      BookDto bookDTO = getValidDtoBuilder().publicationDate(publicationDate).build();
-      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+    void whenPublicationDateIsInvalid_thenValidationFails(LocalDate publicationDate,
+        Set<String> expectedMessages) {
+      BookDto bookDto = getValidDtoBuilder().publicationDate(publicationDate).build();
+      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
       ValidationUtil.validateMessageTemplates(violations, expectedMessages);
     }
   }
@@ -158,8 +159,8 @@ class BookDtoValidationTest {
     @ParameterizedTest(name = "Author \"{0}\" should trigger {1}")
     @MethodSource("invalidAuthorProvider")
     void whenAuthorIsInvalid_thenValidationFails(String author, Set<String> expectedMessages) {
-      BookDto bookDTO = getValidDtoBuilder().author(author).build();
-      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+      BookDto bookDto = getValidDtoBuilder().author(author).build();
+      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
       ValidationUtil.validateMessageTemplates(violations, expectedMessages);
     }
   }
@@ -177,8 +178,8 @@ class BookDtoValidationTest {
     @ParameterizedTest(name = "Pages \"{0}\" should trigger {1}")
     @MethodSource("invalidPagesProvider")
     void whenPagesIsInvalid_thenValidationFails(Integer pages, Set<String> expectedMessages) {
-      BookDto bookDTO = getValidDtoBuilder().pages(pages).build();
-      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+      BookDto bookDto = getValidDtoBuilder().pages(pages).build();
+      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
       ValidationUtil.validateMessageTemplates(violations, expectedMessages);
     }
   }
@@ -197,9 +198,10 @@ class BookDtoValidationTest {
 
     @ParameterizedTest(name = "Characteristics \"{0}\" should trigger {1}")
     @MethodSource("invalidCharacteristicsProvider")
-    void whenCharacteristicsIsInvalid_thenValidationFails(String characteristics, Set<String> expectedMessages) {
-      BookDto bookDTO = getValidDtoBuilder().characteristics(characteristics).build();
-      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+    void whenCharacteristicsIsInvalid_thenValidationFails(String characteristics,
+        Set<String> expectedMessages) {
+      BookDto bookDto = getValidDtoBuilder().characteristics(characteristics).build();
+      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
       ValidationUtil.validateMessageTemplates(violations, expectedMessages);
     }
   }
@@ -218,9 +220,10 @@ class BookDtoValidationTest {
 
     @ParameterizedTest(name = "Description \"{0}\" should trigger {1}")
     @MethodSource("invalidDescriptionProvider")
-    void whenDescriptionIsInvalid_thenValidationFails(String description, Set<String> expectedMessages) {
-      BookDto bookDTO = getValidDtoBuilder().description(description).build();
-      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+    void whenDescriptionIsInvalid_thenValidationFails(String description,
+        Set<String> expectedMessages) {
+      BookDto bookDto = getValidDtoBuilder().description(description).build();
+      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
       ValidationUtil.validateMessageTemplates(violations, expectedMessages);
     }
   }
@@ -230,8 +233,8 @@ class BookDtoValidationTest {
 
     @Test
     void whenLanguageIsNull_thenValidationFails() {
-      BookDto bookDTO = getValidDtoBuilder().language(null).build();
-      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDTO);
+      BookDto bookDto = getValidDtoBuilder().language(null).build();
+      Set<ConstraintViolation<BookDto>> violations = validator.validate(bookDto);
       ValidationUtil.validateMessageTemplates(violations, Set.of("{NotNull.invalid}"));
     }
   }
