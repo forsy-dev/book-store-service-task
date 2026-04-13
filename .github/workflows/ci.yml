@@ -45,3 +45,21 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/book-store-service:latest
+
+      # 6. Deploy to the AWS Tower
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Pull the newest container from your Vault
+            docker pull ${{ secrets.DOCKER_USERNAME }}/book-store-service:latest
+            
+            # Stop and remove the old container if it exists (so ports don't clash)
+            docker stop bookstore || true
+            docker rm bookstore || true
+            
+            # Start the new container! (Using the 8080 environment override)
+            docker run -d --name bookstore -p 8080:8080 -e SERVER_PORT=8080 ${{ secrets.DOCKER_USERNAME }}/book-store-service:latest
