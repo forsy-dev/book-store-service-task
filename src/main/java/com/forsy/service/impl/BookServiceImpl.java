@@ -129,7 +129,7 @@ public class BookServiceImpl implements BookService {
   @Override
   public BookDto addBook(BookDto dto) {
     log.info("Attempting to add book with name {}", dto.getName());
-    if (bookRepository.existsByName(dto.getName())) {
+    if (bookRepository.existsByName(dto.getName()) ) {
       String message = messageSource.getMessage(
           MessageKeys.ERROR_BOOK_ALREADY_EXISTS,
           new Object[]{dto.getName()}, LocaleContextHolder.getLocale());
