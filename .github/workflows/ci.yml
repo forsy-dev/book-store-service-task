@@ -69,4 +69,4 @@ jobs:
             -e SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USER }} \
             -e SPRING_DATASOURCE_PASSWORD="${{ secrets.DB_PASS }}" \
             -e SPRING_JPA_HIBERNATE_DDL_AUTO=update \
-            ***/book-store-service:latest
+            ${{ secrets.DOCKER_USERNAME }}/book-store-service:latest
