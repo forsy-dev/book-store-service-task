@@ -16,6 +16,9 @@ import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -60,6 +63,7 @@ public class EmployeeServiceImpl implements EmployeeService {
    *                           exist in the repository
    */
   @Override
+  @Cacheable(value = "employees", key = "#email")
   public EmployeeDisplayDto getEmployeeByEmail(String email) {
     return employeeRepository.findByEmail(email)
         .map(employee -> mapper.map(employee, EmployeeDisplayDto.class))
@@ -82,6 +86,7 @@ public class EmployeeServiceImpl implements EmployeeService {
    *                                 user is under 18 years old
    */
   @Override
+  @CacheEvict(value = "employees", key = "#email")
   public EmployeeDisplayDto updateEmployeeByEmail(String email, EmployeeUpdateDto dto) {
     log.info("Attempting to update employee with old email: {}", email);
 
@@ -123,6 +128,10 @@ public class EmployeeServiceImpl implements EmployeeService {
    * @throws NotFoundException if the target email is not found
    */
   @Override
+  @Caching(evict = {
+      @CacheEvict(value = "employees", key = "#email"),
+      @CacheEvict(value = "userDetails", key = "#email")
+  })
   public void deleteEmployeeByEmail(String email) {
     log.info("Attempting to delete employee with email {}", email);
     employeeRepository.findByEmail(email).ifPresentOrElse(
@@ -174,6 +183,7 @@ public class EmployeeServiceImpl implements EmployeeService {
    *                                  not match the persistent record
    */
   @Override
+  @CacheEvict(value = "userDetails", key = "#email")
   public void changePassword(String email, ChangePasswordDto dto) {
     log.info("Attempting to change password for employee with email {}", email);
     Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> {

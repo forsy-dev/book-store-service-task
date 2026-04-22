@@ -10,6 +10,8 @@ import com.forsy.util.MessageKeys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -62,6 +64,7 @@ public class BookServiceImpl implements BookService {
    * @throws NotFoundException if no book is found with the specified title
    */
   @Override
+  @Cacheable(value = "books", key = "#name")
   public BookDto getBookByName(String name) {
     return bookRepository.findByName(name)
         .map(book -> mapper.map(book, BookDto.class))
@@ -82,6 +85,7 @@ public class BookServiceImpl implements BookService {
    * @throws NotFoundException if the book to be updated does not exist
    */
   @Override
+  @CacheEvict(value = "books", key = "#name")
   public BookDto updateBookByName(String name, BookDto dto) {
     log.info("Attempting to update book with name {}", name);
     Book book = bookRepository.findByName(name)
@@ -104,6 +108,7 @@ public class BookServiceImpl implements BookService {
    * @throws NotFoundException if the book to be deleted does not exist
    */
   @Override
+  @CacheEvict(value = "books", key = "#name")
   public void deleteBookByName(String name) {
     log.info("Attempting to delete book with name {}", name);
     bookRepository.findByName(name).ifPresentOrElse(

@@ -19,6 +19,9 @@ import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -75,6 +78,7 @@ public class ClientServiceImpl implements ClientService {
    * @throws NotFoundException if the client is not found in the primary repository
    */
   @Override
+  @Cacheable(value = "clients", key = "#email")
   public ClientDisplayDto getClientByEmail(String email) {
     return clientRepository.findByEmail(email).map(this::mapToClientDisplayDto).orElseThrow(() -> {
       String message = messageSource.getMessage("error.user.not.found", new Object[]{email},
@@ -89,6 +93,7 @@ public class ClientServiceImpl implements ClientService {
    * @throws NotFoundException if no client exists with the provided email
    */
   @Override
+  @CacheEvict(value = "clients", key = "#email")
   public ClientDisplayDto updateClientByEmail(String email, ClientUpdateDto dto) {
     log.info("Attempting to update client with email {}", email);
 
@@ -115,6 +120,10 @@ public class ClientServiceImpl implements ClientService {
    */
   @Override
   @Transactional
+  @Caching(evict = {
+      @CacheEvict(value = "clients", key = "#email"),
+      @CacheEvict(value = "userDetails", key = "#email")
+  })
   public void deleteClientByEmail(String email) {
     log.info("Attempting to delete client with email {}", email);
     clientRepository.findByEmail(email).ifPresentOrElse(client -> {
@@ -174,6 +183,7 @@ public class ClientServiceImpl implements ClientService {
    *                                  does not match the hashed record
    */
   @Override
+  @CacheEvict(value = "userDetails", key = "#email")
   public void changePassword(String email, ChangePasswordDto dto) {
     log.info("Attempting to change password for client with email {}", email);
     Client client = clientRepository.findByEmail(email).orElseThrow(() -> {
@@ -196,6 +206,7 @@ public class ClientServiceImpl implements ClientService {
    * {@inheritDoc}
    */
   @Override
+  @CacheEvict(value = "clients", key = "#email")
   public ClientDisplayDto addBalanceToClient(String email, AddBalanceDto dto) {
     log.info("Attempting to add balance {} to client with email {}", dto.getAmount(), email);
     Client client = clientRepository.findByEmail(email).orElseThrow(() -> {
@@ -213,6 +224,10 @@ public class ClientServiceImpl implements ClientService {
    * {@inheritDoc}
    */
   @Override
+  @Caching(evict = {
+      @CacheEvict(value = "clients", key = "#email"),
+      @CacheEvict(value = "userDetails", key = "#email")
+  })
   public void blockClient(String email) {
     changeIsBlockStatus(email, true);
   }
@@ -221,6 +236,10 @@ public class ClientServiceImpl implements ClientService {
    * {@inheritDoc}
    */
   @Override
+  @Caching(evict = {
+      @CacheEvict(value = "clients", key = "#email"),
+      @CacheEvict(value = "userDetails", key = "#email")
+  })
   public void unblockClient(String email) {
     changeIsBlockStatus(email, false);
   }

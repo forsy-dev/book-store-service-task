@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -51,6 +52,7 @@ public class CustomUserDetailsService implements UserDetailsService {
    *                                   has no authorities
    */
   @Override
+  @Cacheable(value = "userDetails", key = "#email")
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Optional<Employee> employeeOpt = employeeRepository.findByEmail(email);
     if (employeeOpt.isPresent()) {

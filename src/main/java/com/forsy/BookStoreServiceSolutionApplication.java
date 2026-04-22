@@ -2,6 +2,7 @@ package com.forsy;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 
 /**
  * The primary entry point for the Bookstore Service Solution application.
@@ -14,6 +15,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Illia
  */
 @SpringBootApplication
+@EnableCaching
 public class BookStoreServiceSolutionApplication {
 
   /**

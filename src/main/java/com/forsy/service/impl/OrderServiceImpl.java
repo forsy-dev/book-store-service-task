@@ -24,6 +24,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
@@ -53,6 +54,7 @@ public class OrderServiceImpl implements OrderService {
   private final OrderStatusRepository orderStatusRepository;
   private final ModelMapper mapper;
   private final MessageSource messageSource;
+  private final CacheManager cacheManager;
 
   /**
    * {@inheritDoc}
@@ -227,6 +229,9 @@ public class OrderServiceImpl implements OrderService {
     orderStatusRepository.save(orderStatusRecord);
     client.setBalance(client.getBalance().subtract(order.getPrice()));
     clientRepository.save(client);
+    if (cacheManager.getCache("clients") != null) {
+      cacheManager.getCache("clients").evict(client.getEmail());
+    }
     log.info("Order {} confirmed successfully", orderId);
   }
 

@@ -42,6 +42,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -74,6 +76,12 @@ class OrderServiceImplTest {
 
   @Mock
   private MessageSource messageSource;
+
+  @Mock
+  private CacheManager cacheManager;
+
+  @Mock
+  private Cache clientsCache;
 
   @Nested
   class GetAllOrdersByClient {
@@ -537,6 +545,8 @@ class OrderServiceImplTest {
       when(orderRepository.save(order)).thenReturn(order);
       when(orderStatusRepository.save(statusRecord)).thenReturn(statusRecord);
       when(clientRepository.save(client)).thenReturn(client);
+
+      when(cacheManager.getCache("clients")).thenReturn(clientsCache);
 
       orderService.confirmOrder(orderId, employeeEmail);
 
