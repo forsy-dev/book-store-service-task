@@ -178,11 +178,13 @@ public class BookController {
   public String updateBookByName(@PathVariable(name = "name") String name,
                                  @Valid @ModelAttribute(WebConstants.ATTR_BOOK) BookDto bookDto,
                                  BindingResult bindingResult,
-                                 Authentication authentication) {
+                                 Authentication authentication,
+      Model model) {
     log.info("Employee {} is attempting to update book: {}", authentication.getName(), name);
 
     if (bindingResult.hasErrors()) {
       log.warn("Validation errors while updating book: {}", bindingResult.getAllErrors());
+      model.addAttribute("isEdit", true);
       return WebConstants.VIEW_BOOK_FORM;
     }
     bookService.updateBookByName(name, bookDto);

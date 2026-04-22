@@ -16,6 +16,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * Data transfer object representing a book's full details.
@@ -71,6 +72,7 @@ public class BookDto {
    */
   @NotNull(message = "{NotNull.invalid}")
   @PastOrPresent(message = "{PastOrPresent.invalid}")
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
   private LocalDate publicationDate;
 
   /**
