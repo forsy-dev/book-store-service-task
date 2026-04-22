@@ -62,7 +62,7 @@ jobs:
             docker rm bookstore || true
             
             # Start the new container with RDS Database connection!
-            docker run -d --name bookstore -p 80:8080 \
+            docker run -d --restart always --name bookstore -p 80:8080 \
             -e SERVER_PORT=8080 \
             -e SPRING_PROFILES_ACTIVE=prod \
             -e SPRING_DATASOURCE_URL=jdbc:mysql://${{ secrets.DB_HOST }}:3306/bookstore \
