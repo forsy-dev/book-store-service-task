@@ -50,8 +50,8 @@ jobs:
       - name: AWS ASG Instance Refresh
         run: |
           aws autoscaling start-instance-refresh \
-            --auto-scaling-group-name YOUR_ASG_NAME \
-            --region YOUR_AWS_REGION
+            --auto-scaling-group-name book-store-asg \
+            --region eu-north-1
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
