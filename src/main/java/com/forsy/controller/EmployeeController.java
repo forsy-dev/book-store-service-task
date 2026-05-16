@@ -2,7 +2,9 @@ package com.forsy.controller;
 
 import com.forsy.dto.EmployeeUpdateDto;
 import com.forsy.service.EmployeeService;
+import com.forsy.util.WebConstants;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
@@ -60,9 +62,10 @@ public class EmployeeController {
       log.warn("Validation errors while updating employee profile: {}",
           bindingResult.getAllErrors());
       redirectAttributes.addFlashAttribute(
-          "org.springframework.validation.BindingResult.employeeUpdateDTO", bindingResult);
-      redirectAttributes.addFlashAttribute("employeeUpdateDTO", dto);
-      return "redirect:/profile?error=validation";
+          WebConstants.getBindingResultKey(WebConstants.ATTR_EMPLOYEE_UPDATE_DTO), bindingResult);
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_EMPLOYEE_UPDATE_DTO, dto);
+      return WebConstants.redirect(
+          WebConstants.addParameters(WebConstants.URL_PROFILE, Map.of("error", "validation")));
     }
 
     String email = authentication.getName();
@@ -70,14 +73,14 @@ public class EmployeeController {
       employeeService.updateEmployeeByEmail(email, dto);
       String message = messageSource.getMessage("profile.update.success.message",
           new Object[]{}, LocaleContextHolder.getLocale());
-      redirectAttributes.addFlashAttribute("successMessage", message);
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_SUCCESS_MESSAGE, message);
 
       log.info("Client profile updated for: {}", email);
     } catch (Exception ex) {
       log.warn("Error updating employee: {}", ex.getMessage());
-      redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_ERROR_MESSAGE, ex.getMessage());
     }
 
-    return "redirect:/profile";
+    return WebConstants.redirect(WebConstants.URL_PROFILE);
   }
 }

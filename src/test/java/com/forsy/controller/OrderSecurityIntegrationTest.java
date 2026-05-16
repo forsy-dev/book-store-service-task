@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -133,7 +134,7 @@ class OrderSecurityIntegrationTest {
       when(orderService.addOrder(any(CreateOrderRequestDto.class)))
           .thenReturn(OrderDisplayDto.builder().build());
 
-      mockMvc.perform(post("/orders/submit"))
+      mockMvc.perform(post("/orders/submit").with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/books"));
     }
@@ -142,7 +143,7 @@ class OrderSecurityIntegrationTest {
     @WithMockUser(roles = "EMPLOYEE", username = "test@test.com")
     void testSubmitOrderWhenAuthenticatedAsEmployeeShouldForbidAccess() throws Exception {
 
-      mockMvc.perform(post("/orders/submit"))
+      mockMvc.perform(post("/orders/submit").with(csrf()))
           .andExpect(status().isForbidden());
     }
   }
@@ -156,7 +157,7 @@ class OrderSecurityIntegrationTest {
 
       long orderId = 1L;
 
-      mockMvc.perform(post("/orders/{id}/cancel", orderId))
+      mockMvc.perform(post("/orders/{id}/cancel", orderId).with(csrf()))
           .andExpect(status().isForbidden());
     }
 
@@ -169,7 +170,7 @@ class OrderSecurityIntegrationTest {
 
       doNothing().when(orderService).cancelOrder(orderId, email);
 
-      mockMvc.perform(post("/orders/{id}/cancel", orderId))
+      mockMvc.perform(post("/orders/{id}/cancel", orderId).with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/orders"));
     }
@@ -184,7 +185,7 @@ class OrderSecurityIntegrationTest {
 
       long orderId = 1L;
 
-      mockMvc.perform(post("/orders/{id}/confirm", orderId))
+      mockMvc.perform(post("/orders/{id}/confirm", orderId).with(csrf()))
           .andExpect(status().isForbidden());
     }
 
@@ -197,7 +198,7 @@ class OrderSecurityIntegrationTest {
 
       doNothing().when(orderService).confirmOrder(orderId, email);
 
-      mockMvc.perform(post("/orders/{id}/confirm", orderId))
+      mockMvc.perform(post("/orders/{id}/confirm", orderId).with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/orders"));
     }

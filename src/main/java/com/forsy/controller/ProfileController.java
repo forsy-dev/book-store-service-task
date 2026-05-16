@@ -8,7 +8,9 @@ import com.forsy.dto.EmployeeUpdateDto;
 import com.forsy.exception.InvalidPasswordException;
 import com.forsy.service.ClientService;
 import com.forsy.service.EmployeeService;
+import com.forsy.util.WebConstants;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -61,31 +63,33 @@ public class ProfileController {
   public String showProfilePage(Model model, Authentication auth) {
     String email = auth.getName();
 
-    if (!model.containsAttribute("changePasswordDTO")) {
-      model.addAttribute("changePasswordDTO", new ChangePasswordDto());
+    if (!model.containsAttribute(WebConstants.ATTR_CHANGE_PASSWORD_DTO)) {
+      model.addAttribute(WebConstants.ATTR_CHANGE_PASSWORD_DTO, new ChangePasswordDto());
     }
 
     if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
       ClientDisplayDto client = clientService.getClientByEmail(email);
-      model.addAttribute("userProfile", client);
+      model.addAttribute(WebConstants.ATTR_USER_PROFILE, client);
 
-      if (!model.containsAttribute("clientUpdateDTO")) {
-        model.addAttribute("clientUpdateDTO", mapper.map(client, ClientUpdateDto.class));
+      if (!model.containsAttribute(WebConstants.ATTR_CLIENT_UPDATE_DTO)) {
+        model.addAttribute(
+            WebConstants.ATTR_CLIENT_UPDATE_DTO, mapper.map(client, ClientUpdateDto.class));
       }
-      model.addAttribute("employeeUpdateDTO", new EmployeeUpdateDto());
+      model.addAttribute(WebConstants.ATTR_EMPLOYEE_UPDATE_DTO, new EmployeeUpdateDto());
 
     } else if (auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_EMPLOYEE"))) {
       EmployeeDisplayDto employee = employeeService.getEmployeeByEmail(email);
-      model.addAttribute("userProfile", employee);
+      model.addAttribute(WebConstants.ATTR_USER_PROFILE, employee);
 
-      if (!model.containsAttribute("employeeUpdateDTO")) {
-        model.addAttribute("employeeUpdateDTO", mapper.map(employee, EmployeeUpdateDto.class));
+      if (!model.containsAttribute(WebConstants.ATTR_EMPLOYEE_UPDATE_DTO)) {
+        model.addAttribute(
+            WebConstants.ATTR_EMPLOYEE_UPDATE_DTO, mapper.map(employee, EmployeeUpdateDto.class));
       }
 
-      model.addAttribute("clientUpdateDTO", new ClientUpdateDto());
+      model.addAttribute(WebConstants.ATTR_CLIENT_UPDATE_DTO, new ClientUpdateDto());
     }
 
-    return "profile";
+    return WebConstants.VIEW_PROFILE;
   }
 
   /**
@@ -104,7 +108,7 @@ public class ProfileController {
    */
   @PutMapping("/password")
   String updatePassword(Authentication auth,
-                        @Valid @ModelAttribute("changePasswordDTO")
+                        @Valid @ModelAttribute(WebConstants.ATTR_CHANGE_PASSWORD_DTO)
                         ChangePasswordDto changePasswordDto,
                         BindingResult bindingResult,
                         RedirectAttributes redirectAttributes) {
@@ -114,9 +118,11 @@ public class ProfileController {
       log.warn("Validation errors while updating password: {}", bindingResult.getAllErrors());
 
       redirectAttributes.addFlashAttribute(
-          "org.springframework.validation.BindingResult.changePasswordDTO", bindingResult);
-      redirectAttributes.addFlashAttribute("changePasswordDTO", changePasswordDto);
-      return "redirect:/profile?error=validation";
+          WebConstants.getBindingResultKey(WebConstants.ATTR_CHANGE_PASSWORD_DTO), bindingResult);
+      redirectAttributes.addFlashAttribute(
+          WebConstants.ATTR_CHANGE_PASSWORD_DTO, changePasswordDto);
+      return WebConstants.redirect(
+          WebConstants.addParameters(WebConstants.URL_PROFILE, Map.of("error", "validation")));
     }
 
     try {
@@ -129,14 +135,16 @@ public class ProfileController {
 
       String message = messageSource.getMessage("user.password.success.message",
           new Object[]{}, LocaleContextHolder.getLocale());
-      redirectAttributes.addFlashAttribute("successMessage", message);
-      return "redirect:/profile";
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_SUCCESS_MESSAGE, message);
+      return WebConstants.redirect(WebConstants.URL_PROFILE);
     } catch (InvalidPasswordException ex) {
       log.warn("Invalid old password for user {}: {}", auth.getName(), ex.getMessage());
 
-      redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
-      redirectAttributes.addFlashAttribute("changePasswordDTO", new ChangePasswordDto());
-      return "redirect:/profile?error=service";
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_ERROR_MESSAGE, ex.getMessage());
+      redirectAttributes.addFlashAttribute(
+          WebConstants.ATTR_CHANGE_PASSWORD_DTO, new ChangePasswordDto());
+      return WebConstants.redirect(
+          WebConstants.addParameters(WebConstants.URL_PROFILE, Map.of("error", "service")));
     }
   }
 }

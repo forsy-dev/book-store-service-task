@@ -12,6 +12,7 @@ import com.forsy.model.Employee;
 import com.forsy.repo.ClientRepository;
 import com.forsy.repo.EmployeeRepository;
 import com.forsy.service.EmployeeService;
+import com.forsy.util.MessageKeys;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,7 +70,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         .map(employee -> mapper.map(employee, EmployeeDisplayDto.class))
         .orElseThrow(() -> {
           String message = messageSource.getMessage(
-              "error.user.not.found", new Object[]{email},
+              MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{email},
               LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });
@@ -92,7 +93,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> {
       String message = messageSource.getMessage(
-          "error.user.not.found", new Object[]{email},
+          MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{email},
           LocaleContextHolder.getLocale());
       return new NotFoundException(message);
     });
@@ -116,7 +117,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     LocalDate minimumValidDate = LocalDate.now().minusYears(18);
     if (birthDate.isAfter(minimumValidDate)) {
       String message = messageSource.getMessage(
-          "error.user.underage", new Object[]{},
+          MessageKeys.ERROR_USER_UNDERAGE, new Object[]{},
           LocaleContextHolder.getLocale());
       throw new AgeRestrictionException(message);
     }
@@ -141,7 +142,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         },
         () -> {
           String message = messageSource.getMessage(
-              "error.user.not.found", new Object[]{email},
+              MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{email},
               LocaleContextHolder.getLocale());
           throw new NotFoundException(message);
         });
@@ -163,7 +164,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     if (employeeRepository.existsByEmail(employee.getEmail())
         || clientRepository.existsByEmail(employee.getEmail())) {
       String message = messageSource.getMessage(
-          "error.user.already.exist", new Object[]{employee.getEmail()},
+          MessageKeys.ERROR_USER_ALREADY_EXISTS, new Object[]{employee.getEmail()},
           LocaleContextHolder.getLocale());
       throw new AlreadyExistException(message);
     }
@@ -188,14 +189,14 @@ public class EmployeeServiceImpl implements EmployeeService {
     log.info("Attempting to change password for employee with email {}", email);
     Employee employee = employeeRepository.findByEmail(email).orElseThrow(() -> {
       String message = messageSource.getMessage(
-          "error.user.not.found", new Object[]{email},
+          MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{email},
           LocaleContextHolder.getLocale());
       return new NotFoundException(message);
     });
 
     if (!passwordEncoder.matches(dto.getOldPassword(), employee.getPassword())) {
       String message = messageSource.getMessage(
-          "error.user.old.password.not.match", new Object[]{email},
+          MessageKeys.ERROR_USER_OLD_PASSWORD_NOT_MATCH, new Object[]{email},
           LocaleContextHolder.getLocale());
       throw new InvalidPasswordException(message);
     }

@@ -5,10 +5,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,26 +36,19 @@ import lombok.NoArgsConstructor;
 @Builder
 public class OrderStatusRecord {
 
-  /**
-   * The unique primary key for the status registry entry.
-   */
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   /**
-   * The unique identifier of the order associated with this status record.
-   *
-   * <p>Serves as the link to the core {@link Order} entity.
+   * Справжній зв'язок з об'єктом Order.
+   * Тепер Hibernate розуміє, що це зовнішній ключ (Foreign Key).
    */
-  @Column(name = "ORDER_ID", nullable = false, unique = true)
-  private Long orderId;
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "order_id", nullable = false, unique = true)
+  @NotNull(message = "{NotNull.invalid}")
+  private Order order;
 
-  /**
-   * The current state of the associated order.
-   *
-   * <p>Stored as a string representation of the {@link OrderStatus} enum.
-   */
   @Enumerated(EnumType.STRING)
   @Column(name = "STATUS", nullable = false)
   private OrderStatus status;

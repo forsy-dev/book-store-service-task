@@ -2,6 +2,7 @@ package com.forsy.controller;
 
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -89,7 +90,8 @@ class ProfileSecurityIntegrationTest {
       doNothing().when(clientService).changePassword(email, changePasswordDto);
 
       mockMvc.perform(put("/profile/password")
-                          .flashAttr("changePasswordDTO", changePasswordDto))
+                          .flashAttr("changePasswordDTO", changePasswordDto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/profile"));
     }
@@ -108,7 +110,8 @@ class ProfileSecurityIntegrationTest {
       doNothing().when(employeeService).changePassword(email, changePasswordDto);
 
       mockMvc.perform(put("/profile/password")
-                          .flashAttr("changePasswordDTO", changePasswordDto))
+                          .flashAttr("changePasswordDTO", changePasswordDto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/profile"));
     }

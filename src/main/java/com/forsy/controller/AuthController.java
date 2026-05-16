@@ -1,6 +1,7 @@
 package com.forsy.controller;
 
 import com.forsy.conf.jwt.JwtUtils;
+import com.forsy.util.WebConstants;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -62,16 +63,17 @@ public class AuthController {
 
       Cookie cookie = new Cookie("access_token", jwt);
       cookie.setHttpOnly(true);
+      cookie.setSecure(true);
       cookie.setPath("/");
       cookie.setMaxAge(24 * 60 * 60); // 1 day
       response.addCookie(cookie);
 
-      return "redirect:/books";
+      return WebConstants.redirect(WebConstants.URL_BOOKS);
 
     } catch (AuthenticationException e) {
       log.warn("Login failed for user: {}", username);
-      redirectAttributes.addAttribute("error", true);
-      return "redirect:/login";
+      redirectAttributes.addAttribute(WebConstants.ATTR_ERROR, true);
+      return WebConstants.redirect(WebConstants.URL_LOGIN);
     }
   }
 
@@ -88,9 +90,10 @@ public class AuthController {
   public String logout(HttpServletResponse response) {
     Cookie cookie = new Cookie("access_token", null);
     cookie.setHttpOnly(true);
+    cookie.setSecure(true);
     cookie.setPath("/");
     cookie.setMaxAge(0);
     response.addCookie(cookie);
-    return "redirect:/login?logout";
+    return WebConstants.redirect(WebConstants.URL_LOGIN) + "?logout";
   }
 }

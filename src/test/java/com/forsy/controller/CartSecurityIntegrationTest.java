@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -48,7 +49,8 @@ class CartSecurityIntegrationTest {
       doNothing().when(cartService).addBookToCart(anyMap(), any(AddToCartDto.class));
 
       mockMvc.perform(post("/cart/add")
-                          .flashAttr("addToCartDTO", dto))
+                          .flashAttr("addToCartDTO", dto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/books"));
     }
@@ -62,7 +64,8 @@ class CartSecurityIntegrationTest {
       AddToCartDto dto = new AddToCartDto(bookName, quantity);
 
       mockMvc.perform(post("/cart/add")
-                          .flashAttr("addToCartDTO", dto))
+                          .flashAttr("addToCartDTO", dto)
+                          .with(csrf()))
           .andExpect(status().isForbidden());
     }
   }

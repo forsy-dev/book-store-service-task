@@ -18,6 +18,7 @@ import com.forsy.repo.EmployeeRepository;
 import com.forsy.repo.OrderRepository;
 import com.forsy.repo.OrderStatusRepository;
 import com.forsy.service.OrderService;
+import com.forsy.util.MessageKeys;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,7 +116,7 @@ public class OrderServiceImpl implements OrderService {
     Employee employee = employeeRepository.findByEmail(dto.getEmployeeEmail())
         .orElseThrow(() -> {
           String message = messageSource.getMessage(
-              "error.user.not.found", new Object[]{dto.getEmployeeEmail()},
+              MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{dto.getEmployeeEmail()},
               LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });
@@ -123,7 +124,7 @@ public class OrderServiceImpl implements OrderService {
     Client client = clientRepository.findByEmail(dto.getClientEmail())
         .orElseThrow(() -> {
           String message = messageSource.getMessage(
-              "error.user.not.found", new Object[]{dto.getClientEmail()},
+              MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{dto.getClientEmail()},
               LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });
@@ -141,7 +142,7 @@ public class OrderServiceImpl implements OrderService {
       Book book = bookRepository.findByName(itemDto.getBookName())
           .orElseThrow(() -> {
             String message = messageSource.getMessage(
-                "error.book.not.found", new Object[]{itemDto.getBookName()},
+                MessageKeys.ERROR_BOOK_NOT_FOUND, new Object[]{itemDto.getBookName()},
                 LocaleContextHolder.getLocale());
             return new NotFoundException(message);
           });
@@ -160,7 +161,7 @@ public class OrderServiceImpl implements OrderService {
     order = orderRepository.save(order);
 
     OrderStatusRecord statusRecord = OrderStatusRecord.builder()
-        .orderId(order.getId())
+        .order(order)
         .status(OrderStatus.PENDING)
         .build();
     orderStatusRepository.save(statusRecord);
@@ -187,7 +188,7 @@ public class OrderServiceImpl implements OrderService {
     Order order = orderRepository.findById(orderId)
         .orElseThrow(() -> {
           String message = messageSource.getMessage(
-              "error.order.not.found", new Object[]{orderId},
+              MessageKeys.ERROR_ORDER_NOT_FOUND, new Object[]{orderId},
               LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });
@@ -195,7 +196,7 @@ public class OrderServiceImpl implements OrderService {
     Employee employee = employeeRepository.findByEmail(employeeEmail)
         .orElseThrow(() -> {
           String message = messageSource.getMessage(
-              "error.user.not.found", new Object[]{employeeEmail},
+              MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{employeeEmail},
               LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });
@@ -203,14 +204,14 @@ public class OrderServiceImpl implements OrderService {
     OrderStatusRecord orderStatusRecord = orderStatusRepository.findByOrderId(orderId)
         .orElseThrow(() -> {
           String message = messageSource.getMessage(
-              "error.order.status.not.found", new Object[]{orderId},
+              MessageKeys.ERROR_ORDER_STATUS_NOT_FOUND, new Object[]{orderId},
               LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });
 
     if (orderStatusRecord.getStatus() != OrderStatus.PENDING) {
       String message = messageSource.getMessage(
-          "error.order.status.not.pending", new Object[]{},
+          MessageKeys.ERROR_ORDER_STATUS_NOT_PENDING, new Object[]{},
           LocaleContextHolder.getLocale());
       throw new IllegalStateException(message);
     }
@@ -218,7 +219,7 @@ public class OrderServiceImpl implements OrderService {
     Client client = order.getClient();
     if (client.getBalance().compareTo(order.getPrice()) < 0) {
       String message = messageSource.getMessage(
-          "error.user.insufficient.funds", new Object[]{client.getEmail()},
+          MessageKeys.ERROR_USER_INSUFFICIENT_FUNDS, new Object[]{client.getEmail()},
           LocaleContextHolder.getLocale());
       throw new InsufficientFundsException(message);
     }
@@ -249,14 +250,14 @@ public class OrderServiceImpl implements OrderService {
     OrderStatusRecord orderStatusRecord = orderStatusRepository.findByOrderId(orderId)
         .orElseThrow(() -> {
           String message = messageSource.getMessage(
-              "error.order.status.not.found", new Object[]{orderId},
+              MessageKeys.ERROR_ORDER_STATUS_NOT_FOUND, new Object[]{orderId},
               LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });
 
     if (orderStatusRecord.getStatus() != OrderStatus.PENDING) {
       String message = messageSource.getMessage(
-          "error.order.status.not.pending", new Object[]{},
+          MessageKeys.ERROR_ORDER_STATUS_NOT_PENDING, new Object[]{},
           LocaleContextHolder.getLocale());
       throw new IllegalStateException(message);
     }
@@ -264,7 +265,7 @@ public class OrderServiceImpl implements OrderService {
     Order order = orderRepository.findById(orderId)
         .orElseThrow(() -> {
           String message = messageSource.getMessage(
-              "error.order.not.found", new Object[]{orderId},
+              MessageKeys.ERROR_ORDER_NOT_FOUND, new Object[]{orderId},
               LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });
@@ -272,7 +273,7 @@ public class OrderServiceImpl implements OrderService {
     Employee employee = employeeRepository.findByEmail(employeeEmail)
         .orElseThrow(() -> {
           String message = messageSource.getMessage(
-              "error.user.not.found", new Object[]{employeeEmail},
+              MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{employeeEmail},
               LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });

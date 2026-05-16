@@ -2,6 +2,7 @@ package com.forsy.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -87,7 +88,8 @@ class HomeSecurityIntegrationTest {
       when(clientService.addClient(any(ClientCreateDto.class))).thenReturn(clientDisplayDto);
 
       mockMvc.perform(post("/register")
-                          .flashAttr("client", clientCreateDto))
+                          .flashAttr("client", clientCreateDto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/login"));
     }
@@ -97,7 +99,8 @@ class HomeSecurityIntegrationTest {
     void testRegisterClientWhenAuthorizedAsClientShouldRedirectToBooksPage() throws Exception {
 
       mockMvc.perform(post("/register")
-                          .flashAttr("client", clientCreateDto))
+                          .flashAttr("client", clientCreateDto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/books"));
     }
@@ -107,7 +110,8 @@ class HomeSecurityIntegrationTest {
     void testRegisterClientWhenAuthorizedAsEmployeeShouldRedirectToBooksPage() throws Exception {
 
       mockMvc.perform(post("/register")
-                          .flashAttr("client", clientCreateDto))
+                          .flashAttr("client", clientCreateDto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/books"));
     }

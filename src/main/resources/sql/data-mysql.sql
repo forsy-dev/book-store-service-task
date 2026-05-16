@@ -34,14 +34,15 @@ INSERT IGNORE INTO books (name, genre, age_group, price, publication_date, autho
 ('Silent Whispers', 'Mystery', 'ADULT', 27.50, '2021-05-15', 'Benjamin Hall', 420, 'Intricate detective work', 'A mystery that keeps you on the edge', 'ENGLISH'),
 ('Whirlwind Romance', 'Romance', 'OTHER', 23.25, '2022-05-15', 'Emma Turner', 360, 'Passionate love affair', 'A romance that sweeps you off your feet', 'ENGLISH');
 
-INSERT IGNORE INTO client_block_status (client_email, is_blocked) VALUES
-('client1@example.com', false),
-('client2@example.com', false),
-('client3@example.com', false),
-('client4@example.com', false),
-('client5@example.com', false),
-('client6@example.com', false),
-('client7@example.com', false),
-('client8@example.com', false),
-('client9@example.com', false),
-('client10@example.com', false);
+
+INSERT IGNORE INTO client_block_status (client_id, is_blocked)
+VALUES (1, false),
+       (2, false),
+       (3, false),
+       (4, false),
+       (5, false),
+       (6, false),
+       (7, false),
+       (8, false),
+       (9, false),
+       (10, false);

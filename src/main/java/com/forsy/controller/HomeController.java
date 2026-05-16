@@ -3,6 +3,7 @@ package com.forsy.controller;
 import com.forsy.dto.ClientCreateDto;
 import com.forsy.exception.AlreadyExistException;
 import com.forsy.service.ClientService;
+import com.forsy.util.WebConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +39,7 @@ public class HomeController {
    */
   @GetMapping("/")
   public String home() {
-    return "redirect:/books";
+    return WebConstants.redirect(WebConstants.URL_BOOKS);
   }
 
   /**
@@ -53,9 +54,9 @@ public class HomeController {
   @GetMapping("/login")
   public String showLoginPage(Authentication authentication) {
     if (isAuthenticated(authentication)) {
-      return "redirect:/books";
+      return WebConstants.redirect(WebConstants.URL_BOOKS);
     }
-    return "login";
+    return WebConstants.VIEW_LOGIN;
   }
 
   /**
@@ -71,11 +72,11 @@ public class HomeController {
   @GetMapping("/register")
   public String showRegisterPage(Model model, Authentication authentication) {
     if (isAuthenticated(authentication)) {
-      return "redirect:/books";
+      return WebConstants.redirect(WebConstants.URL_BOOKS);
     }
 
-    model.addAttribute("client", new ClientCreateDto());
-    return "register-form";
+    model.addAttribute(WebConstants.ATTR_CLIENT, new ClientCreateDto());
+    return WebConstants.VIEW_REGISTER_FORM;
   }
 
   /**
@@ -92,26 +93,27 @@ public class HomeController {
    * @return a redirect to the login page on success, or the registration form on failure
    */
   @PostMapping("/register")
-  public String registerClient(@Valid @ModelAttribute("client") ClientCreateDto client,
-                               BindingResult bindingResult,
-                               Model model,
-                               Authentication authentication) {
+  public String registerClient(@Valid @ModelAttribute(WebConstants.ATTR_CLIENT)
+      ClientCreateDto client,
+      BindingResult bindingResult,
+      Model model,
+      Authentication authentication) {
     log.info("Registering client: {}", client);
     if (authentication != null && authentication.isAuthenticated()) {
-      return "redirect:/books";
+      return WebConstants.redirect(WebConstants.URL_BOOKS);
     }
     if (bindingResult.hasErrors()) {
       log.warn("Validation errors while registering client: {}", bindingResult.getAllErrors());
-      return "register-form";
+      return WebConstants.VIEW_REGISTER_FORM;
     }
     try {
       clientService.addClient(client);
       log.info("Client {} registered successfully", client.getEmail());
-      return "redirect:/login";
+      return WebConstants.redirect(WebConstants.URL_LOGIN);
     } catch (AlreadyExistException ex) {
       log.warn("Attempted to register with existing email: {}", client.getEmail());
-      model.addAttribute("errorMessage", ex.getMessage());
-      return "register-form";
+      model.addAttribute(WebConstants.ATTR_ERROR_MESSAGE, ex.getMessage());
+      return WebConstants.VIEW_REGISTER_FORM;
     }
   }
 
@@ -123,10 +125,11 @@ public class HomeController {
    */
   @GetMapping("/access-denied")
   public String accessDenied(Model model) {
-    model.addAttribute("statusCode", 403);
-    model.addAttribute("statusReason", "Forbidden");
-    model.addAttribute("errorMessage", "You do not have permission to access this resource.");
-    return "error";
+    model.addAttribute(WebConstants.ATTR_STATUS_CODE, 403);
+    model.addAttribute(WebConstants.ATTR_STATUS_REASON, "Forbidden");
+    model.addAttribute(
+        WebConstants.ATTR_ERROR_MESSAGE, "You do not have permission to access this resource.");
+    return WebConstants.VIEW_ERROR;
   }
 
   /**

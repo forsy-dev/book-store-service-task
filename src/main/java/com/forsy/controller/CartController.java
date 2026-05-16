@@ -5,6 +5,7 @@ import com.forsy.dto.CartItemDisplayDto;
 import com.forsy.service.CartService;
 import com.forsy.service.impl.CurrencyService;
 import com.forsy.util.CartCookieUtil;
+import com.forsy.util.WebConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -67,13 +68,13 @@ public class CartController {
     log.info("Trying to add {} of {} to cart", dto.getBookName(), dto.getQuantity());
 
     String referer = request.getHeader("Referer");
-    String redirectUrl = "redirect:" + (referer != null ? referer : "/books");
+    String redirectUrl = "redirect:" + (referer != null ? referer : WebConstants.URL_BOOKS);
 
     if (bindingResult.hasErrors()) {
       log.warn("Validation errors while adding book to cart: {}", bindingResult.getAllErrors());
       redirectAttributes.addFlashAttribute(
-          "org.springframework.validation.BindingResult.addToCartDTO", bindingResult);
-      redirectAttributes.addFlashAttribute("addToCartDTO", dto);
+          WebConstants.getBindingResultKey(WebConstants.ATTR_ADD_TO_CART_DTO), bindingResult);
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_ADD_TO_CART_DTO, dto);
 
       return redirectUrl;
     }
@@ -106,11 +107,11 @@ public class CartController {
 
     BigDecimal totalPriceUah = currencyService.convertUsdToUah(totalPriceUsd);
 
-    model.addAttribute("cartItems", cartItems);
-    model.addAttribute("totalPriceUsd", totalPriceUsd);
-    model.addAttribute("totalPriceUah", totalPriceUah);
+    model.addAttribute(WebConstants.ATTR_CART_ITEMS, cartItems);
+    model.addAttribute(WebConstants.ATTR_TOTAL_PRICE_USD, totalPriceUsd);
+    model.addAttribute(WebConstants.ATTR_TOTAL_PRICE_UAH, totalPriceUah);
 
-    return "cart";
+    return WebConstants.VIEW_CART;
   }
 
   /**
@@ -131,6 +132,6 @@ public class CartController {
     Map<String, Integer> cart = cartCookieUtil.getCartFromCookie(request);
     cartService.removeBookFromCart(cart, bookName);
     cartCookieUtil.saveCartToCookie(response, cart);
-    return "redirect:/cart";
+    return WebConstants.redirect(WebConstants.URL_CART);
   }
 }

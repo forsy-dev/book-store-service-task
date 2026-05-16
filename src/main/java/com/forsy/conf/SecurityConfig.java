@@ -1,6 +1,8 @@
 package com.forsy.conf;
 
 import com.forsy.conf.jwt.JwtAuthenticationFilter;
+import com.forsy.model.enums.Role;
+import com.forsy.util.WebConstants;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +14,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +22,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * Main security configuration for the application.
@@ -90,17 +94,27 @@ public class SecurityConfig {
         .authorizeHttpRequests(authz -> authz
             .requestMatchers("/register", "/login", "/logout", "/").permitAll()
             .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-            .requestMatchers(HttpMethod.PUT, "/profile").hasAnyRole("EMPLOYEE", "CLIENT")
-            .requestMatchers(HttpMethod.PUT, "/clients/profile").hasRole("CLIENT")
-            .requestMatchers(HttpMethod.DELETE, "/clients/profile").hasRole("CLIENT")
-            .requestMatchers(HttpMethod.GET, "/books/new", "/books/*/edit").hasRole("EMPLOYEE")
-            .requestMatchers(HttpMethod.POST, "/books", "/books/**").hasRole("EMPLOYEE")
-            .requestMatchers(HttpMethod.PUT, "/books", "/books/**").hasRole("EMPLOYEE")
-            .requestMatchers(HttpMethod.DELETE, "/books", "/books/**").hasRole("EMPLOYEE")
-            .requestMatchers("/cart/**").hasRole("CLIENT")
-            .requestMatchers("/orders/submit").hasRole("CLIENT")
-            .requestMatchers("/orders/*/cancel", "/orders/*/confirm").hasRole("EMPLOYEE")
-            .requestMatchers("/clients", "/clients/**", "/employees/**").hasRole("EMPLOYEE")
+            .requestMatchers("/h2-console/**").permitAll()
+            .requestMatchers(
+                HttpMethod.PUT, "/profile").hasAnyRole(Role.EMPLOYEE.name(), Role.CLIENT.name())
+            .requestMatchers(HttpMethod.PUT, "/clients/profile").hasRole(Role.CLIENT.name())
+            .requestMatchers(HttpMethod.DELETE, "/clients/profile").hasRole(Role.CLIENT.name())
+            .requestMatchers(
+                HttpMethod.GET, "/books/new", "/books/*/edit").hasRole(Role.EMPLOYEE.name())
+            .requestMatchers(
+                HttpMethod.POST, WebConstants.URL_BOOKS, WebConstants.URL_BOOKS + "/**")
+            .hasRole(Role.EMPLOYEE.name())
+            .requestMatchers(
+                HttpMethod.PUT, WebConstants.URL_BOOKS, WebConstants.URL_BOOKS + "/**")
+            .hasRole(Role.EMPLOYEE.name())
+            .requestMatchers(
+                HttpMethod.DELETE, WebConstants.URL_BOOKS, WebConstants.URL_BOOKS + "/**")
+            .hasRole(Role.EMPLOYEE.name())
+            .requestMatchers("/cart/**").hasRole(Role.CLIENT.name())
+            .requestMatchers("/orders/submit").hasRole(Role.CLIENT.name())
+            .requestMatchers("/orders/*/cancel", "/orders/*/confirm").hasRole(Role.EMPLOYEE.name())
+            .requestMatchers(
+                "/clients", "/clients/**", "/employees/**").hasRole(Role.EMPLOYEE.name())
             .anyRequest().authenticated()
         )
         .exceptionHandling(e -> e
@@ -111,6 +125,9 @@ public class SecurityConfig {
         )
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
+    http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
+    http.csrf(csrf -> csrf.ignoringRequestMatchers(
+        AntPathRequestMatcher.antMatcher("/h2-console/**")));
     return http.build();
   }
 

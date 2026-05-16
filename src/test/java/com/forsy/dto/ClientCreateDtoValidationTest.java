@@ -8,9 +8,13 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ClientCreateDtoValidationTest {
 
@@ -60,89 +64,57 @@ class ClientCreateDtoValidationTest {
   @Nested
   class PasswordValidation {
 
-    @Test
-    void whenPasswordIsNull_thenValidationFails() {
-      ClientCreateDto clientCreateDto = getValidDtoBuilder().password(null).build();
+    @ParameterizedTest(name = "Password [{0}] should fail with template: {1}")
+    @MethodSource("invalidPasswordProvider")
+    void whenPasswordIsInvalid_thenValidationFails(String password, String expectedTemplate) {
+      // 1. Arrange
+      ClientCreateDto clientCreateDto = getValidDtoBuilder().password(password).build();
+
+      // 2. Act
       Set<ConstraintViolation<ClientCreateDto>> violations = validator.validate(clientCreateDto);
-      assertEquals(1, violations.size());
-      assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
+
+      // 3. Assert
+      assertEquals(1, violations.size(), "Should have exactly 1 validation constraint failure");
+      assertEquals(expectedTemplate, violations.iterator().next().getMessageTemplate());
     }
 
-    @Test
-    void whenPasswordIsTooShort_thenValidationFails() {
-      ClientCreateDto clientCreateDto = getValidDtoBuilder().password("a").build();
-      Set<ConstraintViolation<ClientCreateDto>> violations = validator.validate(clientCreateDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPasswordIsTooLong_thenValidationFails() {
-      ClientCreateDto clientCreateDto = getValidDtoBuilder()
-          .password("Te$t123" + "a".repeat(100)).build();
-      Set<ConstraintViolation<ClientCreateDto>> violations = validator.validate(clientCreateDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPasswordDoesNotHaveLowerCharacter_thenValidationFails() {
-      ClientCreateDto clientCreateDto = getValidDtoBuilder().password("TE$T1234").build();
-      Set<ConstraintViolation<ClientCreateDto>> violations = validator.validate(clientCreateDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPasswordDoesNotHaveUpperCharacter_thenValidationFails() {
-      ClientCreateDto clientCreateDto = getValidDtoBuilder().password("te$t1234").build();
-      Set<ConstraintViolation<ClientCreateDto>> violations = validator.validate(clientCreateDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPasswordDoesNotHaveDigitCharacter_thenValidationFails() {
-      ClientCreateDto clientCreateDto = getValidDtoBuilder().password("Te$ttttt").build();
-      Set<ConstraintViolation<ClientCreateDto>> violations = validator.validate(clientCreateDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPasswordDoesNotHaveSpecialCharacter_thenValidationFails() {
-      ClientCreateDto clientCreateDto = getValidDtoBuilder().password("Test1234").build();
-      Set<ConstraintViolation<ClientCreateDto>> violations = validator.validate(clientCreateDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
+    // This data provider feeds your test scenarios cleanly
+    private static Stream<Arguments> invalidPasswordProvider() {
+      return Stream.of(
+          Arguments.of(null, "{NotBlank.invalid}"),
+          Arguments.of("a", "{Pattern.password}"),
+          Arguments.of("Te$t123" + "a".repeat(100), "{Size.invalid}"),
+          Arguments.of("TE$T1234", "{Pattern.password}"),
+          Arguments.of("te$t1234", "{Pattern.password}"),
+          Arguments.of("Te$ttttt", "{Pattern.password}"),
+          Arguments.of("Test1234", "{Pattern.password}")
+      );
     }
   }
 
   @Nested
   class NameValidation {
 
-    @Test
-    void whenNameIsBlank_thenValidationFails() {
-      ClientCreateDto clientCreateDto = getValidDtoBuilder().name(" ".repeat(3)).build();
+    @ParameterizedTest(name = "Name evaluation: [{0}] expects template {1}")
+    @MethodSource("invalidNameProvider")
+    void whenNameIsInvalid_thenValidationFails(String name, String expectedTemplate) {
+      // Arrange
+      ClientCreateDto clientCreateDto = getValidDtoBuilder().name(name).build();
+
+      // Act
       Set<ConstraintViolation<ClientCreateDto>> violations = validator.validate(clientCreateDto);
-      assertEquals(1, violations.size());
-      assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
+
+      // Assert
+      assertEquals(1, violations.size(), "Should trigger exactly one validation failure");
+      assertEquals(expectedTemplate, violations.iterator().next().getMessageTemplate());
     }
 
-    @Test
-    void whenNameIsTooShort_thenValidationFails() {
-      ClientCreateDto clientCreateDto = getValidDtoBuilder().name("a".repeat(2)).build();
-      Set<ConstraintViolation<ClientCreateDto>> violations = validator.validate(clientCreateDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenNameIsTooLong_thenValidationFails() {
-      ClientCreateDto clientCreateDto = getValidDtoBuilder().name("a".repeat(256)).build();
-      Set<ConstraintViolation<ClientCreateDto>> violations = validator.validate(clientCreateDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
+    private static Stream<Arguments> invalidNameProvider() {
+      return Stream.of(
+          Arguments.of(" ".repeat(3), "{NotBlank.invalid}"), // Blank name
+          Arguments.of("a".repeat(2), "{Size.invalid}"),     // Too short
+          Arguments.of("a".repeat(256), "{Size.invalid}")    // Too long
+      );
     }
   }
 }

@@ -31,6 +31,12 @@ public final class WebConstants {
   public static final String VIEW_BOOK_DETAIL = "book-detail";
   public static final String VIEW_CLIENTS = "clients";
   public static final String VIEW_CLIENT_DETAIL = "client-detail";
+  public static final String VIEW_REGISTER_FORM = "register-form";
+  public static final String VIEW_ORDERS = "orders";
+  public static final String VIEW_PROFILE = "profile";
+  public static final String VIEW_CART = "cart";
+  public static final String VIEW_LOGIN = "login";
+  public static final String VIEW_ERROR = "error";
 
   // --- Path Segments ---
   public static final String PATH_VAR_NAME = "/{name}";
@@ -45,6 +51,9 @@ public final class WebConstants {
   // --- URL Routes ---
   public static final String URL_BOOKS = "/books";
   public static final String URL_BOOK_DETAIL = URL_BOOKS + PATH_VAR_NAME;
+  public static final String URL_BOOK_NEW = URL_BOOKS + PATH_NEW;
+  public static final String URL_BOOK_DETAIL_EDIT = URL_BOOK_DETAIL + PATH_EDIT;
+  public static final String URL_ORDERS = "/orders";
   public static final String URL_CLIENTS = "/clients";
   public static final String URL_CLIENT_DETAIL = URL_CLIENTS + PATH_VAR_EMAIL;
   public static final String URL_CLIENT_PROFILE = URL_CLIENTS + PATH_PROFILE;
@@ -53,6 +62,7 @@ public final class WebConstants {
   public static final String URL_CLIENT_ADD_BALANCE = URL_CLIENT_DETAIL + PATH_ADD_BALANCE;
   public static final String URL_PROFILE = "/profile";
   public static final String URL_LOGIN = "/login";
+  public static final String URL_CART = "/cart";
 
   // --- Attribute Names ---
   public static final String ATTR_BOOK_PAGE = "bookPage";
@@ -63,9 +73,21 @@ public final class WebConstants {
   public static final String ATTR_CLIENT_PAGE = "clientPage";
   public static final String ATTR_CLIENT = "client";
   public static final String ATTR_CLIENT_UPDATE_DTO = "clientUpdateDTO";
+  public static final String ATTR_EMPLOYEE_UPDATE_DTO = "employeeUpdateDTO";
   public static final String ATTR_ADD_BALANCE_DTO = "addBalanceDTO";
   public static final String ATTR_ERROR_MESSAGE = "errorMessage";
   public static final String ATTR_SUCCESS_MESSAGE = "successMessage";
+  public static final String ATTR_CHANGE_PASSWORD_DTO = "changePasswordDTO";
+  public static final String ATTR_USER_PROFILE = "userProfile";
+  public static final String ATTR_ERROR = "error";
+  public static final String ATTR_CART_ITEMS = "cartItems";
+  public static final String ATTR_TOTAL_PRICE_USD = "totalPriceUsd";
+  public static final String ATTR_TOTAL_PRICE_UAH = "totalPriceUah";
+  public static final String ATTR_STATUS_CODE = "statusCode";
+  public static final String ATTR_STATUS_REASON = "statusReason";
+  public static final String ATTR_ORDER_PAGE = "orderPage";
+  public static final String ATTR_BASE_SEARCH_URL = "baseSearchUrl";
+  public static final String ATTR_PAGE_TITLE = "pageTitle";
 
   // --- Parameter Names ---
   public static final String PARAM_KEYWORD = "keyword";

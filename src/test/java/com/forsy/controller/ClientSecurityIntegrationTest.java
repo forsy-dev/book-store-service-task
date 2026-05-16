@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.nullable;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -108,7 +109,8 @@ class ClientSecurityIntegrationTest {
           .thenReturn(clientDisplayDto);
 
       mockMvc.perform(put(WebConstants.URL_CLIENT_PROFILE)
-                          .flashAttr(WebConstants.ATTR_CLIENT_UPDATE_DTO, clientUpdateDto))
+                          .flashAttr(WebConstants.ATTR_CLIENT_UPDATE_DTO, clientUpdateDto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl(WebConstants.URL_PROFILE));
     }
@@ -117,7 +119,7 @@ class ClientSecurityIntegrationTest {
     @WithMockUser(roles = "EMPLOYEE")
     void testUpdateClientWhenAuthenticatedAsEmployeeShouldForbidAccess() throws Exception {
 
-      mockMvc.perform(put(WebConstants.URL_CLIENT_PROFILE))
+      mockMvc.perform(put(WebConstants.URL_CLIENT_PROFILE).with(csrf()))
           .andExpect(status().isForbidden());
     }
   }
@@ -132,7 +134,7 @@ class ClientSecurityIntegrationTest {
 
       doNothing().when(clientService).deleteClientByEmail(email);
 
-      mockMvc.perform(delete(WebConstants.URL_CLIENT_PROFILE))
+      mockMvc.perform(delete(WebConstants.URL_CLIENT_PROFILE).with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl(WebConstants.addParameters(
               WebConstants.URL_LOGIN, Map.of(WebConstants.PARAM_ACCOUNT_DELETED, "true"))));
@@ -142,7 +144,7 @@ class ClientSecurityIntegrationTest {
     @WithMockUser(roles = "EMPLOYEE")
     void testDeleteClientWhenAuthenticatedAsEmployeeShouldForbidAccess() throws Exception {
 
-      mockMvc.perform(delete(WebConstants.URL_CLIENT_PROFILE))
+      mockMvc.perform(delete(WebConstants.URL_CLIENT_PROFILE).with(csrf()))
           .andExpect(status().isForbidden());
     }
   }
@@ -155,8 +157,8 @@ class ClientSecurityIntegrationTest {
     void testBlockClientWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String email = "test@test.com";
 
-      mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_BLOCK, email)))
-          .andExpect(status().isForbidden());
+      mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_BLOCK, email))
+                          .with(csrf())).andExpect(status().isForbidden());
     }
 
     @Test
@@ -166,7 +168,8 @@ class ClientSecurityIntegrationTest {
 
       doNothing().when(clientService).blockClient(email);
 
-      mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_BLOCK, email)))
+      mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_BLOCK, email))
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl(WebConstants.expandPathVariables(
               WebConstants.URL_CLIENT_DETAIL, email)));
@@ -181,7 +184,8 @@ class ClientSecurityIntegrationTest {
     void testUnblockClientWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String email = "test@test.com";
 
-      mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_UNBLOCK, email)))
+      mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_UNBLOCK, email))
+                          .with(csrf()))
           .andExpect(status().isForbidden());
     }
 
@@ -192,7 +196,8 @@ class ClientSecurityIntegrationTest {
 
       doNothing().when(clientService).unblockClient(email);
 
-      mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_UNBLOCK, email)))
+      mockMvc.perform(put(WebConstants.expandPathVariables(WebConstants.URL_CLIENT_UNBLOCK, email))
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl(WebConstants.expandPathVariables(
               WebConstants.URL_CLIENT_DETAIL, email)));
@@ -208,7 +213,7 @@ class ClientSecurityIntegrationTest {
       String email = "test@test.com";
 
       mockMvc.perform(put(WebConstants.expandPathVariables(
-          WebConstants.URL_CLIENT_ADD_BALANCE, email)))
+          WebConstants.URL_CLIENT_ADD_BALANCE, email)).with(csrf()))
           .andExpect(status().isForbidden());
     }
 
@@ -224,7 +229,8 @@ class ClientSecurityIntegrationTest {
 
       mockMvc.perform(post(WebConstants.expandPathVariables(
           WebConstants.URL_CLIENT_ADD_BALANCE, clientEmail))
-                          .flashAttr(WebConstants.ATTR_ADD_BALANCE_DTO, dto))
+                          .flashAttr(WebConstants.ATTR_ADD_BALANCE_DTO, dto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl(WebConstants.expandPathVariables(
               WebConstants.URL_CLIENT_DETAIL, clientEmail)))

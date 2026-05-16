@@ -7,6 +7,7 @@ import com.forsy.dto.OrderDisplayDto;
 import com.forsy.service.EmployeeService;
 import com.forsy.service.OrderService;
 import com.forsy.util.CartCookieUtil;
+import com.forsy.util.WebConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
@@ -72,22 +73,23 @@ public class OrderController {
                              @PageableDefault(sort = "orderDate",
                                  direction = org.springframework.data.domain.Sort.Direction.DESC)
                              Pageable pageable,
-                             @RequestParam(name = "keyword", required = false) String keyword) {
+                             @RequestParam(name = WebConstants.PARAM_KEYWORD, required = false)
+                             String keyword) {
 
     if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_CLIENT"))) {
-      return "redirect:/orders/" + authentication.getName();
+      return WebConstants.redirect(WebConstants.URL_ORDERS + "/" + authentication.getName());
     }
     if (keyword != null && keyword.trim().isEmpty()) {
       keyword = null;
     }
     log.info("Fetching ALL orders for employee: {}", authentication.getName());
     Page<OrderDisplayDto> orders = orderService.getAllOrders(pageable, keyword);
-    model.addAttribute("orderPage", orders);
-    model.addAttribute("keyword", keyword);
-    model.addAttribute("baseSearchUrl", "/orders");
-    model.addAttribute("pageTitle", "nav.all_orders");
+    model.addAttribute(WebConstants.ATTR_ORDER_PAGE, orders);
+    model.addAttribute(WebConstants.ATTR_KEYWORD, keyword);
+    model.addAttribute(WebConstants.ATTR_BASE_SEARCH_URL, WebConstants.URL_ORDERS);
+    model.addAttribute(WebConstants.ATTR_PAGE_TITLE, "nav.all_orders");
 
-    return "orders";
+    return WebConstants.VIEW_ORDERS;
   }
 
   /**
@@ -110,7 +112,8 @@ public class OrderController {
                                  @PageableDefault(sort = "orderDate", direction =
                                      org.springframework.data.domain.Sort.Direction.DESC)
                                  Pageable pageable,
-                                 @RequestParam(name = "keyword", required = false) String keyword) {
+                                 @RequestParam(name = WebConstants.PARAM_KEYWORD, required = false)
+                                 String keyword) {
 
     if (!authentication.getName().equals(email)) {
       log.warn("User {} attempted to view orders for {}", authentication.getName(), email);
@@ -129,11 +132,11 @@ public class OrderController {
       orders = orderService.getOrdersByEmployee(email, pageable, keyword);
     }
 
-    model.addAttribute("orderPage", orders);
-    model.addAttribute("keyword", keyword);
-    model.addAttribute("baseSearchUrl", "/orders/" + email);
-    model.addAttribute("pageTitle", "nav.my_orders");
-    return "orders";
+    model.addAttribute(WebConstants.ATTR_ORDER_PAGE, orders);
+    model.addAttribute(WebConstants.ATTR_KEYWORD, keyword);
+    model.addAttribute(WebConstants.ATTR_BASE_SEARCH_URL,  WebConstants.URL_ORDERS + "/" + email);
+    model.addAttribute(WebConstants.ATTR_PAGE_TITLE, "nav.my_orders");
+    return WebConstants.VIEW_ORDERS;
   }
 
   /**
@@ -159,8 +162,8 @@ public class OrderController {
 
     Map<String, Integer> cart = cartCookieUtil.getCartFromCookie(request);
     if (cart == null || cart.isEmpty()) {
-      redirectAttributes.addFlashAttribute("errorMessage", "Your cart is empty.");
-      return "redirect:/cart";
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_ERROR_MESSAGE, "Your cart is empty.");
+      return WebConstants.redirect(WebConstants.URL_CART);
     }
 
     List<BookItemDto> bookItems = new ArrayList<>();
@@ -171,9 +174,9 @@ public class OrderController {
     Page<EmployeeDisplayDto> employees = employeeService.getAllEmployees(PageRequest.of(0, 1));
     if (employees.isEmpty()) {
       log.error("Order creation failed: No employees exist to assign the order to.");
-      redirectAttributes.addFlashAttribute("errorMessage",
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_ERROR_MESSAGE,
           "System error: No employees available to process order.");
-      return "redirect:/cart";
+      return WebConstants.redirect(WebConstants.URL_CART);
     }
     String assigneeEmail = employees.getContent().get(0).getEmail();
 
@@ -192,13 +195,13 @@ public class OrderController {
 
       String message = messageSource.getMessage("order.submit.success.message",
           new Object[]{}, LocaleContextHolder.getLocale());
-      redirectAttributes.addFlashAttribute("successMessage", message);
-      return "redirect:/books";
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_SUCCESS_MESSAGE, message);
+      return WebConstants.redirect(WebConstants.URL_BOOKS);
 
     } catch (Exception e) {
       log.warn("Failed to create order: {}", e.getMessage());
-      redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-      return "redirect:/cart";
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_ERROR_MESSAGE, e.getMessage());
+      return WebConstants.redirect(WebConstants.URL_CART);
     }
   }
 
@@ -220,13 +223,13 @@ public class OrderController {
       orderService.cancelOrder(id, employeeEmail);
       String message = messageSource.getMessage("order.cancel.success.message",
           new Object[]{id}, LocaleContextHolder.getLocale());
-      redirectAttributes.addFlashAttribute("successMessage", message);
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_SUCCESS_MESSAGE, message);
     } catch (Exception e) {
       log.warn("Failed to cancel order {}: {}", id, e.getMessage());
-      redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_ERROR_MESSAGE, e.getMessage());
     }
     log.info("Order {} cancelled successfully", id);
-    return "redirect:/orders";
+    return WebConstants.redirect(WebConstants.URL_ORDERS);
   }
 
   /**
@@ -247,12 +250,12 @@ public class OrderController {
       orderService.confirmOrder(id, employeeEmail);
       String message = messageSource.getMessage("order.confirm.success.message",
           new Object[]{id}, LocaleContextHolder.getLocale());
-      redirectAttributes.addFlashAttribute("successMessage", message);
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_SUCCESS_MESSAGE, message);
     } catch (Exception e) {
       log.warn("Failed to confirm order {}: {}", id, e.getMessage());
-      redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+      redirectAttributes.addFlashAttribute(WebConstants.ATTR_ERROR_MESSAGE, e.getMessage());
     }
     log.info("Order {} confirmed successfully", id);
-    return "redirect:/orders";
+    return WebConstants.redirect(WebConstants.URL_ORDERS);
   }
 }

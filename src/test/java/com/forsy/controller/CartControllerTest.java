@@ -19,9 +19,11 @@ import com.forsy.conf.jwt.JwtUtils;
 import com.forsy.dto.AddToCartDto;
 import com.forsy.dto.CartItemDisplayDto;
 import com.forsy.exception.NotFoundException;
+import com.forsy.model.enums.Role;
 import com.forsy.service.CartService;
 import com.forsy.service.impl.CurrencyService;
 import com.forsy.util.CartCookieUtil;
+import com.forsy.util.WebConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
@@ -119,10 +121,10 @@ class CartControllerTest {
       when(cartService.getCartItems(anyMap())).thenReturn(items);
       when(cartService.calculateTotalCost(items)).thenReturn(totalCost);
 
-      mockMvc.perform(get("/cart")
-                          .with(user("testuser").roles("CLIENT")))
+      mockMvc.perform(get(WebConstants.URL_CART)
+                          .with(user("testuser").roles(Role.CLIENT.name())))
           .andExpect(status().isOk())
-          .andExpect(view().name("cart"));
+          .andExpect(view().name(WebConstants.VIEW_CART));
     }
   }
 

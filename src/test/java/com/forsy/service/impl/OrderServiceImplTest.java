@@ -27,6 +27,7 @@ import com.forsy.repo.ClientRepository;
 import com.forsy.repo.EmployeeRepository;
 import com.forsy.repo.OrderRepository;
 import com.forsy.repo.OrderStatusRepository;
+import com.forsy.util.MessageKeys;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
@@ -274,7 +275,7 @@ class OrderServiceImplTest {
       String message = String.format("Employee with email %s not found", employeeEmail);
 
       when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDto));
@@ -302,7 +303,7 @@ class OrderServiceImplTest {
 
       when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
       when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDto));
@@ -338,7 +339,7 @@ class OrderServiceImplTest {
       when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
       when(clientRepository.findByEmail(clientEmail)).thenReturn(Optional.of(client));
       when(bookRepository.findByName(bookName)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.book.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_BOOK_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> orderService.addOrder(orderDto));
@@ -437,7 +438,8 @@ class OrderServiceImplTest {
 
       // This is now the FIRST check in your implementation
       when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.order.status.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_ORDER_STATUS_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
@@ -461,7 +463,8 @@ class OrderServiceImplTest {
 
       // Logic: find status -> check status -> (fails here)
       when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
-      when(messageSource.getMessage(eq("error.order.status.not.pending"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_ORDER_STATUS_NOT_PENDING), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(IllegalStateException.class,
@@ -484,7 +487,8 @@ class OrderServiceImplTest {
       // Logic: find status (ok) -> check status (ok) -> find order (fails here)
       when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
       when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.order.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_ORDER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
@@ -507,7 +511,7 @@ class OrderServiceImplTest {
       when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
       when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
       when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> orderService.cancelOrder(orderId, employeeEmail));
@@ -541,7 +545,6 @@ class OrderServiceImplTest {
       when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
       when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
       when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
-      ;
       when(orderRepository.save(order)).thenReturn(order);
       when(orderStatusRepository.save(statusRecord)).thenReturn(statusRecord);
       when(clientRepository.save(client)).thenReturn(client);
@@ -567,7 +570,8 @@ class OrderServiceImplTest {
       String message = String.format("Order with id '%s' not found", orderId);
 
       when(orderRepository.findById(orderId)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.order.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_ORDER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class,
@@ -592,7 +596,7 @@ class OrderServiceImplTest {
 
       when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
       when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class,
@@ -619,7 +623,8 @@ class OrderServiceImplTest {
       when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
       when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
       when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.order.status.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_ORDER_STATUS_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class,
@@ -649,7 +654,8 @@ class OrderServiceImplTest {
       when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
       when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
       when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
-      when(messageSource.getMessage(eq("error.order.status.not.pending"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_ORDER_STATUS_NOT_PENDING), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(IllegalStateException.class,
@@ -683,7 +689,8 @@ class OrderServiceImplTest {
       when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
       when(employeeRepository.findByEmail(employeeEmail)).thenReturn(Optional.of(employee));
       when(orderStatusRepository.findByOrderId(orderId)).thenReturn(Optional.of(statusRecord));
-      when(messageSource.getMessage(eq("error.user.insufficient.funds"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_USER_INSUFFICIENT_FUNDS), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(InsufficientFundsException.class,

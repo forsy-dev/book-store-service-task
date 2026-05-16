@@ -3,6 +3,7 @@ package com.forsy.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -37,7 +38,7 @@ class EmployeeSecurityIntegrationTest {
     @WithMockUser(roles = "CLIENT")
     void testUpdateEmployeeWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
 
-      mockMvc.perform(put("/employees/profile"))
+      mockMvc.perform(put("/employees/profile").with(csrf()))
           .andExpect(status().isForbidden());
     }
 
@@ -60,7 +61,8 @@ class EmployeeSecurityIntegrationTest {
           .thenReturn(employeeDisplayDto);
 
       mockMvc.perform(put("/employees/profile")
-                          .flashAttr("employeeUpdateDTO", employeeUpdateDto))
+                          .flashAttr("employeeUpdateDTO", employeeUpdateDto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
           .andExpect(redirectedUrl("/profile"));
     }

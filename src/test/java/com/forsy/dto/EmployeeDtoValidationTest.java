@@ -9,9 +9,13 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class EmployeeDtoValidationTest {
 
@@ -63,88 +67,53 @@ class EmployeeDtoValidationTest {
   @Nested
   class PasswordValidation {
 
-    @Test
-    void whenPasswordIsNull_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().password(null).build();
+    @ParameterizedTest(name = "Employee Password [{0}] should fail with template: {1}")
+    @MethodSource("invalidPasswordProvider")
+    void whenPasswordIsInvalid_thenValidationFails(String password, String expectedTemplate) {
+      // Arrange
+      EmployeeDto employeeDto = getValidDtoBuilder().password(password).build();
+
+      // Act
       Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
+
+      // Assert
+      assertEquals(1, violations.size(), "Should have exactly 1 validation constraint failure");
+      assertEquals(expectedTemplate, violations.iterator().next().getMessageTemplate());
     }
 
-    @Test
-    void whenPasswordIsTooShort_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().password("a").build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPasswordIsTooLong_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().password("Te$t123" + "a".repeat(100)).build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPasswordDoesNotHaveLowerCharacter_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().password("TE$T1234").build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPasswordDoesNotHaveUpperCharacter_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().password("te$t1234").build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPasswordDoesNotHaveDigitCharacter_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().password("Te$ttttt").build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPasswordDoesNotHaveSpecialCharacter_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().password("Test1234").build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.password}", violations.iterator().next().getMessageTemplate());
+    private static Stream<Arguments> invalidPasswordProvider() {
+      return Stream.of(
+          Arguments.of(null, "{NotBlank.invalid}"),
+          Arguments.of("a", "{Pattern.password}"),
+          Arguments.of("Te$t123" + "a".repeat(100), "{Size.invalid}"),
+          Arguments.of("TE$T1234", "{Pattern.password}"),
+          Arguments.of("te$t1234", "{Pattern.password}"),
+          Arguments.of("Te$ttttt", "{Pattern.password}"),
+          Arguments.of("Test1234", "{Pattern.password}")
+      );
     }
   }
 
   @Nested
   class NameValidation {
 
-    @Test
-    void whenNameIsBlank_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().name(" ".repeat(3)).build();
+    @ParameterizedTest(name = "Name evaluation: [{0}] expects template {1}")
+    @MethodSource("invalidNameProvider")
+    void whenNameIsInvalid_thenValidationFails(String name, String expectedTemplate) {
+      EmployeeDto employeeDto = getValidDtoBuilder().name(name).build();
+
       Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
+
       assertEquals(1, violations.size());
-      assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
+      assertEquals(expectedTemplate, violations.iterator().next().getMessageTemplate());
     }
 
-    @Test
-    void whenNameIsTooShort_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().name("a".repeat(2)).build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenNameIsTooLong_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().name("a".repeat(256)).build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Size.invalid}", violations.iterator().next().getMessageTemplate());
+    private static Stream<Arguments> invalidNameProvider() {
+      return Stream.of(
+          Arguments.of(" ".repeat(3), "{NotBlank.invalid}"),
+          Arguments.of("a".repeat(2), "{Size.invalid}"),
+          Arguments.of("a".repeat(256), "{Size.invalid}")
+      );
     }
   }
 
@@ -171,36 +140,24 @@ class EmployeeDtoValidationTest {
   @Nested
   class PhoneValidation {
 
-    @Test
-    void whenPhoneIsNull_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().phone(null).build();
+    @ParameterizedTest(name = "Phone evaluation: [{0}] expects template {1}")
+    @MethodSource("invalidPhoneProvider")
+    void whenPhoneIsInvalid_thenValidationFails(String phone, String expectedTemplate) {
+      EmployeeDto employeeDto = getValidDtoBuilder().phone(phone).build();
+
       Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
+
       assertEquals(1, violations.size());
-      assertEquals("{NotBlank.invalid}", violations.iterator().next().getMessageTemplate());
+      assertEquals(expectedTemplate, violations.iterator().next().getMessageTemplate());
     }
 
-    @Test
-    void whenPhoneIsTooShort_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().phone("1").build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.phone}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPhoneIsTooLong_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().phone("1".repeat(21)).build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.phone}", violations.iterator().next().getMessageTemplate());
-    }
-
-    @Test
-    void whenPhoneHasInvalidCharacters_thenValidationFails() {
-      EmployeeDto employeeDto = getValidDtoBuilder().phone("1234*56789").build();
-      Set<ConstraintViolation<EmployeeDto>> violations = validator.validate(employeeDto);
-      assertEquals(1, violations.size());
-      assertEquals("{Pattern.phone}", violations.iterator().next().getMessageTemplate());
+    private static Stream<Arguments> invalidPhoneProvider() {
+      return Stream.of(
+          Arguments.of(null, "{NotBlank.invalid}"),
+          Arguments.of("1", "{Pattern.phone}"),
+          Arguments.of("1".repeat(21), "{Pattern.phone}"),
+          Arguments.of("1234*56789", "{Pattern.phone}")
+      );
     }
   }
 }

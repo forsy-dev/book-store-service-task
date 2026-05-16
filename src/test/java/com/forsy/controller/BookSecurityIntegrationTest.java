@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -14,12 +15,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.forsy.dto.BookDto;
 import com.forsy.model.enums.AgeGroup;
 import com.forsy.model.enums.Language;
+import com.forsy.model.enums.Role;
 import com.forsy.service.BookService;
+import com.forsy.util.WebConstants;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collections;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +33,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
@@ -43,27 +49,17 @@ class BookSecurityIntegrationTest {
   @Nested
   class GetBooks {
 
-    @Test
-    @WithMockUser(roles = "CLIENT")
-    void testGetBooksWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
+    @ParameterizedTest
+    @EnumSource(value = Role.class, names = {"CLIENT", "EMPLOYEE"})
+    void testGetBooksWhenAuthenticatedShouldAllowAccess(Role role) throws Exception {
       Page<BookDto> bookPage = new PageImpl<>(Collections.singletonList(new BookDto()));
 
       when(bookService.getAllBooks(any(Pageable.class), nullable(String.class)))
           .thenReturn(bookPage);
 
-      mockMvc.perform(get("/books"))
-          .andExpect(status().isOk());
-    }
-
-    @Test
-    @WithMockUser(roles = "EMPLOYEE")
-    void testGetBooksWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
-      Page<BookDto> bookPage = new PageImpl<>(Collections.singletonList(new BookDto()));
-
-      when(bookService.getAllBooks(any(Pageable.class), nullable(String.class)))
-          .thenReturn(bookPage);
-
-      mockMvc.perform(get("/books"))
+      mockMvc.perform(get(WebConstants.URL_BOOKS)
+                          .with(SecurityMockMvcRequestPostProcessors.user("testUser")
+                                    .roles(role.name())))
           .andExpect(status().isOk());
     }
   }
@@ -71,27 +67,17 @@ class BookSecurityIntegrationTest {
   @Nested
   class GetBookByName {
 
-    @Test
-    @WithMockUser(roles = "CLIENT")
-    void testGetBookByNameWhenAuthenticatedAsClientShouldAllowAccess() throws Exception {
+    @ParameterizedTest
+    @EnumSource(value = Role.class, names = {"CLIENT", "EMPLOYEE"})
+    void testGetBookByNameWhenAuthenticatedShouldAllowAccess(Role role) throws Exception {
       String bookName = "testbook";
       BookDto bookDto = BookDto.builder().name(bookName).build();
 
       when(bookService.getBookByName("testbook")).thenReturn(bookDto);
 
-      mockMvc.perform(get("/books/{name}", bookName))
-          .andExpect(status().isOk());
-    }
-
-    @Test
-    @WithMockUser(roles = "EMPLOYEE")
-    void testGetBookByNameWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
-      String bookName = "testbook";
-      BookDto bookDto = BookDto.builder().name(bookName).build();
-
-      when(bookService.getBookByName("testbook")).thenReturn(bookDto);
-
-      mockMvc.perform(get("/books/{name}", bookName))
+      mockMvc.perform(get(WebConstants.URL_BOOK_DETAIL, bookName)
+                          .with(SecurityMockMvcRequestPostProcessors.user("testUser")
+                                    .roles(role.name())))
           .andExpect(status().isOk());
     }
   }
@@ -102,14 +88,14 @@ class BookSecurityIntegrationTest {
     @Test
     @WithMockUser(roles = "CLIENT")
     void testGetBookFormWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
-      mockMvc.perform(get("/books/new"))
+      mockMvc.perform(get(WebConstants.URL_BOOK_NEW))
           .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
     void testGetBookFormWhenAuthenticatedAsEmployeeShouldAllowAccess() throws Exception {
-      mockMvc.perform(get("/books/new"))
+      mockMvc.perform(get(WebConstants.URL_BOOK_NEW))
           .andExpect(status().isOk());
     }
   }
@@ -120,7 +106,7 @@ class BookSecurityIntegrationTest {
     @Test
     @WithMockUser(roles = "CLIENT")
     void testAddBookWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
-      mockMvc.perform(post("/books"))
+      mockMvc.perform(post(WebConstants.URL_BOOKS).with(csrf()))
           .andExpect(status().isForbidden());
     }
 
@@ -140,8 +126,9 @@ class BookSecurityIntegrationTest {
           .language(Language.ENGLISH)
           .build();
 
-      mockMvc.perform(post("/books")
-                          .flashAttr("book", bookDto))
+      mockMvc.perform(post(WebConstants.URL_BOOKS)
+                          .flashAttr(WebConstants.ATTR_BOOK, bookDto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection());
     }
   }
@@ -153,7 +140,7 @@ class BookSecurityIntegrationTest {
     @WithMockUser(roles = "CLIENT")
     void testGetEditBookFormWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String name = "testbook";
-      mockMvc.perform(get("/books/{name}/edit", name))
+      mockMvc.perform(get(WebConstants.URL_BOOK_DETAIL_EDIT, name))
           .andExpect(status().isForbidden());
     }
 
@@ -175,7 +162,7 @@ class BookSecurityIntegrationTest {
 
       when(bookService.getBookByName(bookDto.getName())).thenReturn(bookDto);
 
-      mockMvc.perform(get("/books/{name}/edit", bookDto.getName()))
+      mockMvc.perform(get(WebConstants.URL_BOOK_DETAIL_EDIT, bookDto.getName()))
           .andExpect(status().isOk());
     }
   }
@@ -187,7 +174,7 @@ class BookSecurityIntegrationTest {
     @WithMockUser(roles = "CLIENT")
     void testEditBookWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String name = "testbook";
-      mockMvc.perform(put("/books/{name}", name))
+      mockMvc.perform(put(WebConstants.URL_BOOK_DETAIL, name).with(csrf()))
           .andExpect(status().isForbidden());
     }
 
@@ -209,10 +196,11 @@ class BookSecurityIntegrationTest {
 
       when(bookService.updateBookByName(bookDto.getName(), bookDto)).thenReturn(bookDto);
 
-      mockMvc.perform(put("/books/{name}", bookDto.getName())
-                          .flashAttr("book", bookDto))
+      mockMvc.perform(put(WebConstants.URL_BOOK_DETAIL, bookDto.getName())
+                          .flashAttr(WebConstants.ATTR_BOOK, bookDto)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection())
-          .andExpect(redirectedUrl("/books"));
+          .andExpect(redirectedUrl(WebConstants.URL_BOOKS));
     }
   }
 
@@ -224,7 +212,7 @@ class BookSecurityIntegrationTest {
     void testDeleteBookWhenAuthenticatedAsClientShouldForbidAccess() throws Exception {
       String name = "testbook";
 
-      mockMvc.perform(delete("/books/{name}", name))
+      mockMvc.perform(delete(WebConstants.URL_BOOK_DETAIL, name))
           .andExpect(status().isForbidden());
     }
 
@@ -235,7 +223,8 @@ class BookSecurityIntegrationTest {
 
       doNothing().when(bookService).deleteBookByName(name);
 
-      mockMvc.perform(delete("/books/{name}", name))
+      mockMvc.perform(delete(WebConstants.URL_BOOK_DETAIL, name)
+                          .with(csrf()))
           .andExpect(status().is3xxRedirection());
     }
   }

@@ -25,6 +25,7 @@ import com.forsy.repo.ClientBlockStatusRepository;
 import com.forsy.repo.ClientRepository;
 import com.forsy.repo.EmployeeRepository;
 import com.forsy.repo.OrderRepository;
+import com.forsy.util.MessageKeys;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Locale;
@@ -124,7 +125,7 @@ class ClientServiceImplTest {
       String message = "Client with email: " + email + " not found";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.getClientByEmail(email));
@@ -168,7 +169,7 @@ class ClientServiceImplTest {
       String message = "Client with email: " + email + " not found";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.updateClientByEmail(email, dto));
@@ -211,7 +212,7 @@ class ClientServiceImplTest {
       String message = "Client with email: " + email + " not found";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.deleteClientByEmail(email));
@@ -253,7 +254,7 @@ class ClientServiceImplTest {
       String message = "Client with email: " + email + " not found";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.changePassword(email, dto));
@@ -276,7 +277,7 @@ class ClientServiceImplTest {
       when(clientRepository.findByEmail(email)).thenReturn(Optional.of(client));
       when(passwordEncoder.matches(passwordDto, client.getPassword())).thenReturn(false);
       when(messageSource.getMessage(
-          eq("error.user.old.password.not.match"), any(), any(Locale.class)))
+          eq(MessageKeys.ERROR_USER_OLD_PASSWORD_NOT_MATCH), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(InvalidPasswordException.class, () -> clientService.changePassword(email, dto));
@@ -331,7 +332,8 @@ class ClientServiceImplTest {
       String message = "Client with email: " + email + " already exist";
 
       when(clientRepository.existsByEmail(email)).thenReturn(true);
-      when(messageSource.getMessage(eq("error.user.already.exist"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_USER_ALREADY_EXISTS), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(AlreadyExistException.class, () -> clientService.addClient(dto));
@@ -351,7 +353,8 @@ class ClientServiceImplTest {
 
       when(clientRepository.existsByEmail(email)).thenReturn(false);
       when(employeeRepository.existsByEmail(email)).thenReturn(true);
-      when(messageSource.getMessage(eq("error.user.already.exist"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_USER_ALREADY_EXISTS), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(AlreadyExistException.class, () -> clientService.addClient(dto));
@@ -400,7 +403,7 @@ class ClientServiceImplTest {
       String message = "Client with email: " + email + " not found";
 
       when(clientRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.addBalanceToClient(email, dto));
@@ -435,7 +438,7 @@ class ClientServiceImplTest {
       String message = "Client with email: " + email + " not found";
 
       when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.blockClient(email));
@@ -469,7 +472,7 @@ class ClientServiceImplTest {
       String message = "Client with email: " + email + " not found";
 
       when(clientBlockStatusRepository.findByClientEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> clientService.unblockClient(email));

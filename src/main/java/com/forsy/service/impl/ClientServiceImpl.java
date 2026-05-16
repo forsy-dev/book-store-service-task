@@ -15,6 +15,7 @@ import com.forsy.repo.ClientRepository;
 import com.forsy.repo.EmployeeRepository;
 import com.forsy.repo.OrderRepository;
 import com.forsy.service.ClientService;
+import com.forsy.util.MessageKeys;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -81,8 +82,8 @@ public class ClientServiceImpl implements ClientService {
   @Cacheable(value = "clients", key = "#email")
   public ClientDisplayDto getClientByEmail(String email) {
     return clientRepository.findByEmail(email).map(this::mapToClientDisplayDto).orElseThrow(() -> {
-      String message = messageSource.getMessage("error.user.not.found", new Object[]{email},
-                                                LocaleContextHolder.getLocale());
+      String message = messageSource.getMessage(
+          MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{email}, LocaleContextHolder.getLocale());
       return new NotFoundException(message);
     });
   }
@@ -98,8 +99,8 @@ public class ClientServiceImpl implements ClientService {
     log.info("Attempting to update client with email {}", email);
 
     Client client = clientRepository.findByEmail(email).orElseThrow(() -> {
-      String message = messageSource.getMessage("error.user.not.found", new Object[]{email},
-                                                LocaleContextHolder.getLocale());
+      String message = messageSource.getMessage(
+          MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{email}, LocaleContextHolder.getLocale());
       return new NotFoundException(message);
     });
     mapper.map(dto, client);
@@ -130,16 +131,18 @@ public class ClientServiceImpl implements ClientService {
       orderRepository.deleteAllByClientEmail(email);
       ClientBlockStatus clientBlockStatus =
           clientBlockStatusRepository.findByClientEmail(email).orElseThrow(() -> {
-            String message = messageSource.getMessage("error.user.not.found", new Object[]{email},
-                                                      LocaleContextHolder.getLocale());
+            String message = messageSource.getMessage(
+                MessageKeys.ERROR_USER_NOT_FOUND,
+                new Object[]{email},
+                LocaleContextHolder.getLocale());
             return new NotFoundException(message);
           });
-      clientRepository.delete(client);
       clientBlockStatusRepository.delete(clientBlockStatus);
+      clientRepository.delete(client);
       log.info("Client with email {} deleted successfully", email);
     }, () -> {
-      String message = messageSource.getMessage("error.user.not.found", new Object[]{email},
-                                                LocaleContextHolder.getLocale());
+      String message = messageSource.getMessage(
+          MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{email}, LocaleContextHolder.getLocale());
       throw new NotFoundException(message);
     });
   }
@@ -162,7 +165,7 @@ public class ClientServiceImpl implements ClientService {
         || employeeRepository.existsByEmail(dto.getEmail())
         || clientBlockStatusRepository.existsByClientEmail(dto.getEmail())) {
       String message =
-          messageSource.getMessage("error.user.already.exist",
+          messageSource.getMessage(MessageKeys.ERROR_USER_ALREADY_EXISTS,
                                    new Object[]{dto.getEmail()}, LocaleContextHolder.getLocale());
       throw new AlreadyExistException(message);
     }
@@ -170,8 +173,8 @@ public class ClientServiceImpl implements ClientService {
     client.setPassword(passwordEncoder.encode(dto.getPassword()));
     client.setBalance(BigDecimal.ZERO);
     client = clientRepository.save(client);
-    clientBlockStatusRepository.save(ClientBlockStatus.builder().clientEmail(
-        dto.getEmail()).build());
+    clientBlockStatusRepository.save(ClientBlockStatus.builder().client(
+        client).build());
     log.info("Client with email {} added successfully", client.getEmail());
     return mapToClientDisplayDto(client);
   }
@@ -187,14 +190,15 @@ public class ClientServiceImpl implements ClientService {
   public void changePassword(String email, ChangePasswordDto dto) {
     log.info("Attempting to change password for client with email {}", email);
     Client client = clientRepository.findByEmail(email).orElseThrow(() -> {
-      String message = messageSource.getMessage("error.user.not.found", new Object[]{email},
-                                                LocaleContextHolder.getLocale());
+      String message = messageSource.getMessage(
+          MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{email}, LocaleContextHolder.getLocale());
       return new NotFoundException(message);
     });
     if (!passwordEncoder.matches(dto.getOldPassword(), client.getPassword())) {
       String message =
-          messageSource.getMessage("error.user.old.password.not.match", new Object[]{email},
-                                   LocaleContextHolder.getLocale());
+          messageSource.getMessage(
+              MessageKeys.ERROR_USER_OLD_PASSWORD_NOT_MATCH, new Object[]{email},
+              LocaleContextHolder.getLocale());
       throw new InvalidPasswordException(message);
     }
     client.setPassword(passwordEncoder.encode(dto.getNewPassword()));
@@ -210,8 +214,8 @@ public class ClientServiceImpl implements ClientService {
   public ClientDisplayDto addBalanceToClient(String email, AddBalanceDto dto) {
     log.info("Attempting to add balance {} to client with email {}", dto.getAmount(), email);
     Client client = clientRepository.findByEmail(email).orElseThrow(() -> {
-      String message = messageSource.getMessage("error.user.not.found", new Object[]{email},
-                                                LocaleContextHolder.getLocale());
+      String message = messageSource.getMessage(
+          MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{email}, LocaleContextHolder.getLocale());
       return new NotFoundException(message);
     });
     client.setBalance(client.getBalance().add(dto.getAmount()));
@@ -251,7 +255,7 @@ public class ClientServiceImpl implements ClientService {
     ClientBlockStatus clientBlockStatus =
         clientBlockStatusRepository.findByClientEmail(email).orElseThrow(() -> {
           String message =
-              messageSource.getMessage("error.user.not.found", new Object[]{email},
+              messageSource.getMessage(MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{email},
                                        LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });
@@ -266,7 +270,7 @@ public class ClientServiceImpl implements ClientService {
   private ClientDisplayDto mapToClientDisplayDto(Client client) {
     ClientBlockStatus status =
         clientBlockStatusRepository.findByClientEmail(client.getEmail()).orElseThrow(() -> {
-          String message = messageSource.getMessage("error.user.not.found", new Object[]{
+          String message = messageSource.getMessage(MessageKeys.ERROR_USER_NOT_FOUND, new Object[]{
               client.getEmail()}, LocaleContextHolder.getLocale());
           return new NotFoundException(message);
         });

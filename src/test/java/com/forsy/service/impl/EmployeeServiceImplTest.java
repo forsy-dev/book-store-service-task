@@ -22,6 +22,7 @@ import com.forsy.exception.NotFoundException;
 import com.forsy.model.Employee;
 import com.forsy.repo.ClientRepository;
 import com.forsy.repo.EmployeeRepository;
+import com.forsy.util.MessageKeys;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Locale;
@@ -107,7 +108,7 @@ class EmployeeServiceImplTest {
       String message = "Employee with email: " + email + " not found";
 
       when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> employeeService.getEmployeeByEmail(email));
@@ -155,7 +156,7 @@ class EmployeeServiceImplTest {
       String message = "Employee with email: " + email + " not found";
 
       when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class,
@@ -179,7 +180,7 @@ class EmployeeServiceImplTest {
       String message = "Employee must be at least 18 years old";
 
       when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
-      when(messageSource.getMessage(eq("error.user.underage"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_UNDERAGE), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(AgeRestrictionException.class,
@@ -212,11 +213,10 @@ class EmployeeServiceImplTest {
     @Test
     void testDeleteEmployeeByEmailShouldReturnThrowExceptionWhenEmployeeNotFound() {
       String email = "test@test.com";
-      Employee employee = Employee.builder().email(email).build();
       String message = "Employee with email: " + email + " not found";
 
       when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> employeeService.deleteEmployeeByEmail(email));
@@ -267,7 +267,8 @@ class EmployeeServiceImplTest {
       String message = "Employee with email: " + email + " already exist";
 
       when(employeeRepository.existsByEmail(email)).thenReturn(true);
-      when(messageSource.getMessage(eq("error.user.already.exist"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_USER_ALREADY_EXISTS), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(AlreadyExistException.class, () -> employeeService.addEmployee(dto));
@@ -284,12 +285,12 @@ class EmployeeServiceImplTest {
     void testAddEmployeeShouldThrowExceptionWhenClientEmailAlreadyExist() {
       String email = "test@test.com";
       final EmployeeDto dto = EmployeeDto.builder().email(email).build();
-      ;
       String message = "Client with email: " + email + " already exist";
 
       when(employeeRepository.existsByEmail(email)).thenReturn(false);
       when(clientRepository.existsByEmail(email)).thenReturn(true);
-      when(messageSource.getMessage(eq("error.user.already.exist"), any(), any(Locale.class)))
+      when(messageSource.getMessage(
+          eq(MessageKeys.ERROR_USER_ALREADY_EXISTS), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(AlreadyExistException.class, () -> employeeService.addEmployee(dto));
@@ -310,7 +311,7 @@ class EmployeeServiceImplTest {
       String message = "Employee must be at least 18 years old";
 
       when(employeeRepository.existsByEmail(email)).thenReturn(false);
-      when(messageSource.getMessage(eq("error.user.underage"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_UNDERAGE), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(AgeRestrictionException.class, () -> employeeService.addEmployee(dto));
@@ -355,7 +356,7 @@ class EmployeeServiceImplTest {
       String message = "Employee with email: " + email + " not found";
 
       when(employeeRepository.findByEmail(email)).thenReturn(Optional.empty());
-      when(messageSource.getMessage(eq("error.user.not.found"), any(), any(Locale.class)))
+      when(messageSource.getMessage(eq(MessageKeys.ERROR_USER_NOT_FOUND), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(NotFoundException.class, () -> employeeService.changePassword(email, dto));
@@ -378,7 +379,7 @@ class EmployeeServiceImplTest {
       when(employeeRepository.findByEmail(email)).thenReturn(Optional.of(employee));
       when(passwordEncoder.matches(dtoPassword, employee.getPassword())).thenReturn(false);
       when(messageSource.getMessage(
-          eq("error.user.old.password.not.match"), any(), any(Locale.class)))
+          eq(MessageKeys.ERROR_USER_OLD_PASSWORD_NOT_MATCH), any(), any(Locale.class)))
           .thenReturn(message);
 
       assertThrows(InvalidPasswordException.class,

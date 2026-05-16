@@ -154,6 +154,7 @@ public class ClientController {
 
     Cookie jwtCookie = new Cookie("access_token", null);
     jwtCookie.setHttpOnly(true);
+    jwtCookie.setSecure(true);
     jwtCookie.setPath("/");
     jwtCookie.setMaxAge(0);
     response.addCookie(jwtCookie);
