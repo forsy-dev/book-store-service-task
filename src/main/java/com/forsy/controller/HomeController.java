@@ -15,6 +15,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * Controller responsible for public-facing navigation and account creation.
@@ -123,7 +125,7 @@ public class HomeController {
    * @param model the Spring MVC model to populate with error status details
    * @return the generic error view name
    */
-  @GetMapping("/access-denied")
+  @RequestMapping(value = "/access-denied", method = {RequestMethod.GET, RequestMethod.POST})
   public String accessDenied(Model model) {
     model.addAttribute(WebConstants.ATTR_STATUS_CODE, 403);
     model.addAttribute(WebConstants.ATTR_STATUS_REASON, "Forbidden");

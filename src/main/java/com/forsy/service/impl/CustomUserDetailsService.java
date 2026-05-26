@@ -52,7 +52,6 @@ public class CustomUserDetailsService implements UserDetailsService {
    *                                   has no authorities
    */
   @Override
-  @Cacheable(value = "userDetails", key = "#email")
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Optional<Employee> employeeOpt = employeeRepository.findByEmail(email);
     if (employeeOpt.isPresent()) {
@@ -97,10 +96,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     return new org.springframework.security.core.userdetails.User(
         user.getEmail(),
         user.getPassword(),
-        !isBlocked, // isEnabled: false if the user is blocked
-        true,       // accountNonExpired
-        true,       // credentialsNonExpired
-        true,       // accountNonLocked
+        !isBlocked,
+        true,
+        true,
+        true,
         authorities);
   }
 }

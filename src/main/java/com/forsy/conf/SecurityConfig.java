@@ -126,8 +126,6 @@ public class SecurityConfig {
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
-    http.csrf(csrf -> csrf.ignoringRequestMatchers(
-        AntPathRequestMatcher.antMatcher("/h2-console/**")));
     return http.build();
   }
 

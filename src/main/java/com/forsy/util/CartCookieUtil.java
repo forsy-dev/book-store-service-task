@@ -71,6 +71,7 @@ public class CartCookieUtil {
   public void saveCartToCookie(HttpServletResponse response, Map<String, Integer> cart) {
     String value = serializeCart(cart);
     Cookie cookie = new Cookie(CART_COOKIE_NAME, value);
+    cookie.setSecure(true);
     cookie.setPath("/");
     cookie.setHttpOnly(true);
     cookie.setMaxAge(COOKIE_MAX_AGE);
@@ -84,6 +85,7 @@ public class CartCookieUtil {
    */
   public void deleteCartCookie(HttpServletResponse response) {
     Cookie cookie = new Cookie(CART_COOKIE_NAME, "");
+    cookie.setSecure(true);
     cookie.setPath("/");
     cookie.setHttpOnly(true);
     cookie.setMaxAge(0);

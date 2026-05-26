@@ -38,15 +38,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                   @NonNull FilterChain filterChain)
       throws ServletException, IOException {
 
+    String uri = request.getRequestURI();
     String jwt = jwtUtils.getTokenFromRequest(request);
+    if (jwt == null || jwt.isEmpty() || "null".equals(jwt)) {
+      filterChain.doFilter(request, response);
+      return;
+    }
     String username = null;
 
-    if (jwt != null) {
-      try {
-        username = jwtUtils.extractUsername(jwt);
-      } catch (Exception e) {
-        logger.error("JWT Token error: " + e.getMessage());
-      }
+    try {
+      username = jwtUtils.extractUsername(jwt);
+    } catch (Exception e) {
+      logger.error("JWT Token error: " + e.getMessage());
     }
 
     if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
